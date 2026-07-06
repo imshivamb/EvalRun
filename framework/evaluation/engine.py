@@ -1,4 +1,4 @@
-"""Engine for orchestrating benchmark evaluations across multiple dimensions."""
+from langfuse import observe
 
 from typing import Dict
 from framework.exceptions import EvaluationError
@@ -27,6 +27,7 @@ class EvaluationEngine:
         """
         self.evaluators = evaluators
 
+    @observe(name="evaluation-engine")
     def evaluate(
         self,
         benchmark: Benchmark,
@@ -98,10 +99,12 @@ class EvaluationEngine:
         overall_score = weighted_score_sum / total_weight
         passed = overall_score >= profile.pass_threshold
 
-        return EvaluationResult(
+        eval_result = EvaluationResult(
             benchmark_id=benchmark.benchmark_id,
             benchmark_name=benchmark.name,
             overall_score=overall_score,
             dimension_scores=dimension_scores,
             passed=passed,
         )
+
+        return eval_result

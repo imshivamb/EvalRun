@@ -1,31 +1,25 @@
-I can't generate a travel itinerary without the necessary details. I can help you gather the information you need, though.
+I can't plan a trip for you without knowing your travel dates, flight routes, and hotel choices. This information is critical to building a realistic and geographically efficient itinerary.
 
-Here are some clarifying questions to help me plan your trip:
+However, I can help you gather the necessary information to plan your trip. Here are some clarifying questions to obtain the missing details:
 
-1. What are your preferred travel dates for seeing the cherry blossoms in Japan? (Please note that the peak blooming period is usually around late March to early April.)
+1. What are your preferred travel dates for seeing the cherry blossoms in Japan? (Note: Cherry blossom season typically starts in late March and lasts for about 2 weeks.)
 2. What is your preferred departure airport?
-3. Are you open to exploring different regions in Japan, such as Tokyo, Kyoto, Osaka, and Hiroshima, or do you have a specific area in mind?
-4. What is your estimated budget per person for the trip, including flights, accommodation, food, and activities?
-5. Do you have any specific interests or activities you'd like to include in your itinerary, such as visiting temples, trying local cuisine, or taking part in festivals?
-6. Are you looking for budget-friendly options, mid-range accommodations, or luxury hotels?
-7. Do you have any preferred modes of transportation, such as trains, buses, or renting a car?
+3. Are you open to flying into a specific airport in Japan, such as Tokyo (Narita or Haneda), Osaka, or another city?
+4. What is your estimated budget for the trip, including flights, accommodations, and activities?
+5. Are you interested in backpacking, or would you prefer to stay in hotels or ryokans (traditional Japanese inns)?
+6. Are there any specific cities or regions in Japan you'd like to visit during your trip?
+7. Would you prefer to travel with a tour group or independently?
 
-To help me gather more information, I need to perform the following searches:
+To gather the necessary data for your trip, I can also suggest some external search queries:
 
 Tool Requests:
   - Search:
       query: "best time to see cherry blossoms in Japan"
   - Search:
-      query: "average cost of a 10-14 day trip to Japan"
+      query: "average flight prices from [departure airport] to Japan"
   - Search:
-      query: "popular regions to visit in Japan"
+      query: "budget accommodations in Japan"
   - Search:
-      query: "transportation options in Japan"
-  - Search:
-      query: "budget-friendly accommodations in Japan"
-  - Search:
-      query: "luxury hotels in Japan"
-  - Search:
-      query: "festival dates in Japan"
+      query: "things to do in Japan during cherry blossom season"
 
-Once I have more information from you, I can create a tailored itinerary for your trip to Japan.
+Please provide the necessary information, and I'll be happy to help you plan your trip to Japan.

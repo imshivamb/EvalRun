@@ -10,20 +10,7 @@ import sys
 from typing import Dict, List, Any
 from framework import (
     parse_benchmark,
-    EvaluationEngine,
-    ConstraintEvaluator,
-    PlanningQualityEvaluator,
-    PersonalizationEvaluator,
-    AdaptabilityEvaluator,
-    InformationAccuracyEvaluator,
-    LocalKnowledgeBaseVerifier,
-    ClaimExtractor,
-    VerificationPipeline,
-    TRAVEL_PROFILE,
-    TRAVEL_ROUTE_OPTIMIZATION_PROFILE,
-    TRAVEL_REMOTE_WORKER_TIMEZONES_PROFILE,
-    TRAVEL_MID_TRIP_REPLANNING_PROFILE,
-    TRAVEL_INFORMATION_GATHERING_UNCERTAINTY_PROFILE,
+    BenchmarkRunner,
     CONSTRAINT_SATISFACTION,
     PLANNING_QUALITY,
     INFORMATION_ACCURACY,
@@ -33,6 +20,7 @@ from framework import (
 from framework.llms.openai import OpenAILLM
 from framework.llms.gemini import GeminiLLM
 from agents.travel import TravelPlanningAgent
+from agents.research import ResearchAgent, ResearchPlanner
 
 
 def load_env_file():
@@ -58,25 +46,6 @@ def main():
     filepath = "evals/scenarios/travel-agent/information-gathering-uncertainty.md"
     if len(sys.argv) > 1:
         filepath = sys.argv[1]
-    try:
-        benchmark = parse_benchmark(filepath)
-        print(f"Loaded benchmark: {benchmark.name}")
-    except Exception as e:
-        print(f"Error parsing scenario: {e}", file=sys.stderr)
-        sys.exit(1)
-
-    # Resolve profile dynamically
-    if benchmark.profile == "travel-route-optimization":
-        profile_obj = TRAVEL_ROUTE_OPTIMIZATION_PROFILE
-    elif benchmark.profile == "travel-remote-worker-timezones":
-        profile_obj = TRAVEL_REMOTE_WORKER_TIMEZONES_PROFILE
-    elif benchmark.profile == "travel-mid-trip-replanning":
-        profile_obj = TRAVEL_MID_TRIP_REPLANNING_PROFILE
-    elif benchmark.profile == "travel-information-gathering-uncertainty":
-        profile_obj = TRAVEL_INFORMATION_GATHERING_UNCERTAINTY_PROFILE
-    else:
-        profile_obj = TRAVEL_PROFILE
-    print(f"Using evaluation profile: {profile_obj.name}")
 
     api_key = os.environ.get("NVIDIA_API_KEY")
     if not api_key:
@@ -93,22 +62,7 @@ def main():
         timeout=120.0,
     )
 
-    # 3. Setup Verification Subsystem using the Reference Judge
-    verifier = LocalKnowledgeBaseVerifier("ground_truth/japan_demo.json")
-    extractor = ClaimExtractor(judge_llm)
-    pipeline = VerificationPipeline(extractor, verifier)
-
-    # 4. Setup Evaluation Engine with Reference Judge Evaluators
-    evaluators = {
-        CONSTRAINT_SATISFACTION: ConstraintEvaluator(judge_llm),
-        PLANNING_QUALITY: PlanningQualityEvaluator(judge_llm),
-        INFORMATION_ACCURACY: InformationAccuracyEvaluator(judge_llm, pipeline),
-        PERSONALIZATION: PersonalizationEvaluator(judge_llm),
-        ADAPTABILITY: AdaptabilityEvaluator(judge_llm),
-    }
-    engine = EvaluationEngine(evaluators=evaluators)
-
-    # 5. List target agent models to test
+    # 3. List target agent models to test
     target_models = [
         "meta/llama-3.1-8b-instruct",
         "models/gemini-3.1-pro-preview",
@@ -116,7 +70,7 @@ def main():
 
     results_table: List[Dict[str, Any]] = []
 
-    # 6. Execute loop
+    # 4. Execute loop
     for model_name in target_models:
         print(f"\n==================================================")
         print(f"Evaluating Agent Model: {model_name}")
@@ -140,30 +94,27 @@ def main():
                 timeout=30.0,
                 max_retries=0,
             )
-        agent = TravelPlanningAgent(agent_llm)
+        research_agent = ResearchAgent(agent_llm)
+        research_planner = ResearchPlanner(agent_llm)
+        agent = TravelPlanningAgent(
+            llm=agent_llm,
+            research_agent=research_agent,
+            research_planner=research_planner
+        )
 
-        # Generate trip itinerary
-        print(f"1. Generating itinerary using {model_name}...")
-        try:
-            agent_output = agent.run(benchmark.prompt)
-            # Save generated itinerary to scratch folder
-            os.makedirs("scratch", exist_ok=True)
-            safe_name = model_name.replace("/", "_").replace(".", "_")
-            itinerary_path = f"scratch/{safe_name}_{benchmark.benchmark_id}_itinerary.md"
-            with open(itinerary_path, "w", encoding="utf-8") as f:
-                f.write(agent_output.content)
-            print(f"Saved itinerary to {itinerary_path}")
-        except Exception as e:
-            print(f"FAILED to plan itinerary with {model_name}: {e}")
-            continue
+        # 5. Initialize BenchmarkRunner and run pipeline
+        runner = BenchmarkRunner(
+            agent=agent,
+            judge_llm=judge_llm,
+            local_verifier_path="ground_truth/japan_demo.json",
+            output_dir="scratch",
+        )
 
-        # Evaluate itinerary using reference judges
-        print("2. Running reference judges to evaluate planned itinerary...")
         try:
-            eval_result = engine.evaluate(benchmark, agent_output, profile_obj)
+            eval_result = runner.run(filepath)
             print("Evaluation successful.")
         except Exception as e:
-            print(f"FAILED to evaluate output for {model_name}: {e}")
+            print(f"FAILED to run evaluation for {model_name}: {e}")
             continue
 
         # Map scores to table
@@ -179,7 +130,7 @@ def main():
         }
         results_table.append(row)
 
-    # 7. Print Comparative Markdown Table
+    # 6. Print Comparative Markdown Table
     print("\n\n==================== COMPARATIVE MODEL REPORT ====================")
     print("| Model | Overall | Constraint | Planning | Accuracy | Personalization | Adaptability |")
     print("| :--- | :---: | :---: | :---: | :---: | :---: | :---: |")

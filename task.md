@@ -2,3 +2,24 @@
 - [x] Define `TRAVEL_INFORMATION_GATHERING_UNCERTAINTY_PROFILE` in `framework/profiles/travel.py` and register exports
 - [x] Update `compare_models.py` to resolve the new profile dynamically
 - [x] Execute comparative evaluations and verify output itineraries for Scenario 5
+- [x] Implement `BenchmarkRunner` to automate pipeline orchestration and reporting
+- [x] Refactor `compare_models.py` to use `BenchmarkRunner`
+- [x] Run unit tests and verify runner outputs
+- [x] Build `ResearchAgent` under `agents/research/`
+- [x] Add unit tests in `tests/test_research_agent.py` and verify implementation
+- [x] Integrate the `ResearchAgent` into the `TravelPlanningAgent`
+- [x] Create unit tests in `tests/test_agent_collaboration.py` and verify implementation
+- [x] Wire Langfuse tracing (`@observe`) into `TravelPlanningAgent`
+- [x] Wire Langfuse tracing (`@observe`) into `ResearchAgent`
+- [x] Wire Langfuse tracing (`@observe`) into `EvaluationEngine`
+- [x] Extract query planning role into separate `ResearchPlanner` component
+- [x] Import `observe` directly from `langfuse` root package
+- [x] Run end-to-end verification of multi-agent collaboration with Langfuse enabled
+- [x] Design the `SessionMemory` data model and API
+- [x] Implement `SessionMemory` class and structure sub-dataclasses (`Booking`, `RemoteWorkSchedule`) under `framework/memory/`
+- [x] Integrate `SessionMemory` context rendering into `TravelPlanningAgent.run`
+- [x] Add unit tests for memory implementation and planner integration
+- [x] Clean up dependency construction and add newline to `TravelPlanningAgent`
+- [x] Build `ReflectionAgent` under `agents/reflection/`
+- [x] Add unit tests in `tests/test_reflection_agent.py` and verify implementation
+- [x] Refactor memory architecture: extract travel-specific schemas to `agents/travel/session.py` (`TravelSessionMemory`), exposing generic `BaseSessionMemory` in `framework/memory/`
