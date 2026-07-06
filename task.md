@@ -1,0 +1,4 @@
+- [x] Create `evals/scenarios/travel-agent/information-gathering-uncertainty.md`
+- [x] Define `TRAVEL_INFORMATION_GATHERING_UNCERTAINTY_PROFILE` in `framework/profiles/travel.py` and register exports
+- [x] Update `compare_models.py` to resolve the new profile dynamically
+- [x] Execute comparative evaluations and verify output itineraries for Scenario 5

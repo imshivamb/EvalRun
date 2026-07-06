@@ -19,6 +19,7 @@ class Benchmark:
     pass_criteria: List[str]
     failure_conditions: List[str]
     notes: List[str]
+    profile: str = "travel-agent"
 
 
 @dataclass

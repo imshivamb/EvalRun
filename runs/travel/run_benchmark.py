@@ -1,14 +1,14 @@
-"""Orchestration script to run a travel agent evaluation experiment.
+"""Orchestration script to run a travel agent evaluation experiment using a real LLM.
 
 To run this experiment:
     PYTHONPATH=. python3 runs/travel/run_benchmark.py
 """
 
+import os
 import sys
 from framework import (
     parse_benchmark,
     EvaluationEngine,
-    MockLLM,
     ConstraintEvaluator,
     PlanningQualityEvaluator,
     PersonalizationEvaluator,
@@ -25,10 +25,26 @@ from framework import (
     PERSONALIZATION,
     ADAPTABILITY,
 )
+from framework.llms.openai import OpenAILLM
 from agents.travel import TravelPlanningAgent
 
 
-def print_report(result, report):
+def load_env_file():
+    """Manually parses .env file if it exists to avoid python-dotenv dependency."""
+    if os.path.exists(".env"):
+        with open(".env", "r") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                if "=" in line:
+                    key, val = line.split("=", 1)
+                    key = key.strip()
+                    val = val.strip().strip('"').strip("'")
+                    os.environ[key] = val
+
+
+def print_report(result, report, agent_output):
     """Prints a structured visual console evaluation report."""
     print("\n==================== EVALUATION REPORT ====================")
     print(f"Benchmark Scenario: {result.benchmark_name} ({result.benchmark_id})")
@@ -37,6 +53,10 @@ def print_report(result, report):
     print(
         f"Pass Status:        {'PASS' if result.passed else 'FAIL'} (Threshold: {TRAVEL_PROFILE.pass_threshold})"
     )
+
+    print("\n---------------- GENERATED ITINERARY ----------------")
+    print(agent_output.content)
+    print("-----------------------------------------------------")
 
     print("\nExtracted Claims & Verifications")
     print("-----------------------------------------------------------")
@@ -64,6 +84,9 @@ def print_report(result, report):
 
 
 def main():
+    # Load env variables from .env
+    load_env_file()
+
     # 1. Ingest Travel Agent Benchmark Scenario
     filepath = "evals/scenarios/travel-agent/budget-constrained-itinerary.md"
     try:
@@ -72,85 +95,30 @@ def main():
         print(f"Error parsing scenario: {e}", file=sys.stderr)
         sys.exit(1)
 
-    # 2. Setup Mock Responses for Agent Generation and Evaluators
-    mock_responses = [
-        # Call 0: TravelAgent generating the itinerary output
-        "29-Day Backpacking Itinerary for Japan and South Korea.\n"
-        "Budget: ₹240,000 (INR) overall.\n"
-        "Route: Seoul (7 days) -> Tokyo (14 days) -> Kyoto (8 days).\n"
-        "Accommodation: Guesthouses and budget hostels throughout.",
-        # Call 1: Constraint Satisfaction JSON response
-        """
-        ```json
-        {
-          "score": 95,
-          "reason": "The agent perfectly stayed within the 250,000 INR budget (using 240,000 INR) and matched the 29-day length and backpacking style."
-        }
-        ```
-        """,
-        # Call 2: Planning Quality JSON response
-        """
-        ```json
-        {
-          "score": 88,
-          "reason": "Geographically sensible route (Seoul to Tokyo to Kyoto). Pacing is realistic, though Kyoto could be trimmed slightly."
-        }
-        ```
-        """,
-        # Call 3: Information Accuracy - Claim Extraction LLM Output
-        """
-        ```json
-        [
-          {
-            "subject": "gyeongbokgung",
-            "predicate": "closed_days",
-            "value": "Tuesday",
-            "claim_type": "timing"
-          },
-          {
-            "subject": "teamlab_planets",
-            "predicate": "exists",
-            "value": "true",
-            "claim_type": "existence"
-          }
-        ]
-        ```
-        """,
-        # Call 4: Information Accuracy - Final Evidence Grading LLM Output
-        """
-        ```json
-        {
-          "score": 98,
-          "reason": "All extracted factual claims (Gyeongbokgung closing days, TeamLab Planets existence) were verified against ground-truth authoritative records."
-        }
-        ```
-        """,
-        # Call 5: Personalization JSON response
-        """
-        ```json
-        {
-          "score": 92,
-          "reason": "Excellent tailoring. Directly scheduled around the traveler's 4-hour remote work slots, recommended thrift shops in Harajuku, and aligned with walking preferences."
-        }
-        ```
-        """,
-        # Call 6: Adaptability JSON response
-        """
-        ```json
-        {
-          "score": 80,
-          "reason": "Successfully handled intermediate flight delays and budget reduction of 10,000 INR by shifting from express rail to standard transit, keeping primary sightseeing intact."
-        }
-        ```
-        """,
-    ]
-    llm = MockLLM(responses=mock_responses)
+    # 2. Setup Real LLM (OpenAI-compatible) using NVIDIA MiniMax endpoint
+    api_key = os.environ.get("NVIDIA_API_KEY")
+    if not api_key:
+        print("Error: NVIDIA_API_KEY is not set in environment or .env file.", file=sys.stderr)
+        sys.exit(1)
+
+    model_name = "meta/llama-3.1-8b-instruct"
+    llm = OpenAILLM(
+        model_name=model_name,
+        api_key=api_key,
+        base_url="https://integrate.api.nvidia.com/v1",
+        timeout=120.0,
+    )
 
     # 3. Create Travel Planning Agent
     agent = TravelPlanningAgent(llm)
 
     # 4. Generate the itinerary from benchmark user prompt
-    agent_output = agent.run(benchmark.prompt)
+    print(f"Executing TravelPlanningAgent on the real model ({model_name}) to plan trip...")
+    try:
+        agent_output = agent.run(benchmark.prompt)
+    except Exception as e:
+        print(f"Failed to generate travel itinerary: {e}", file=sys.stderr)
+        sys.exit(1)
 
     # 5. Initialize the verification pipeline using Dependency Injection
     verifier = LocalKnowledgeBaseVerifier("ground_truth/japan_demo.json")
@@ -168,6 +136,7 @@ def main():
     engine = EvaluationEngine(evaluators=evaluators)
 
     # 7. Evaluate the itinerary
+    print(f"Running evaluation engine judges over the itinerary using {model_name}...")
     try:
         result = engine.evaluate(benchmark, agent_output, TRAVEL_PROFILE)
     except Exception as e:
@@ -175,12 +144,15 @@ def main():
         sys.exit(1)
 
     # 8. Extract verifier report for print presentation layout
-    pipeline_llm = MockLLM(responses=[mock_responses[3]])
-    demo_pipeline = VerificationPipeline(ClaimExtractor(pipeline_llm), verifier)
-    report = demo_pipeline.run(agent_output)
+    print("Running claim extractor and verification pipeline...")
+    try:
+        report = pipeline.run(agent_output)
+    except Exception as e:
+        print(f"Verification pipeline failed: {e}", file=sys.stderr)
+        sys.exit(1)
 
     # 9. Print final report
-    print_report(result, report)
+    print_report(result, report, agent_output)
 
 
 if __name__ == "__main__":

@@ -26,6 +26,6 @@ def parse_json_markdown(text: str) -> Any:
     if cleaned.endswith("```"):
         cleaned = cleaned[:-3]
     try:
-        return json.loads(cleaned.strip())
+        return json.loads(cleaned.strip(), strict=False)
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON string: {e}") from e

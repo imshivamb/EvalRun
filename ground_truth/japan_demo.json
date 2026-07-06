@@ -4,9 +4,411 @@
     "city": "Tokyo"
   },
   "gyeongbokgung": {
+    "exists": "in Seoul",
     "closed_days": "Tuesday"
   },
-  "jr_tokyo_kyoto": {
-    "duration_minutes": "135"
+  "gyeongbokgung_palace": {
+    "exists": "in Seoul",
+    "closed_days": "Tuesday"
+  },
+  "hongdae_guesthouse": {
+    "exists": "true",
+    "price": "3000 KRW",
+    "ticket_price": "3000 KRW",
+    "cost": "3000 KRW",
+    "location": "Seoul"
+  },
+  "nine_tree_premier_hotel": {
+    "exists": "true",
+    "price": "12000 KRW",
+    "ticket_price": "12000 KRW",
+    "cost": "12000 KRW",
+    "location": "Seoul"
+  },
+  "arex_train": {
+    "exists": "true",
+    "ticket_price": "2200 KRW",
+    "cost": "2200 KRW",
+    "price": "2200 KRW"
+  },
+  "subway_system": {
+    "exists": "true",
+    "ticket_price": "1400 KRW",
+    "cost": "1400 KRW",
+    "price": "1400 KRW",
+    "distance_to": "from Incheon International Airport"
+  },
+  "shimokitazawa_hostel": {
+    "exists": "true",
+    "price": "3500 KRW",
+    "ticket_price": "3500 KRW",
+    "cost": "3500 KRW",
+    "location": "Tokyo"
+  },
+  "hotel_gajoen_tokyo": {
+    "exists": "true",
+    "price": "8000 KRW",
+    "ticket_price": "8000 KRW",
+    "cost": "8000 KRW",
+    "location": "Tokyo"
+  },
+  "japan_airlines_flight": {
+    "exists": "true",
+    "ticket_price": "45000 KRW",
+    "cost": "45000 KRW",
+    "price": "45000 KRW"
+  },
+  "jr_train_system": {
+    "exists": "true",
+    "ticket_price": "5000-10000 KRW",
+    "cost": "5000-10000 KRW",
+    "price": "5000-10000 KRW"
+  },
+  "hongdae_neighborhood": {
+    "exists": "in Seoul",
+    "location": "Seoul",
+    "distance_to": "from Incheon International Airport"
+  },
+  "bukchon_hanok_village": {
+    "exists": "in Seoul",
+    "location": "Seoul"
+  },
+  "insadong_neighborhood": {
+    "exists": "in Seoul",
+    "location": "Seoul"
+  },
+  "demilitarized_zone_dmz": {
+    "exists": "near Paju",
+    "location": "Korea"
+  },
+  "myeong_dong_shopping_district": {
+    "exists": "in Seoul",
+    "location": "Seoul"
+  },
+  "hongdae_free_market": {
+    "exists": "every Saturday",
+    "day": "Saturday"
+  },
+  "shimokitazawa_neighborhood": {
+    "exists": "in Tokyo",
+    "location": "Tokyo"
+  },
+  "kichijoji_neighborhood": {
+    "exists": "near Shimokitazawa",
+    "location": "Tokyo"
+  },
+  "tsurugaoka_hachiman_shrine": {
+    "exists": "in Kamakura",
+    "location": "Kamakura"
+  },
+  "tokyo_skytree": {
+    "exists": "in Tokyo",
+    "location": "Tokyo"
+  },
+  "asakusa_neighborhood": {
+    "exists": "in Tokyo",
+    "location": "Tokyo"
+  },
+  "ueno_park": {
+    "exists": "in Tokyo",
+    "location": "Tokyo"
+  },
+  "toshogu_shrine": {
+    "exists": "in Nikko",
+    "location": "Nikko"
+  },
+  "akihabara_neighborhood": {
+    "exists": "in Tokyo",
+    "location": "Tokyo"
+  },
+  "sumida_river": {
+    "exists": "in Tokyo",
+    "location": "Tokyo"
+  },
+  "meiji_shrine": {
+    "exists": "in Tokyo",
+    "location": "Tokyo"
+  },
+  "yoyogi_park": {
+    "exists": "in Tokyo",
+    "location": "Tokyo"
+  },
+  "harajuku_neighborhood": {
+    "exists": "in Tokyo",
+    "location": "Tokyo"
+  },
+  "accommodation": {
+    "cost": "150000 KRW",
+    "price": "150000 KRW"
+  },
+  "transportation": {
+    "cost": "40000 KRW",
+    "price": "40000 KRW"
+  },
+  "food_and_drink": {
+    "cost": "30000 KRW",
+    "price": "30000 KRW"
+  },
+  "attractions_and_activities": {
+    "cost": "20000 KRW",
+    "price": "20000 KRW"
+  },
+  "total_cost": {
+    "cost": "240000 KRW",
+    "price": "240000 KRW"
+  },
+  "tokyo": {
+    "exists": "true",
+    "distance_to": "from Incheon International Airport"
+  },
+  "ks_house": {
+    "exists": "true",
+    "location": "Tokyo"
+  },
+  "hostel_52": {
+    "exists": "true",
+    "location": "Tokyo"
+  },
+  "sensoji_temple": {
+    "exists": "true",
+    "location": "Tokyo"
+  },
+  "tsukiji_outer_market": {
+    "exists": "true",
+    "location": "Tokyo"
+  },
+  "shinjuku_gyoen": {
+    "exists": "true",
+    "location": "Tokyo"
+  },
+  "golden_gai": {
+    "exists": "true",
+    "location": "Tokyo"
+  },
+  "willer_express": {
+    "exists": "true",
+    "cost": "40-60 USD"
+  },
+  "arashiyama_bamboo_grove": {
+    "exists": "true",
+    "location": "Kyoto"
+  },
+  "fushimi_inari_taisha": {
+    "exists": "true",
+    "location": "Kyoto"
+  },
+  "nara_park": {
+    "exists": "true",
+    "location": "Nara"
+  },
+  "todai_ji": {
+    "exists": "true",
+    "location": "Nara"
+  },
+  "dotonbori": {
+    "exists": "true",
+    "location": "Osaka"
+  },
+  "haeundae_beach": {
+    "exists": "true",
+    "location": "Busan"
+  },
+  "gamcheon_cultural_village": {
+    "exists": "true",
+    "location": "Busan"
+  },
+  "seongsan_ilchulbong_sunrise_peak": {
+    "exists": "true",
+    "location": "Jeju Island"
+  },
+  "jeju_folk_village": {
+    "exists": "true",
+    "location": "Jeju Island"
+  },
+  "manjanggul_lava_tube": {
+    "exists": "true",
+    "location": "Jeju Island"
+  },
+  "sakura_hotel_ikebukuro": {
+    "exists": "true",
+    "price": "2500 JPY",
+    "cost": "2500 JPY",
+    "location": "Tokyo"
+  },
+  "guest_house_kiyomizu": {
+    "exists": "true",
+    "price": "2000 JPY",
+    "cost": "2000 JPY",
+    "location": "Kyoto"
+  },
+  "osaka_guesthouse": {
+    "exists": "true",
+    "price": "2000 JPY",
+    "cost": "2000 JPY",
+    "location": "Osaka"
+  },
+  "bullet_train": {
+    "exists": "true",
+    "cost": "12000 JPY"
+  },
+  "yeonnam_dong": {
+    "exists": "true",
+    "location": "Seoul"
+  },
+  "dongmyo_flea_market": {
+    "exists": "true",
+    "location": "Seoul"
+  },
+  "euljiro": {
+    "exists": "true",
+    "location": "Seoul"
+  },
+  "ikseon_dong": {
+    "exists": "true",
+    "location": "Seoul"
+  },
+  "mangwon_dong": {
+    "exists": "true",
+    "location": "Seoul"
+  },
+  "mangwon_market": {
+    "exists": "true",
+    "location": "Seoul"
+  },
+  "suwon": {
+    "exists": "true",
+    "location": "Seoul"
+  },
+  "hwaseong_fortress": {
+    "exists": "true",
+    "location": "Suwon"
+  },
+  "koenji": {
+    "exists": "true",
+    "location": "Tokyo"
+  },
+  "gotokuji_temple": {
+    "exists": "true",
+    "location": "Tokyo"
+  },
+  "yanesen": {
+    "exists": "true",
+    "location": "Tokyo"
+  },
+  "ameyokocho": {
+    "exists": "true",
+    "location": "Tokyo"
+  },
+  "kiyosumi_shirakawa": {
+    "exists": "true",
+    "location": "Tokyo"
+  },
+  "kuramae": {
+    "exists": "true",
+    "location": "Tokyo"
+  },
+  "kamakura": {
+    "exists": "true",
+    "location": "Japan"
+  },
+  "inokashira_park": {
+    "exists": "true",
+    "location": "Tokyo"
+  },
+  "harmonica_yokocho": {
+    "exists": "true",
+    "location": "Tokyo"
+  },
+  "kabukicho": {
+    "exists": "true",
+    "location": "Shinjuku"
+  },
+  "omoide_yokocho": {
+    "exists": "true",
+    "location": "Shinjuku"
+  },
+  "shinsekai": {
+    "exists": "true",
+    "location": "Osaka"
+  },
+  "nakazakicho": {
+    "exists": "true",
+    "location": "Osaka"
+  },
+  "americamura": {
+    "exists": "true",
+    "location": "Osaka"
+  },
+  "kiyomizu_dera": {
+    "exists": "true",
+    "location": "Kyoto"
+  },
+  "sannenzaka": {
+    "exists": "true",
+    "location": "Kyoto"
+  },
+  "ninenzaka": {
+    "exists": "true",
+    "location": "Kyoto"
+  },
+  "fushimi_inari": {
+    "exists": "true",
+    "location": "Kyoto"
+  },
+  "uji": {
+    "exists": "true",
+    "location": "Kyoto"
+  },
+  "byodo_in": {
+    "exists": "true",
+    "location": "Kyoto"
+  },
+  "nigatsu_do_hall": {
+    "exists": "true",
+    "location": "Nara"
+  },
+  "naramachi": {
+    "exists": "true",
+    "location": "Nara"
+  },
+  "hozenji_yokocho": {
+    "exists": "true",
+    "location": "Osaka"
+  },
+  "kurama": {
+    "exists": "true",
+    "location": "Kyoto"
+  },
+  "kibune": {
+    "exists": "true",
+    "location": "Kyoto"
+  },
+  "kobe": {
+    "exists": "true",
+    "location": "Kansai"
+  },
+  "kitano_cho": {
+    "exists": "true",
+    "location": "Kobe"
+  },
+  "mount_rokko": {
+    "exists": "true",
+    "location": "Kobe"
+  },
+  "otagi_nenbutsu_ji": {
+    "exists": "true",
+    "location": "Kyoto"
+  },
+  "sakyo_ku": {
+    "exists": "true",
+    "location": "Kyoto"
+  },
+  "himeji": {
+    "exists": "true",
+    "location": "Japan"
+  },
+  "himeji_castle": {
+    "exists": "true",
+    "location": "Japan"
   }
 }

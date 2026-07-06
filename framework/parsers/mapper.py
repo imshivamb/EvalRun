@@ -49,6 +49,7 @@ def map_to_benchmark(parsed_benchmark: ParsedBenchmark) -> Benchmark:
     failure_conditions = parse_list(sections.failure_conditions)
 
     notes = parse_list(sections.notes) if sections.notes else []
+    profile = metadata.get("profile", "travel-agent")
 
     return Benchmark(
         benchmark_id=benchmark_id,
@@ -61,4 +62,5 @@ def map_to_benchmark(parsed_benchmark: ParsedBenchmark) -> Benchmark:
         pass_criteria=pass_criteria,
         failure_conditions=failure_conditions,
         notes=notes,
+        profile=profile,
     )

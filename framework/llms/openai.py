@@ -7,7 +7,14 @@ from framework.llms.base import BaseLLM, LLMResponse, Message
 class OpenAILLM(BaseLLM):
     """OpenAI API client wrapper."""
 
-    def __init__(self, model_name: str = "gpt-4o", api_key: Optional[str] = None):
+    def __init__(
+        self,
+        model_name: str = "gpt-4o",
+        api_key: Optional[str] = None,
+        base_url: str = "https://api.openai.com/v1",
+        timeout: float = 60.0,
+        max_retries: int = 2,
+    ):
         """Initializes the OpenAILLM.
 
         Validates that the 'openai' library is installed immediately.
@@ -15,6 +22,9 @@ class OpenAILLM(BaseLLM):
         Args:
             model_name: The target model ID.
             api_key: The OpenAI API key. Reads from environment if None.
+            base_url: The API base URL to connect to. Defaults to OpenAI API.
+            timeout: The request timeout in seconds. Defaults to 60.0.
+            max_retries: The maximum number of retries for request failures. Defaults to 2.
 
         Raises:
             ImportError: If the 'openai' library is not installed.
@@ -28,16 +38,41 @@ class OpenAILLM(BaseLLM):
                 "Please install it using 'pip install openai'."
             )
 
-        self._client = openai.OpenAI(api_key=api_key)
+        self._client = openai.OpenAI(
+            api_key=api_key,
+            base_url=base_url,
+            timeout=timeout,
+            max_retries=max_retries,
+        )
         self.model_name = model_name
 
     def generate(self, messages: List[Message]) -> LLMResponse:
-        formatted_messages = [
-            {"role": msg.role, "content": msg.content} for msg in messages
-        ]
+        # Compatibility layer: prepend system content to user content
+        # since some NIM endpoints (e.g. MiniMax) do not support the system role.
+        formatted_messages = []
+        system_content = ""
+        for msg in messages:
+            if msg.role == "system":
+                system_content += msg.content + "\n"
+            else:
+                role = msg.role
+                content = msg.content
+                if system_content:
+                    content = system_content + "\n" + content
+                    system_content = ""
+                formatted_messages.append({"role": role, "content": content})
+        
+        if system_content and not formatted_messages:
+            formatted_messages.append({"role": "user", "content": system_content})
+
         response = self._client.chat.completions.create(
             model=self.model_name,
             messages=formatted_messages,
+            max_tokens=4096,
         )
+
+        if not response.choices:
+            raise ValueError(f"API returned empty choices. Full response: {response}")
+
         response_text = response.choices[0].message.content or ""
         return LLMResponse(text=response_text)

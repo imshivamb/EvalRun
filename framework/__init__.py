@@ -34,7 +34,13 @@ from .llms import (
     GeminiLLM,
     create_llm,
 )
-from .profiles import TRAVEL_PROFILE
+from .profiles import (
+    TRAVEL_PROFILE,
+    TRAVEL_ROUTE_OPTIMIZATION_PROFILE,
+    TRAVEL_REMOTE_WORKER_TIMEZONES_PROFILE,
+    TRAVEL_MID_TRIP_REPLANNING_PROFILE,
+    TRAVEL_INFORMATION_GATHERING_UNCERTAINTY_PROFILE,
+)
 from .verification import (
     ClaimType,
     VerificationStatus,
