@@ -55,3 +55,17 @@ In v2, Gemini 3.1 Pro scored **84.15** and Gemini 3.5 Flash scored **86.30** on 
 
 ### 3. Factual Score Variances
 Similar to the Llama runs, the factual accuracy score of the budget and info gathering scenarios is occasionally subject to evaluation noise due to the limited mock database coverage. However, the core planning, personalization, and constraint satisfaction scores for all runs were highly robust.
+
+---
+
+## Overall Conclusions
+
+The evaluation-first workflow successfully identified measurable weaknesses that were difficult to detect through manual inspection. 
+
+Across multiple LLMs, the reflection-guided revision strategy consistently improved:
+* **Constraint satisfaction**
+* **Remote work scheduling**
+* **Replanning robustness**
+
+The remaining limitations are primarily related to factual verification database coverage rather than planning quality, indicating that future work should focus on expanding the knowledge base rather than modifying the planning architecture.
+

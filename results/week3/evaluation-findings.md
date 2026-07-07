@@ -1,7 +1,36 @@
-# Week 3 Failure Analysis — Travel Agent Evaluation
+# Week 3 Evaluation Findings — Travel Agent Benchmark
 
-## Overview
-This document summarizes the first complete benchmark evaluation of the travel-planning agent after introducing session memory, research planner subagents, and reflection capabilities in Week 3. The objective is to analyze the weakest failure dimensions across the five core evaluation scenarios to establish clear root causes, impact levels, and design target adjustments before launching the quality optimization cycle in Week 4.
+## Executive Summary
+Week 3 introduced several core enhancements to the travel-planning agent framework:
+* **Session Memory** (isolated storage of preferences, constraints, state, and bookings).
+* **Research Agent** & **Research Planner** (external search and planning integrations).
+* **Reflection Agent** (auditing draft itineraries for constraint violations).
+* **Closed-Loop Planning** (automatic multi-turn revision cycles).
+
+To evaluate these capabilities, five benchmark scenarios were executed using the `meta/llama-3.1-8b-instruct` model. The benchmark suite successfully revealed three major weaknesses:
+1. **Remote worker scheduling conflicts** (meetings scheduled during transit/sightseeing due to timezone differences).
+2. **Mid-trip replanning cascades** (excessive rewriting of unaffected travel days and locked bookings).
+3. **Reflection over-editing/nitpicking** (lack of a clear itinerary approval threshold).
+
+These findings directly established our Week 4 quality optimization cycle, guiding us to implement strict stopping criteria and dynamic constraint-preservation rules.
+
+---
+
+## Evaluation Workflow Comparison
+
+```mermaid
+graph TD
+    subgraph "Week 3 Baseline Workflow"
+        P3[Planner Agent] -->|Generates Draft Plan| B3[Benchmark Evaluator]
+        B3 -->|Scores & Insights| W3[Identify Major Weaknesses]
+    end
+    subgraph "Week 4 Optimization Workflow"
+        P4[Planner Agent] -->|1. Draft Plan| R4[Reflection Agent]
+        R4 -->|2. Critique / ITINERARY APPROVED| P4
+        P4 -->|3. Revised Plan| B4[Benchmark Evaluator]
+        B4 -->|Scores & Insights| I4[Consolidated Scores Improved]
+    end
+```
 
 ---
 
@@ -19,9 +48,9 @@ The following scores represent the initial baseline runs for the Planner-Only (`
 
 ---
 
-## Failure 1 — Remote Worker Timezone & Meeting Slots
+## Weakness 1 — Remote Worker Timezone & Meeting Slots
 
-### Benchmark
+### Benchmark Scenario
 `travel-remote-worker-timezones`
 
 ### Symptoms
@@ -42,9 +71,9 @@ Violating meeting slots or working core windows results in severe planning failu
 
 ---
 
-## Failure 2 — Mid-Trip Replanning Cascades & Adaptation
+## Weakness 2 — Mid-Trip Replanning Cascades & Adaptation
 
-### Benchmark
+### Benchmark Scenario
 `travel-mid-trip-replanning`
 
 ### Symptoms
@@ -66,9 +95,9 @@ A replanning agent must localize adjustments to minimize disruption. Altering un
 
 ---
 
-## Failure 3 — Route Optimization Critique Nitpicking
+## Weakness 3 — Route Optimization Critique Nitpicking
 
-### Benchmark
+### Benchmark Scenario
 `travel-route-optimization`
 
 ### Symptoms
@@ -89,9 +118,9 @@ Unnecessary revision cycles increase API token usage and latency, while occasion
 
 ---
 
-## Failure 4 — Information Gathering Stylistic Redundancies
+## Weakness 4 — Information Gathering Stylistic Redundancies
 
-### Benchmark
+### Benchmark Scenario
 `travel-information-gathering-uncertainty`
 
 ### Symptoms
