@@ -132,13 +132,35 @@ class TravelPlanningAgent(BaseAgent):
                         "==================================================\n\n"
                     )
 
+                # Determine if this is a mid-trip replanning scenario
+                is_replanning = False
+                if session_memory and session_memory.state.current_day > 1:
+                    is_replanning = True
+                elif "currently on day" in prompt.lower() or "replanning" in prompt.lower() or "disruption" in prompt.lower():
+                    is_replanning = True
+
+                if is_replanning:
+                    revision_rules = (
+                        "1. PRESERVE every part of the itinerary that was NOT criticized. Do NOT rewrite or shift unaffected days.\n"
+                        "2. Do NOT modify, delete, or rearrange locked bookings (e.g., booked flights, non-refundable hotel stays).\n"
+                        "3. Make ONLY the minimum necessary adjustments needed to resolve the critique points."
+                    )
+                else:
+                    revision_rules = (
+                        "1. You are free to re-sequence, compress, or optimize the entire itinerary globally to satisfy the constraints (e.g., total duration, must-visit destinations) and address the critiques.\n"
+                        "2. Do NOT exceed the total duration limit specified in the original request.\n"
+                        "3. Make adjustments to address the critiques while keeping the travel style and preferences consistent."
+                    )
+
                 # Formulate revision prompt
                 revision_prompt = (
                     f"### ORIGINAL SCENARIO REQUEST:\n{prompt}\n\n"
                     f"### INITIAL DRAFT PLAN:\n{final_itinerary}\n\n"
                     f"### REFLECTION CRITIQUE:\n{critique}\n\n"
-                    "Please revise the initial draft plan to completely address all the critiques listed above. "
-                    "Maintain the parts of the plan that are already correct and respect all travel, budget, and work constraints."
+                    "You are instructed to revise the initial draft plan to resolve the critiques listed above.\n"
+                    "You MUST strictly follow these rules during the revision:\n"
+                    f"{revision_rules}\n"
+                    "4. If a critique point directly conflicts with an existing hard constraint in the original request, prioritize and preserve the hard constraint."
                 )
 
                 user_content_v2 = ""
@@ -160,6 +182,8 @@ class TravelPlanningAgent(BaseAgent):
         metadata = {
             "agent": self.__class__.__name__,
             "llm": type(self.llm).__name__,
+            "reflection_approved": not bool(reflection_critique),
+            "revision_triggered": bool(reflection_critique),
         }
         if research_metadata:
             metadata["research_steps"] = research_metadata

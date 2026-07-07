@@ -34,7 +34,11 @@ class GeminiLLM(BaseLLM):
             genai.configure(api_key=api_key)
 
         self._genai = genai
-        self.model_name = model_name
+        # Ensure name is prefixed correctly (e.g. models/gemini-1.5-pro)
+        if model_name and not model_name.startswith("models/"):
+            self.model_name = f"models/{model_name}"
+        else:
+            self.model_name = model_name
 
     def generate(self, messages: List[Message]) -> LLMResponse:
         system_instruction = None
