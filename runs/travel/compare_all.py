@@ -160,5 +160,33 @@ def main():
             print(f"| {r['scenario']} | {r['v1']:.2f} | {r['v2']:.2f} | {sign}{r['delta']:.2f} |")
     print("============================================================================\n")
 
+    # 5. Export results to JSON for dashboard generator
+    import json
+    export_data = {
+        "framework_version": "v2",
+        "planner": "TravelPlanningAgent",
+        "research_agent": "Enabled",
+        "reflection_agent": "Enabled",
+        "scenarios_evaluated": [name for name, _ in scenarios],
+        "models": {}
+    }
+    for label, model_name, provider in target_models:
+        results = all_results.get(label, [])
+        scenario_scores = {}
+        for r in results:
+            scenario_scores[r["scenario"]] = {
+                "v1": r["v1"],
+                "v2": r["v2"]
+            }
+        export_data["models"][label] = {
+            "provider": provider,
+            "model_id": model_name,
+            "scenarios": scenario_scores
+        }
+    os.makedirs("results/week4", exist_ok=True)
+    with open("results/week4/results.json", "w") as f:
+        json.dump(export_data, f, indent=2)
+    print("Saved results to results/week4/results.json")
+
 if __name__ == "__main__":
     main()
