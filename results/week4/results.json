@@ -11,15 +11,15 @@
     "Information Gathering"
   ],
   "models": {
-    "Llama 3.1 8B": {
+    "GPT-5.6 Terra": {
       "provider": "openai",
-      "model_id": "meta/llama-3.1-8b-instruct",
+      "model_id": "gpt-5.6-terra",
       "scenarios": {
-        "Budget": { "v1": 71.95, "v2": 40.30 },
-        "Route Optimization": { "v1": 73.90, "v2": 76.45 },
-        "Remote Worker": { "v1": 2.00, "v2": 34.70 },
-        "Replanning": { "v1": 83.50, "v2": 80.85 },
-        "Information Gathering": { "v1": 71.50, "v2": 59.75 }
+        "Budget": { "v1": 61.25, "v2": 71.50 },
+        "Route Optimization": { "v1": 82.85, "v2": 81.20 },
+        "Remote Worker": { "v1": 79.15, "v2": 79.80 },
+        "Replanning": { "v1": 60.10, "v2": 77.00 },
+        "Information Gathering": { "v1": 67.95, "v2": 71.65 }
       }
     },
     "Gemini 3.1 Pro": {
@@ -40,8 +40,19 @@
         "Budget": { "v1": 67.15, "v2": 73.55 },
         "Route Optimization": { "v1": 84.10, "v2": 83.20 },
         "Remote Worker": { "v1": 82.00, "v2": 85.10 },
-        "Replanning": { "v1": 0.00, "v2": 86.30 },
+        "Replanning": { "v1": 80.00, "v2": 86.30 },
         "Information Gathering": { "v1": 70.50, "v2": 73.35 }
+      }
+    },
+    "Llama 3.1 8B": {
+      "provider": "nvidia",
+      "model_id": "meta/llama-3.1-8b-instruct",
+      "scenarios": {
+        "Budget": { "v1": 71.95, "v2": 40.30 },
+        "Route Optimization": { "v1": 73.90, "v2": 76.45 },
+        "Remote Worker": { "v1": 2.00, "v2": 34.70 },
+        "Replanning": { "v1": 83.50, "v2": 80.85 },
+        "Information Gathering": { "v1": 71.50, "v2": 59.75 }
       }
     }
   }

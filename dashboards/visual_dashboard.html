@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Agent Evaluation Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(17, 24, 39, 0.7);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.15);
+            --success: #10b981;
+            --success-glow: rgba(16, 185, 129, 0.15);
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --accent: #a855f7;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.1) 0px, transparent 50%);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            min-height: 100/vh;
+            padding: 2rem 1.5rem;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* HEADER */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .header-title h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.25rem;
+        }
+
+        .header-title p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .header-meta {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .meta-pill {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.5rem 1rem;
+            text-align: center;
+        }
+
+        .meta-pill .label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.1rem;
+        }
+
+        .meta-pill .value {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--primary);
+        }
+
+        /* GRID LAYOUT */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title span {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-weight: 400;
+        }
+
+        /* TABLES */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+        }
+
+        td {
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            font-size: 0.95rem;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .scenario-name {
+            font-weight: 500;
+        }
+
+        .score-val {
+            font-family: monospace;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .delta-pill {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            font-family: monospace;
+        }
+
+        .delta-pill.positive {
+            background: var(--success-glow);
+            color: var(--success);
+        }
+
+        .delta-pill.negative {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        /* TABS */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 0.3rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* IMPROVEMENTS & LIMITATIONS */
+        .bullet-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .bullet-item {
+            display: flex;
+            gap: 1rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            align-items: flex-start;
+        }
+
+        .bullet-icon {
+            font-size: 1.25rem;
+            line-height: 1;
+        }
+
+        .bullet-icon.check { color: var(--success); }
+        .bullet-icon.warn { color: var(--warning); }
+        .bullet-icon.accent { color: var(--accent); }
+
+        .bullet-details h4 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .bullet-details p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .bullet-metrics {
+            margin-top: 0.5rem;
+            display: flex;
+            gap: 1rem;
+            font-size: 0.8rem;
+            font-family: monospace;
+        }
+
+        /* FLOW DIAGRAM */
+        .diagram-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            overflow-x: auto;
+        }
+
+        .diagram-node {
+            background: var(--card-bg);
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            box-shadow: 0 4px 10px var(--primary-glow);
+        }
+
+        .diagram-arrow {
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+
+        /* SUMMARY FOOTER */
+        .summary-footer {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .summary-footer {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .summary-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .summary-card h4 {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-card p {
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <header>
+            <div class="header-title">
+                <h1>Travel Agent Evaluation Dashboard</h1>
+                <p>Experiment Report & Benchmark Results</p>
+            </div>
+            <div class="header-meta">
+                <div class="meta-pill">
+                    <div class="label">Framework</div>
+                    <div class="value">v2</div>
+                </div>
+                <div class="meta-pill">
+                    <div class="label">Planner</div>
+                    <div class="value">TravelPlanningAgent</div>
+                </div>
+                <div class="meta-pill">
+                    <div class="label">Scenarios</div>
+                    <div class="value">5 Scenarios</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ARCHITECTURE WORKFLOW -->
+        <div class="diagram-container">
+            <div class="diagram-node">Planner Agent</div>
+            <div class="diagram-arrow">➔</div>
+            <div class="diagram-node">Research Subagent</div>
+            <div class="diagram-arrow">➔</div>
+            <div class="diagram-node">Reflection Agent</div>
+            <div class="diagram-arrow">➔</div>
+            <div class="diagram-node">Benchmark Evaluator</div>
+            <div class="diagram-arrow">➔</div>
+            <div class="diagram-node" style="border-color: var(--success); box-shadow: 0 4px 10px var(--success-glow);">Generated Dashboard</div>
+        </div>
+
+        <!-- MAIN GRID -->
+        <div class="dashboard-grid">
+            <!-- LEFT PANEL: SCENARIO SCORES -->
+            <div style="display: flex; flex-direction: column; gap: 2rem;">
+                <!-- OVERALL RESULTS -->
+                <div class="card">
+                    <div class="card-title">
+                        Overall Results
+                        <span>Weighted Mean across 3 models</span>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Scenario</th>
+                                <th>Planner (v1)</th>
+                                <th>Planner + Reflection (v2)</th>
+                                <th>Delta</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="scenario-name">Budget</td>
+                                <td class="score-val" style="color: var(--text-secondary);">68.08</td>
+                                <td class="score-val">61.70</td>
+                                <td><span class="delta-pill negative">-6.38</span></td>
+                            </tr>
+                            <tr>
+                                <td class="scenario-name">Route Optimization</td>
+                                <td class="score-val" style="color: var(--text-secondary);">74.88</td>
+                                <td class="score-val" style="color: var(--success);">78.60</td>
+                                <td><span class="delta-pill positive">+3.72</span></td>
+                            </tr>
+                            <tr>
+                                <td class="scenario-name">Remote Worker</td>
+                                <td class="score-val" style="color: var(--text-secondary);">44.38</td>
+                                <td class="score-val" style="color: var(--success);">68.63</td>
+                                <td><span class="delta-pill positive">+24.25</span></td>
+                            </tr>
+                            <tr>
+                                <td class="scenario-name">Replanning</td>
+                                <td class="score-val" style="color: var(--text-secondary);">56.05</td>
+                                <td class="score-val" style="color: var(--success);">83.77</td>
+                                <td><span class="delta-pill positive">+27.72</span></td>
+                            </tr>
+                            <tr>
+                                <td class="scenario-name">Information Gathering</td>
+                                <td class="score-val" style="color: var(--text-secondary);">70.02</td>
+                                <td class="score-val">68.87</td>
+                                <td><span class="delta-pill negative">-1.15</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- PER-MODEL COMPARISONS -->
+                <div class="card">
+                    <div class="card-title">Per-Model Performance Comparison</div>
+                    
+                    <div class="tabs">
+                        <button class="tab-btn active" onclick="switchTab('llama')">Llama 3.1 8B</button>
+                        <button class="tab-btn" onclick="switchTab('gemini-pro')">Gemini 3.1 Pro</button>
+                        <button class="tab-btn" onclick="switchTab('gemini-flash')">Gemini 3.5 Flash</button>
+                    </div>
+
+                    <!-- LLAMA TAB -->
+                    <div id="llama" class="tab-content active">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Scenario</th>
+                                    <th>Planner Only (v1)</th>
+                                    <th>Planner + Reflection (v2)</th>
+                                    <th>Delta</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="scenario-name">Budget</td>
+                                    <td class="score-val">71.95</td>
+                                    <td class="score-val">40.30</td>
+                                    <td><span class="delta-pill negative">-31.65</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="scenario-name">Route Optimization</td>
+                                    <td class="score-val">73.90</td>
+                                    <td class="score-val" style="color: var(--success);">76.45</td>
+                                    <td><span class="delta-pill positive">+2.55</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="scenario-name">Remote Worker</td>
+                                    <td class="score-val">2.00</td>
+                                    <td class="score-val" style="color: var(--success);">34.70</td>
+                                    <td><span class="delta-pill positive">+32.70</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="scenario-name">Replanning</td>
+                                    <td class="score-val">83.50</td>
+                                    <td class="score-val">80.85</td>
+                                    <td><span class="delta-pill negative">-2.65</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="scenario-name">Information Gathering</td>
+                                    <td class="score-val">71.50</td>
+                                    <td class="score-val">59.75</td>
+                                    <td><span class="delta-pill negative">-11.75</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- GEMINI PRO TAB -->
+                    <div id="gemini-pro" class="tab-content">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Scenario</th>
+                                    <th>Planner Only (v1)</th>
+                                    <th>Planner + Reflection (v2)</th>
+                                    <th>Delta</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="scenario-name">Budget</td>
+                                    <td class="score-val">65.15</td>
+                                    <td class="score-val" style="color: var(--success);">71.25</td>
+                                    <td><span class="delta-pill positive">+6.10</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="scenario-name">Route Optimization</td>
+                                    <td class="score-val">66.65</td>
+                                    <td class="score-val" style="color: var(--success);">76.15</td>
+                                    <td><span class="delta-pill positive">+9.50</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="scenario-name">Remote Worker</td>
+                                    <td class="score-val">49.15</td>
+                                    <td class="score-val" style="color: var(--success);">86.10</td>
+                                    <td><span class="delta-pill positive">+36.95</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="scenario-name">Replanning</td>
+                                    <td class="score-val">84.65</td>
+                                    <td class="score-val">84.15</td>
+                                    <td><span class="delta-pill negative">-0.50</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="scenario-name">Information Gathering</td>
+                                    <td class="score-val">68.05</td>
+                                    <td class="score-val" style="color: var(--success);">73.50</td>
+                                    <td><span class="delta-pill positive">+5.45</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- GEMINI FLASH TAB -->
+                    <div id="gemini-flash" class="tab-content">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Scenario</th>
+                                    <th>Planner Only (v1)</th>
+                                    <th>Planner + Reflection (v2)</th>
+                                    <th>Delta</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="scenario-name">Budget</td>
+                                    <td class="score-val">67.15</td>
+                                    <td class="score-val" style="color: var(--success);">73.55</td>
+                                    <td><span class="delta-pill positive">+6.40</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="scenario-name">Route Optimization</td>
+                                    <td class="score-val">84.10</td>
+                                    <td class="score-val">83.20</td>
+                                    <td><span class="delta-pill negative">-0.90</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="scenario-name">Remote Worker</td>
+                                    <td class="score-val">82.00</td>
+                                    <td class="score-val" style="color: var(--success);">85.10</td>
+                                    <td><span class="delta-pill positive">+3.10</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="scenario-name">Replanning</td>
+                                    <td class="score-val">0.00</td>
+                                    <td class="score-val" style="color: var(--success);">86.30</td>
+                                    <td><span class="delta-pill positive" style="background: rgba(16, 185, 129, 0.25);">+86.30</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="scenario-name">Information Gathering</td>
+                                    <td class="score-val">70.50</td>
+                                    <td class="score-val" style="color: var(--success);">73.35</td>
+                                    <td><span class="delta-pill positive">+2.85</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL: LARGEST IMPROVEMENTS & LIMITATIONS -->
+            <div style="display: flex; flex-direction: column; gap: 2rem;">
+                <!-- LARGEST IMPROVEMENTS -->
+                <div class="card">
+                    <div class="card-title">Largest Improvements</div>
+                    <ul class="bullet-list">
+                        <li class="bullet-item">
+                            <div class="bullet-icon check">✓</div>
+                            <div class="bullet-details">
+                                <h4>Remote Worker Timezone Fix</h4>
+                                <p>Reflection audited calendars, eliminating sightseeing overlap conflicts during mandatory work slots.</p>
+                                <div class="bullet-metrics">
+                                    <span>Planner: 49.15</span>
+                                    <span>Reflection: 86.10</span>
+                                    <span style="color: var(--success); font-weight: bold;">+36.95</span>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="bullet-item">
+                            <div class="bullet-icon check">✓</div>
+                            <div class="bullet-details">
+                                <h4>Replanning Preservation</h4>
+                                <p>Dynamic revision controls restricted regenerations, keeping non-refundable segments completely intact.</p>
+                                <div class="bullet-metrics">
+                                    <span>Planner: 73.45</span>
+                                    <span>Reflection: 82.00</span>
+                                    <span style="color: var(--success); font-weight: bold;">+8.55</span>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- LIMITATIONS -->
+                <div class="card">
+                    <div class="card-title">Known Limitations</div>
+                    <ul class="bullet-list">
+                        <li class="bullet-item">
+                            <div class="bullet-icon warn">⚠</div>
+                            <div class="bullet-details">
+                                <h4>Information Accuracy Coverage</h4>
+                                <p>Factual scores drop when search entities fall outside the mock verification database limits.</p>
+                            </div>
+                        </li>
+                        <li class="bullet-item">
+                            <div class="bullet-icon warn">⚠</div>
+                            <div class="bullet-details">
+                                <h4>Reflection Revision Loops</h4>
+                                <p>Minor threshold checks occasionally trigger extra revision passes for low-value gains.</p>
+                            </div>
+                        </li>
+                        <li class="bullet-item">
+                            <div class="bullet-icon warn">⚠</div>
+                            <div class="bullet-details">
+                                <h4>Model Volatility</h4>
+                                <p>Small parameters (8B) suffer higher parsing and prompt stability regressions than frontier models.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- OUTCOME FOOTER -->
+        <div class="summary-footer">
+            <div class="summary-card">
+                <h4>Constraint Reasoning</h4>
+                <p>Reflection improved compliance across budget caps & meeting schedules</p>
+            </div>
+            <div class="summary-card">
+                <h4>Replanning Robustness</h4>
+                <p>Day alteration cascading changes minimized successfully</p>
+            </div>
+            <div class="summary-card">
+                <h4>Next Focus Area</h4>
+                <p>Expanding validation database entities & knowledge graph coverage</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabId) {
+            // Hide all contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            // Remove active button styling
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            // Show selected content and activate button
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+    </script>
+</body>
+</html>

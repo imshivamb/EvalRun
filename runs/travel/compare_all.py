@@ -60,12 +60,26 @@ def main():
         ("Information Gathering", "evals/scenarios/travel-agent/information-gathering-uncertainty.md"),
     ]
 
-    # Models to compare
+    # Models to compare. Keep the historical Llama baseline as the small open-model
+    # stress case, then compare it with two Gemini tiers and OpenAI's balanced GPT tier.
     target_models = [
-        ("Llama 3.1 8B", "meta/llama-3.1-8b-instruct", "openai"),
+        ("Llama 3.1 8B", "meta/llama-3.1-8b-instruct", "nvidia"),
         ("Gemini 3.1 Pro", "models/gemini-3.1-pro-preview", "gemini"),
         ("Gemini 3.5 Flash", "models/gemini-3.5-flash", "gemini"),
+        ("GPT-5.6 Terra", os.environ.get("OPENAI_MODEL", "gpt-5.6-terra"), "openai"),
     ]
+    selected_models = {
+        label.strip()
+        for label in os.environ.get("BENCHMARK_MODELS", "").split(",")
+        if label.strip()
+    }
+    if selected_models:
+        target_models = [
+            model for model in target_models if model[0] in selected_models
+        ]
+        if not target_models:
+            print("Error: BENCHMARK_MODELS did not match a configured model.", file=sys.stderr)
+            sys.exit(1)
 
     all_results = {}
 
@@ -77,13 +91,26 @@ def main():
         # Setup agent LLM instance
         if provider == "gemini":
             agent_llm = GeminiLLM(model_name=model_name, api_key=api_key_gemini)
-        else:
+        elif provider == "nvidia":
             agent_llm = OpenAILLM(
                 model_name=model_name,
                 api_key=api_key_nv,
                 base_url="https://integrate.api.nvidia.com/v1",
                 timeout=60.0,
             )
+        elif provider == "openai":
+            openai_key = os.environ.get("OPENAI_API_KEY")
+            if not openai_key:
+                print(f"FAILED: OPENAI_API_KEY is not set but needed for {model_name}.", file=sys.stderr)
+                continue
+            agent_llm = OpenAILLM(
+                model_name=model_name,
+                api_key=openai_key,
+                timeout=120.0,
+            )
+        else:
+            print(f"FAILED: Unsupported provider '{provider}'.", file=sys.stderr)
+            continue
 
         # Setup subagents
         research_agent = ResearchAgent(agent_llm)
@@ -183,10 +210,11 @@ def main():
             "model_id": model_name,
             "scenarios": scenario_scores
         }
-    os.makedirs("results/week4", exist_ok=True)
-    with open("results/week4/results.json", "w") as f:
+    results_path = os.environ.get("BENCHMARK_RESULTS_PATH", "results/week4/results.json")
+    os.makedirs(os.path.dirname(results_path) or ".", exist_ok=True)
+    with open(results_path, "w") as f:
         json.dump(export_data, f, indent=2)
-    print("Saved results to results/week4/results.json")
+    print(f"Saved results to {results_path}")
 
 if __name__ == "__main__":
     main()

@@ -7,9 +7,10 @@ Research Agent: Enabled
 Reflection Agent: Enabled
 
 Models Evaluated:
-• Llama 3.1 8B
+• GPT-5.6 Terra
 • Gemini 3.1 Pro
 • Gemini 3.5 Flash
+• Llama 3.1 8B
 
 Benchmark Scenarios: 5
 ```
@@ -20,24 +21,24 @@ Benchmark Scenarios: 5
 
 | Scenario | Planner (v1) | Planner + Reflection (v2) | Delta |
 | :--- | :---: | :---: | :---: |
-| Budget | 68.08 | 61.70 | -6.38 |
-| Route Optimization | 74.88 | 78.60 | +3.72 |
-| Remote Worker | 44.38 | 68.63 | +24.25 |
-| Replanning | 56.05 | 83.77 | +27.72 |
-| Information Gathering | 70.02 | 68.87 | -1.15 |
+| Budget | 66.38 | 64.15 | -2.22 |
+| Route Optimization | 76.88 | 79.25 | +2.38 |
+| Remote Worker | 53.08 | 71.42 | +18.35 |
+| Replanning | 77.06 | 82.07 | +5.01 |
+| Information Gathering | 69.50 | 69.56 | +0.06 |
 
 ---
 
 ## Per-Model Comparison
 
-### Llama 3.1 8B
+### GPT-5.6 Terra
 | Scenario | Planner Only (v1) | Planner + Reflection (v2) | Delta |
 | :--- | :---: | :---: | :---: |
-| Budget | 71.95 | 40.30 | -31.65 |
-| Route Optimization | 73.90 | 76.45 | +2.55 |
-| Remote Worker | 2.00 | 34.70 | +32.70 |
-| Replanning | 83.50 | 80.85 | -2.65 |
-| Information Gathering | 71.50 | 59.75 | -11.75 |
+| Budget | 61.25 | 71.50 | +10.25 |
+| Route Optimization | 82.85 | 81.20 | -1.65 |
+| Remote Worker | 79.15 | 79.80 | +0.65 |
+| Replanning | 60.10 | 77.00 | +16.90 |
+| Information Gathering | 67.95 | 71.65 | +3.70 |
 
 ### Gemini 3.1 Pro
 | Scenario | Planner Only (v1) | Planner + Reflection (v2) | Delta |
@@ -54,8 +55,17 @@ Benchmark Scenarios: 5
 | Budget | 67.15 | 73.55 | +6.40 |
 | Route Optimization | 84.10 | 83.20 | -0.90 |
 | Remote Worker | 82.00 | 85.10 | +3.10 |
-| Replanning | 0.00 | 86.30 | +86.30 |
+| Replanning | 80.00 | 86.30 | +6.30 |
 | Information Gathering | 70.50 | 73.35 | +2.85 |
+
+### Llama 3.1 8B
+| Scenario | Planner Only (v1) | Planner + Reflection (v2) | Delta |
+| :--- | :---: | :---: | :---: |
+| Budget | 71.95 | 40.30 | -31.65 |
+| Route Optimization | 73.90 | 76.45 | +2.55 |
+| Remote Worker | 2.00 | 34.70 | +32.70 |
+| Replanning | 83.50 | 80.85 | -2.65 |
+| Information Gathering | 71.50 | 59.75 | -11.75 |
 
 ---
 

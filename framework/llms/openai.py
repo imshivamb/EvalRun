@@ -45,6 +45,14 @@ class OpenAILLM(BaseLLM):
             max_retries=max_retries,
         )
         self.model_name = model_name
+        # GPT-5 family Chat Completions models use the newer
+        # `max_completion_tokens` parameter. NVIDIA's OpenAI-compatible NIM
+        # endpoint continues to expect `max_tokens`.
+        self._token_parameter = (
+            "max_completion_tokens"
+            if base_url.rstrip("/") == "https://api.openai.com/v1" and model_name.startswith("gpt-5")
+            else "max_tokens"
+        )
 
     def generate(self, messages: List[Message]) -> LLMResponse:
         # Compatibility layer: prepend system content to user content
@@ -65,10 +73,13 @@ class OpenAILLM(BaseLLM):
         if system_content and not formatted_messages:
             formatted_messages.append({"role": "user", "content": system_content})
 
+        request_kwargs = {
+            "model": self.model_name,
+            "messages": formatted_messages,
+            self._token_parameter: 4096,
+        }
         response = self._client.chat.completions.create(
-            model=self.model_name,
-            messages=formatted_messages,
-            max_tokens=4096,
+            **request_kwargs,
         )
 
         if not response.choices:
