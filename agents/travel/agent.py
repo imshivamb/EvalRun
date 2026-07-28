@@ -13,7 +13,7 @@ from framework.mcp.revision_summary import (
     REVISION_SUMMARY_JSON_TEMPLATE,
     parse_revision_summary,
 )
-from .prompts import TRAVEL_PLANNING_SYSTEM_PROMPT
+from .prompts import CLOSED_WORLD_EVALUATION_INSTRUCTION, TRAVEL_PLANNING_SYSTEM_PROMPT
 
 
 class TravelPlanningAgent(BaseAgent):
@@ -54,6 +54,7 @@ class TravelPlanningAgent(BaseAgent):
         prompt: str,
         session_memory: Optional[BaseSessionMemory] = None,
         validation_scenario_id: Optional[str] = None,
+        planning_mode: str = "standard",
     ) -> AgentOutput:
         """Generates a travel itinerary based on user preferences.
 
@@ -63,6 +64,10 @@ class TravelPlanningAgent(BaseAgent):
             validation_scenario_id: MCP scenario identifier. When supplied
                 together with ``validation_client`` during replanning, the
                 proposed revision is checked before the final LLM revision.
+            planning_mode: ``closed_world_evaluation`` tells the planner that a
+                benchmark deliberately supplies all planning constraints. The
+                default ``standard`` mode retains the cautious clarification
+                policy for genuinely under-specified user requests.
 
         Returns:
             An AgentOutput containing the planned travel itinerary.
@@ -108,7 +113,7 @@ class TravelPlanningAgent(BaseAgent):
                 "==================================================\n\n"
             )
 
-        system_prompt = TRAVEL_PLANNING_SYSTEM_PROMPT
+        system_prompt = self._system_prompt_for(planning_mode)
         user_content = ""
         if memory_context:
             user_content += memory_context
@@ -216,7 +221,8 @@ class TravelPlanningAgent(BaseAgent):
                 ]
                 # Generate revised plan (v2)
                 response = self.llm.generate(messages_v2)
-                final_itinerary = response.text
+                if response.text.strip():
+                    final_itinerary = response.text
 
         # 3. Assemble metadata
         metadata = {
@@ -326,3 +332,14 @@ class TravelPlanningAgent(BaseAgent):
     def _call_validation_tool(self, name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Runs an async MCP call from this currently synchronous agent API."""
         return asyncio.run(self.validation_client.call_tool(name, arguments))
+
+    @staticmethod
+    def _system_prompt_for(planning_mode: str) -> str:
+        """Returns the planner policy for normal or controlled benchmark runs."""
+        if planning_mode == "standard":
+            return TRAVEL_PLANNING_SYSTEM_PROMPT
+        if planning_mode == "closed_world_evaluation":
+            return TRAVEL_PLANNING_SYSTEM_PROMPT + "\n" + CLOSED_WORLD_EVALUATION_INSTRUCTION
+        raise ValueError(
+            "planning_mode must be 'standard' or 'closed_world_evaluation'."
+        )

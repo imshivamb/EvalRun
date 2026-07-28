@@ -45,6 +45,7 @@ class OpenAILLM(BaseLLM):
             max_retries=max_retries,
         )
         self.model_name = model_name
+        self.max_retries = max_retries
         # GPT-5 family Chat Completions models use the newer
         # `max_completion_tokens` parameter. NVIDIA's OpenAI-compatible NIM
         # endpoint continues to expect `max_tokens`.
@@ -78,12 +79,16 @@ class OpenAILLM(BaseLLM):
             "messages": formatted_messages,
             self._token_parameter: 4096,
         }
-        response = self._client.chat.completions.create(
-            **request_kwargs,
-        )
+        for attempt in range(self.max_retries + 1):
+            response = self._client.chat.completions.create(
+                **request_kwargs,
+            )
 
-        if not response.choices:
-            raise ValueError(f"API returned empty choices. Full response: {response}")
+            if not response.choices:
+                raise ValueError(f"API returned empty choices. Full response: {response}")
 
-        response_text = response.choices[0].message.content or ""
+            response_text = response.choices[0].message.content or ""
+            if response_text.strip():
+                return LLMResponse(text=response_text)
+
         return LLMResponse(text=response_text)
