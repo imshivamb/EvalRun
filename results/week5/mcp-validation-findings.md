@@ -1,12 +1,14 @@
-# Week 5 Evaluation Findings: MCP-Backed Deterministic Constraint Validation
+# Week 5 Evaluation Findings: MCP-Backed Deterministic Constraint Validation (Updated Flow)
 
 ## Executive Summary
 
 Week 5 evaluates **`v2.1` (Planner + Reflection + MCP Validation)** against the **`v2` Baseline (Planner + Reflection)** on mid-trip disruption replanning (`travel-mid-trip-replanning`).
 
-The Model Context Protocol (MCP) server was integrated to serve as a **deterministic validator** for hard constraints—verifying immutable booking locks, non-shiftable flight dates, and calculating exact itemized savings arithmetic rather than relying on creative LLM estimations.
-
-In a fully controlled head-to-head comparison where both configurations generated complete, evaluated traveler-facing itineraries under identical closed-world system instructions (`planning_mode="closed_world_evaluation"`), **`v2.1` scored 89.80**, outperforming the `v2` baseline (**84.25**) by **+5.55 overall points** and boosting **Constraint Satisfaction by +16.0 points (78.0 → 94.0)**.
+### Architecture Update: Guaranteed MCP Validation
+In the updated architecture, **MCP validation executes on EVERY replanning draft**, regardless of whether the Reflection Agent returns `"ITINERARY APPROVED"` or a critique:
+1. **Initial MCP Check (`mcp_validation.initial`)**: Evaluates the initial draft's locked booking assertions and itemized savings arithmetic.
+2. **Revision Triggering**: Revision is triggered if `reflection_requires_revision OR mcp_requires_revision`.
+3. **Final MCP Check (`mcp_validation.final`)**: Verifies the final revised output post-reflection.
 
 ---
 
@@ -14,41 +16,70 @@ In a fully controlled head-to-head comparison where both configurations generate
 
 | Evaluation Dimension | `v2` Baseline (Planner + Reflection) | `v2.1` MCP Validated (Planner + Reflection + MCP) | Net Improvement ($\Delta$) |
 | :--- | :---: | :---: | :---: |
-| **Overall Score** | **84.25** | **89.80** | **+5.55** |
-| **Constraint Satisfaction** | **78.00** | **94.00** | **+16.00** |
-| **Personalization** | **72.00** | **82.00** | **+10.00** |
-| **Planning Quality** | **86.00** | **90.00** | **+4.00** |
-| **Adaptability** | **91.00** | **93.00** | **+2.00** |
+| **Overall Score** | **86.40** | **87.30** | **+0.90** |
+| **Constraint Satisfaction** | **94.00** | **94.00** | **+0.00** |
+| **Adaptability** | **88.00** | **93.00** | **+5.00** |
+| **Planning Quality** | **88.00** | **90.00** | **+2.00** |
+| **Personalization** | **78.00** | **82.00** | **+4.00** |
 | **Information Accuracy** | **42.00** | **45.00** | **+3.00** |
-| **Itinerary Completion** | **100% Full Output** (~10,000 chars) | **100% Full Output** (~8,500 chars) | **Both Complete & Passed** |
+| **Itinerary Completion** | **100% Full Output** (~10,000 chars) | **100% Full Output** (~8,500 chars) | **Both Passed & Verified** |
 
 ---
 
-## Detailed Findings & Diagnostic Analysis
+## Verified MCP Execution Trace (`v2.1`)
 
-### 1. Constraint Satisfaction (+16.0 Points: 78.0 → 94.0)
+The execution trace in [`results/week5/mcp-replanning-gpt-5-6-terra.json`](file:///Users/shivam/Projects/AI/agent-eval-platform/results/week5/mcp-replanning-gpt-5-6-terra.json) confirms that MCP tool calls executed on both passes:
 
-* **`v2` Baseline Failure Mode**:
-  While `v2` proposed sensible general spending advice (eating at convenience stores, limiting café drinks), it failed to quantify itemized monetary savings or produce a concrete mathematical plan. The evaluator penalized `v2` for this omission:
-  > *"The response gives sensible cost-control measures, but it does not quantify expected savings for any measure... Thus, the budget constraint is only partially satisfied."*
-
-* **`v2.1` MCP Solution**:
-  The MCP `calculate_savings` tool verified the agent's proposed itemized savings during the intermediate revision step. The tool feedback forced the LLM to output a concrete, mathematically verified target of **₹1,333/day across Days 13–27 (totaling ₹20,000)** alongside itemized category cuts. The evaluator noted:
-  > *"The budget reduction is addressed through a stated ₹1,333-per-day savings target across Days 13–27, which totals approximately ₹20,000, plus concrete cost-cutting measures for food, cafés, shopping, paid attractions, taxis, nightlife, and transport."*
-
-### 2. Personalization (+10.0 Points: 72.0 → 82.0)
-
-* By converting the abstract budget cut into a structured daily target, `v2.1` avoided blanket cancellations of traveler hobbies. Instead, it created dedicated "browsing-first" days in Shimokitazawa and Koenji with a protected discretionary cash envelope, preserving the traveler's core interests in street photography, cafés, and thrift browsing on a backpacker budget.
-
-### 3. Planning Quality & Structural Clarity (+4.0 Points: 86.0 → 90.0)
-
-* The MCP validation report prompted `v2.1` to structure the itinerary with a clear **"Key changes at a glance"** summary table, an **"Immediate Actions Today"** checklist, and explicit conditional fallback rules for Miyajima and teamLab.
+```json
+"mcp_validation": {
+  "initial": {
+    "status": "completed",
+    "revision_summary": {
+      "scenario_id": "travel-mid-trip-replanning",
+      "booking_actions": [
+        {"booking_id": "kyoto-hostel", "action": "preserve"},
+        {"booking_id": "narita-return-flight", "action": "preserve"}
+      ],
+      "savings_items": [
+        {"label": "Cancel Miyajima ferry", "amount_inr": 2000.0},
+        {"label": "Supermarket food rule", "amount_inr": 4500.0},
+        {"label": "Café drink cap", "amount_inr": 2500.0},
+        {"label": "Thrift/shopping freeze", "amount_inr": 7000.0},
+        {"label": "Free teamLab replacement days", "amount_inr": 2000.0},
+        {"label": "Urban transport walking", "amount_inr": 1000.0},
+        {"label": "Kyoto paid add-ons skip", "amount_inr": 1000.0}
+      ]
+    },
+    "revision_check": {"valid": true, "violations": []},
+    "savings_check": {"target_savings_inr": 20000.0, "total_savings_inr": 20000.0, "target_met": true}
+  },
+  "final": {
+    "status": "completed",
+    "revision_check": {"valid": true, "violations": []},
+    "savings_check": {"target_savings_inr": 20000.0, "total_savings_inr": 20000.0, "target_met": true}
+  }
+}
+```
 
 ---
 
-## Saved Artifacts & Outputs
+## Key Findings
 
-All raw execution outputs and benchmark datasets are saved in `results/week5/`:
-- **Raw Evaluation Dataset**: [`results/week5/mcp-replanning-gpt-5-6-terra.json`](file:///Users/shivam/Projects/AI/agent-eval-platform/results/week5/mcp-replanning-gpt-5-6-terra.json)
-- **`v2` Baseline Raw Output**: [`results/week5/v2_baseline_itinerary.md`](file:///Users/shivam/Projects/AI/agent-eval-platform/results/week5/v2_baseline_itinerary.md)
-- **`v2.1` MCP Validated Raw Output**: [`results/week5/v2_1_mcp_itinerary.md`](file:///Users/shivam/Projects/AI/agent-eval-platform/results/week5/v2_1_mcp_itinerary.md)
+1. **Both Initial and Final MCP Passes Executed**:
+   Unlike previous runs where MCP was skipped when reflection approved, `v2.1` now records both `initial` and `final` validation passes.
+
+2. **Adaptability Improvement (+5.0 Points: 88.0 → 93.0)**:
+   The evaluator noted that `v2.1`'s post-MCP revision structured its contingency logic exceptionally well:
+   > *"The replanning responds directly and coherently to each disruption while keeping changes tightly localized... The budget cut is translated into a clear remaining-trip target and practical, localized reductions that protect sunk costs, essential transport, the flight, and prepaid lodging."*
+
+3. **100% Deterministic Savings Verification (₹20,000)**:
+   The MCP tool `calculate_savings` mathematically verified seven itemized cost-saving rules totaling exactly ₹20,000.0, eliminating LLM arithmetic hallucination.
+
+---
+
+## Saved File Locations
+
+- **Raw Benchmark Dataset**: [`results/week5/mcp-replanning-gpt-5-6-terra.json`](file:///Users/shivam/Projects/AI/agent-eval-platform/results/week5/mcp-replanning-gpt-5-6-terra.json)
+- **Executive Findings Report**: [`results/week5/mcp-validation-findings.md`](file:///Users/shivam/Projects/AI/agent-eval-platform/results/week5/mcp-validation-findings.md)
+- **`v2` Baseline Raw Output**: [`scratch/mcp/openai/v2_baseline_itinerary.md`](file:///Users/shivam/Projects/AI/agent-eval-platform/scratch/mcp/openai/v2_baseline_itinerary.md)
+- **`v2.1` MCP Validated Raw Output**: [`scratch/mcp/openai/v2_1_mcp_itinerary.md`](file:///Users/shivam/Projects/AI/agent-eval-platform/scratch/mcp/openai/v2_1_mcp_itinerary.md)

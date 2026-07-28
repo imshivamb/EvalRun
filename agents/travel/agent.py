@@ -133,6 +133,7 @@ class TravelPlanningAgent(BaseAgent):
         # 2. Invoke reflection loop if a reflection agent is set
         reflection_critique = None
         mcp_validation: Optional[Dict[str, Any]] = None
+        revision_triggered = False
         if self.reflection_agent:
             if hasattr(self.reflection_agent, "reflect"):
                 reflection_output = self.reflection_agent.reflect(prompt, final_itinerary, session_memory)
@@ -142,8 +143,34 @@ class TravelPlanningAgent(BaseAgent):
                 )
             
             critique = reflection_output.content
-            if "ITINERARY APPROVED" not in critique:
+
+            # v2.1 must validate every replanning draft. Reflection approval
+            # does not prove that hard constraints or savings arithmetic hold.
+            is_replanning = False
+            if session_memory and session_memory.state.current_day > 1:
+                is_replanning = True
+            elif "currently on day" in prompt.lower() or "replanning" in prompt.lower() or "disruption" in prompt.lower():
+                is_replanning = True
+
+            initial_validation = None
+            if is_replanning and self.validation_client and validation_scenario_id:
+                initial_validation = self._validate_replanning_proposal(
+                    system_prompt=system_prompt,
+                    scenario_prompt=prompt,
+                    draft_itinerary=final_itinerary,
+                    critique=critique,
+                    scenario_id=validation_scenario_id,
+                )
+                mcp_validation = {"initial": initial_validation, "final": None}
+
+            reflection_requires_revision = "ITINERARY APPROVED" not in critique
+            mcp_requires_revision = self._validation_requires_revision(initial_validation)
+            revision_triggered = reflection_requires_revision or mcp_requires_revision
+
+            if reflection_requires_revision:
                 reflection_critique = critique
+
+            if revision_triggered:
                 # Increment plan version in memory
                 if session_memory:
                     session_memory.state.current_plan_version += 1
@@ -156,13 +183,6 @@ class TravelPlanningAgent(BaseAgent):
                         f"{session_memory.to_yaml()}\n"
                         "==================================================\n\n"
                     )
-
-                # Determine if this is a mid-trip replanning scenario
-                is_replanning = False
-                if session_memory and session_memory.state.current_day > 1:
-                    is_replanning = True
-                elif "currently on day" in prompt.lower() or "replanning" in prompt.lower() or "disruption" in prompt.lower():
-                    is_replanning = True
 
                 if is_replanning:
                     revision_rules = (
@@ -177,21 +197,12 @@ class TravelPlanningAgent(BaseAgent):
                         "3. Make adjustments to address the critiques while keeping the travel style and preferences consistent."
                     )
 
-                if is_replanning and self.validation_client and validation_scenario_id:
-                    mcp_validation = self._validate_replanning_proposal(
-                        system_prompt=system_prompt,
-                        scenario_prompt=prompt,
-                        draft_itinerary=final_itinerary,
-                        critique=critique,
-                        scenario_id=validation_scenario_id,
-                    )
-
                 # Formulate revision prompt
                 validation_context = ""
-                if mcp_validation:
+                if initial_validation:
                     validation_context = (
                         "\n\n### DETERMINISTIC MCP VALIDATION REPORT:\n"
-                        f"{json.dumps(mcp_validation, indent=2)}\n"
+                        f"{json.dumps(initial_validation, indent=2)}\n"
                         "Treat every violation or unmet savings target in this report as a hard "
                         "requirement for the final revision. Do not claim a saving unless it is "
                         "represented by a concrete itinerary change.\n"
@@ -224,16 +235,25 @@ class TravelPlanningAgent(BaseAgent):
                 if response.text.strip():
                     final_itinerary = response.text
 
+                if is_replanning and self.validation_client and validation_scenario_id:
+                    mcp_validation["final"] = self._validate_replanning_proposal(
+                        system_prompt=system_prompt,
+                        scenario_prompt=prompt,
+                        draft_itinerary=final_itinerary,
+                        critique="Validate the final revised itinerary against the original constraints.",
+                        scenario_id=validation_scenario_id,
+                    )
+
         # 3. Assemble metadata
         metadata = {
             "agent": self.__class__.__name__,
             "llm": type(self.llm).__name__,
             "reflection_approved": not bool(reflection_critique),
-            "revision_triggered": bool(reflection_critique),
+            "revision_triggered": revision_triggered,
         }
         if research_metadata:
             metadata["research_steps"] = research_metadata
-        if reflection_critique:
+        if revision_triggered:
             metadata["reflection_critique"] = reflection_critique
             metadata["final_plan_version"] = session_memory.state.current_plan_version if session_memory else 2
         if mcp_validation:
@@ -332,6 +352,18 @@ class TravelPlanningAgent(BaseAgent):
     def _call_validation_tool(self, name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Runs an async MCP call from this currently synchronous agent API."""
         return asyncio.run(self.validation_client.call_tool(name, arguments))
+
+    @staticmethod
+    def _validation_requires_revision(validation: Optional[Dict[str, Any]]) -> bool:
+        """Returns whether an MCP result requires a constrained revision."""
+        if validation is None:
+            return False
+        if validation.get("status") != "completed":
+            return True
+        return (
+            not validation.get("revision_check", {}).get("valid", False)
+            or not validation.get("savings_check", {}).get("target_met", False)
+        )
 
     @staticmethod
     def _system_prompt_for(planning_mode: str) -> str:
