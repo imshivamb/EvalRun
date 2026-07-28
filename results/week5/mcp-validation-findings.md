@@ -18,14 +18,14 @@ In this verified Phase 1 run, **MCP validation executed on every replanning draf
 | **Planning Quality** | **88.00** | **88.00** | **0.00** |
 | **Information Accuracy** | **42.00** | **42.00** | **0.00** |
 | **Personalization** | **78.00** | **68.00** | **-10.00** |
-| **Output Completion** | **Complete** (~10,000 chars) | **Complete** (~8,500 chars) | **Both Passed & Verified** |
+| **Output Length** | **12,538 chars** | **13,672 chars** | **Both Complete & Passed** |
 
 ---
 
 ## Detailed Diagnostic Analysis & Trade-Offs
 
 ### 1. Higher Adaptability (+4.0 Points: 88.0 → 92.0)
-* **Localized Disruption Handling**: MCP validation forced the model to handle Miyajima, Himeji, and teamLab closures with clear, conditional, localized logic rather than cascading shifts across unaffected days.
+* **Localized Disruption Handling**: The MCP-backed v2.1 run produced clear, conditional, localized logic for Miyajima, Himeji, and teamLab closures rather than cascading shifts across unaffected days.
 * **Evaluator Assessment**:
   > *"The revision adapts strongly to each disruption while keeping the major locked elements intact. It explicitly protects the prepaid Kyoto hostel and fixed Narita departure, cancels the unsafe Miyajima ferry trip without attempting a risky workaround, and makes Himeji conditional..."*
 
