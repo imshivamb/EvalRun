@@ -1,0 +1,204 @@
+{
+  "experiment": "week5-mcp-replanning-v2-vs-v2.1",
+  "timestamp_utc": "2026-07-28T16:14:44.330244+00:00",
+  "benchmark": "travel-mid-trip-replanning",
+  "planner_model": "gpt-5.6-terra",
+  "judge_model": "gpt-5.6-terra",
+  "control": "same scenario, Day 12 session state, planner model, reflection model, and judge; MCP feedback is the sole intended intervention",
+  "baseline": {
+    "configuration": "v2_planner_reflection",
+    "output": "",
+    "agent_metadata": {
+      "agent": "TravelPlanningAgent",
+      "llm": "OpenAILLM",
+      "reflection_approved": false,
+      "revision_triggered": true,
+      "reflection_critique": "## Critical issues that must be corrected\n\n1. **No adapted itinerary is provided.**  \n   The draft does not rework Days 13\u201328 despite the request. It therefore fails to show how the traveler will preserve the fixed Kyoto stay (Days 15\u201318), reach Tokyo in time, and depart Narita on Day 28.\n\n2. **Miyajima cancellation is not resolved.**  \n   Day 13 is left entirely open without a confirmed low-cost Hiroshima substitute or a concrete contingency for attempting Miyajima later. The plan must replace the canceled ferry activity while keeping the Day 14 Hiroshima\u2013Himeji\u2013Kyoto transfer feasible.\n\n3. **teamLab closure is not addressed operationally.**  \n   The museum is closed on the booked Day 22 and Days 21\u201323, but the draft neither reschedules the ticket to an eligible date (such as Day 20 or Days 24\u201327, subject to ticket rules) nor provides a replacement activity if the ticket cannot be changed.\n\n4. **The \u20b920,000 budget reduction has no actual cost-saving plan.**  \n   While the exact remaining balance is unknown, the draft offers no concrete reductions to transport, food, Tokyo lodging, admissions, or shopping. It cannot demonstrate compliance with the reduced budget.\n\n5. **Unnecessary dependence on unavailable details delays a workable plan.**  \n   Exact dates and reservation policies are relevant for live operational checks, but the known constraints already permit a provisional, day-by-day contingency itinerary: stay in Hiroshima on Day 13, travel via Himeji to the non-refundable Kyoto booking on Day 14, retain Kyoto Days 15\u201318, move to Tokyo Day 19, and shift teamLab outside Days 21\u201323 if permitted.",
+      "final_plan_version": 2
+    },
+    "evaluation": {
+      "overall_score": 0.0,
+      "passed": false,
+      "dimension_scores": {
+        "Adaptability": {
+          "score": 0.0,
+          "reason": "No agent itinerary or revised plan was provided for evaluation. As a result, there is no evidence that the agent addressed the mid-trip disruptions, adapted to new constraints, preserved the traveler\u2019s backpacker/photography/vintage-shop/caf\u00e9 experience, or mitigated impacts on existing non-refundable bookings and the remaining itinerary."
+        },
+        "Constraint Satisfaction": {
+          "score": 0.0,
+          "reason": "No agent output was provided to evaluate. Therefore, there is no evidence that the Day 13 Miyajima ferry cancellation was addressed, that approximately \u20b920,000 in savings were identified, that the locked non-refundable Kyoto hostel for Days 15\u201318 was preserved, that the Day 22 teamLab Planets closure was rescheduled or replaced, or that the non-changeable Day 28 Narita return flight was respected. The output also provides no backpacker-budget itinerary or accommodation of the stated interests in caf\u00e9s, vintage/thrift shopping, and photography."
+        },
+        "Planning Quality": {
+          "score": 0.0,
+          "reason": "No itinerary or replanning output was provided. With no sequence of destinations, accommodations, activities, transit choices, or contingency adjustments to assess, there is no evidence of route logic, lodging stability, realistic pacing, efficient transit use, trip cohesion, or trade-off optimization."
+        },
+        "Information Accuracy": {
+          "score": 0.0,
+          "reason": "No itinerary content or testable factual claims were provided. Consequently, there are no verified details about accommodations, transport, attractions, prices, hours, closures, or disruption-related changes, and the factual reliability of the purported itinerary cannot be assessed or trusted from the available evidence."
+        },
+        "Personalization": {
+          "score": 0.0,
+          "reason": "No itinerary or recommendations were provided in the agent output. As a result, there is no evidence of alignment with the traveler's backpacking style, photography, vintage-shopping, or caf\u00e9 interests; no integration of remote-work or other constraints; and no personalized, locally relevant recommendations."
+        }
+      }
+    }
+  },
+  "mcp": {
+    "configuration": "v2_1_planner_reflection_mcp",
+    "output": "## Revised Day 13\u201328 Itinerary\n\n### Day 13 \u2014 Hiroshima: typhoon-safe replacement day  \n**Change required: Miyajima ferries are cancelled. Do not travel to Miyajima or attempt to reach the ferry terminal.**\n\n- Stay in Hiroshima for a low-cost, weather-safe photography and caf\u00e9 day.\n- Morning: photograph rain/typhoon atmosphere around **Hiroshima Peace Memorial Park**, Motoyasu River, and the exterior of the Atomic Bomb Dome, only if weather advisories permit walking outdoors.\n- Use covered locations during heavy rain: **Hondori Shopping Arcade** and nearby side streets for street photography and browsing.\n- Have one inexpensive coffee or drink stop, then use a supermarket/convenience-store meal rather than a caf\u00e9 lunch.\n- Evening: stay at your existing Hiroshima hostel if possible; otherwise retain the original onward arrangement for Day 14.  \n- **Miyajima is dropped rather than forced into the schedule:** this avoids unsafe travel and prevents disruption to the fixed Kyoto stay.\n\n**Cost control:** Free outdoor/arcade photography; supermarket dinner rather than a restaurant.\n\n---\n\n### Day 14 \u2014 Hiroshima \u2192 Himeji Castle \u2192 Kyoto  \n**Unchanged routing; retain this day as planned.**\n\n- Take an early Shinkansen from Hiroshima to **Himeji**.\n- Store your backpack at Himeji Station lockers or luggage storage.\n- Walk to **Himeji Castle**; prioritize exterior photography and the castle grounds if keeping entry costs low. If your budget permits, enter the main keep.\n- Continue from Himeji to **Kyoto** in the late afternoon/evening.\n- Check into the budget guesthouse planned for the night before the prepaid Kyoto hostel stay.\n\n**Cost control:** Buy food before boarding trains or use a station bakery/convenience store instead of a sit-down lunch in Himeji.\n\n---\n\n### Day 15 \u2014 Kyoto: Fushimi Inari  \n**Fixed prepaid Kyoto hostel stay begins \u2014 preserve booking.**\n\n- Check into/remain at the prepaid Kyoto hostel.\n- Early morning: **Fushimi Inari Taisha** for torii-gate photography before crowds.\n- Walk as far up the trail as comfortable; the lower and middle sections provide the strongest photographic views without needing to complete the full hike.\n- Afternoon: browse caf\u00e9s and small shops around central Kyoto, but limit spending to one low-cost drink.\n- Evening: free walk around the Kamo River or Gion\u2019s public streets for dusk photography.\n\n**Cost control:** Shrine entry and hiking are free; have a supermarket breakfast and inexpensive takeaway meal.\n\n---\n\n### Day 16 \u2014 Kyoto: Arashiyama  \n- Go early to **Arashiyama Bamboo Grove** for photography.\n- Continue on foot through the surrounding lanes and along the Katsura River.\n- Photograph the **Togetsukyo Bridge** area and side streets rather than adding paid attractions.\n- Return to central Kyoto for a single caf\u00e9 stop, then browse local thrift/vintage stores without making non-essential purchases.\n\n**Cost control:** Keep Arashiyama to free outdoor sights; avoid expensive caf\u00e9 meals and paid temple admissions.\n\n---\n\n### Day 17 \u2014 Kyoto: caf\u00e9s, thrift browsing, and local photography  \n- Slow-paced Kyoto day to fit a moderate walking tolerance.\n- Morning: explore **Teramachi and Shinkyogoku shopping arcades** for second-hand clothing, records, accessories, and street photography.\n- Afternoon: choose one affordable local caf\u00e9 drink; use a convenience-store or supermarket lunch.\n- Late afternoon/evening: photograph **Pontocho alley** and the Kamo River from public streets.\n\n**Cost control:** Browse vintage shops rather than buying; reserve purchases for a strict reduced allowance.\n\n---\n\n### Day 18 \u2014 Kyoto: flexible low-cost final day  \n- Keep this as a light, geographically efficient final Kyoto day.\n- Revisit a favorite free photo location, use remaining time for inexpensive souvenir browsing, and pack for departure.\n- Purchase breakfast/snacks for the following day at a supermarket before evening markdowns.\n- Sleep at the **prepaid, non-refundable Kyoto hostel**.\n\n**Cost control:** No new paid attraction required; avoid a final-night restaurant splurge.\n\n---\n\n### Day 19 \u2014 Kyoto \u2192 Tokyo by overnight highway bus  \n**Change required: replace the Kyoto\u2013Tokyo Shinkansen with an overnight bus.**\n\n- Check out of the Kyoto hostel in the morning.\n- Spend the day locally and cheaply: luggage storage, free walks around Kyoto Station area, or a final caf\u00e9/thrift browse with no purchase requirement.\n- Eat an inexpensive supermarket or convenience-store dinner before departure.\n- Take a **night highway bus from Kyoto to Tokyo**. Book the lowest practical fare that includes luggage allowance and arrives at a central terminal such as Shinjuku or Tokyo Station.\n- Sleep on the bus rather than paying for a Tokyo hostel night.\n\n**Concrete saving:**  \n- Overnight bus instead of Kyoto\u2013Tokyo Shinkansen: **\u20b94,800 saved**.  \n- Eliminate the Day 19 Tokyo hostel night: **\u20b91,800 saved**.\n\n---\n\n### Day 20 \u2014 Tokyo: arrival, hostel check-in, Shinjuku photography  \n- Arrive in Tokyo early from the overnight bus.\n- Store luggage at your Tokyo hostel or station lockers until check-in.\n- Keep the day light after overnight travel:\n  - morning/afternoon: **Shinjuku** street photography\u2014railway approaches, Kabukicho signage, alleys, and public viewpoints;\n  - evening: photograph neon streets and the area around Shinjuku Station.\n- Check into the Tokyo hostel for the remaining booked/needed nights.\n\n**Cost control:** Use public streets and free viewpoints; have a convenience-store breakfast after arrival and a supermarket dinner.\n\n---\n\n### Day 21 \u2014 Tokyo: Shimokitazawa vintage browsing  \n- Travel to **Shimokitazawa** for its second-hand clothing, record, and independent-shop scene.\n- Make this a browsing-and-photography day, not a purchase day.\n- Take one low-cost caf\u00e9 drink if desired; avoid caf\u00e9 meals.\n- Photograph the small lanes, shopfronts, and railway-area streets.\n- Return to the hostel for an inexpensive dinner.\n\n**Important closure note:** **teamLab Planets is closed today** for emergency maintenance. Do not go to Toyosu.\n\n---\n\n### Day 22 \u2014 Tokyo: teamLab replacement day / free photography  \n**Change required: the original teamLab Planets visit cannot take place today because it is closed.**\n\n- Replace the closed museum visit with a low-cost Tokyo photography route:\n  - morning: **Asakusa** public streets and Sumida River views;\n  - afternoon: walk or use local transit to **Ueno/Ameyoko** for market-street photography and budget food;\n  - evening: return to Shinjuku or photograph nearby neighborhood streets.\n- Keep any caf\u00e9 spending to one drink maximum.\n\n**Important closure note:** **teamLab Planets remains closed today**. Your paid ticket is moved to Day 24.\n\n---\n\n### Day 23 \u2014 Tokyo: Koenji vintage browsing  \n- Visit **Koenji**, another strong area for vintage and second-hand browsing.\n- Focus on free browsing, photographing shopfronts and backstreets, and comparing prices rather than buying.\n- Use a supermarket/convenience-store breakfast and dinner; one inexpensive drink stop is the maximum caf\u00e9 allowance.\n\n**Important closure note:** **teamLab Planets is still closed today**. Do not attempt to use the ticket.\n\n---\n\n### Day 24 \u2014 Tokyo: rescheduled teamLab Planets  \n**Change required: move the purchased teamLab Planets visit from Day 22 to Day 24, the first planned available day after the Days 21\u201323 closure.**\n\n- Use the ticket provider\u2019s emergency-maintenance rebooking option to place the existing ticket on **Day 24**. Choose the cheapest/available timed entry; no new ticket should be purchased unless the operator explicitly requires it.\n- Go to **teamLab Planets, Toyosu**, at the confirmed replacement time.\n- Keep the rest of the day inexpensive:\n  - eat before arriving or bring a convenience-store meal;\n  - photograph Toyosu waterfront/public areas before or after the visit;\n  - return to the hostel rather than adding another paid attraction.\n\n**Cost control:** The museum is already paid for; do not add a second ticketed attraction that day.\n\n---\n\n### Day 25 \u2014 Tokyo: low-cost flexible day  \n- Use this day for whichever Tokyo neighborhood you enjoyed most: return to **Shimokitazawa**, **Koenji**, or **Shinjuku**.\n- Keep the focus on street photography and browsing rather than purchases.\n- If buying vintage items, use only the reduced, pre-set shopping envelope.\n\n---\n\n### Day 26 \u2014 Tokyo: free neighbourhood photography  \n- Choose a free route suited to your energy level, such as:\n  - Harajuku exterior streets \u2192 Omotesando architecture \u2192 Shibuya crossing, or\n  - Yanaka backstreets \u2192 Ueno public areas.\n- Use local transit selectively to keep walking moderate.\n- Limit caf\u00e9 spending to one drink; use supermarket meals.\n\n---\n\n### Day 27 \u2014 Tokyo: final shopping restraint and departure preparation  \n- Keep this day close to your hostel to avoid unnecessary transit.\n- Make any final essential purchases only; do not use this as an unplanned vintage-shopping day.\n- Pack, confirm Narita terminal and airline check-in requirements, and buy low-cost breakfast/snacks for departure.\n- Sleep at the Tokyo hostel.\n\n---\n\n### Day 28 \u2014 Tokyo \u2192 Narita Airport \u2192 Home  \n**Locked, non-changeable return flight from Narita is preserved.**\n\n- Leave Tokyo with ample time for airport check-in.\n- Use the lower-cost **Keisei Access Express** or an airport bus only if it is cheaper/more convenient than premium express services; avoid taxis and premium last-minute transfers.\n- Depart from **Narita Airport (NRT)** on the non-changeable return flight.\n\n---\n\n## Required \u20b920,000 Spending Reduction Plan\n\n| Concrete itinerary change | Savings |\n|---|---:|\n| Day 19 overnight highway bus instead of Kyoto\u2013Tokyo Shinkansen | \u20b94,800 |\n| Day 19 overnight bus removes one Tokyo hostel night | \u20b91,800 |\n| Shimokitazawa/Koenji thrift days changed to browsing-first, with a reduced purchase allowance | \u20b98,000 |\n| Supermarket/convenience-store breakfasts and one low-cost caf\u00e9 drink rather than caf\u00e9 meals | \u20b93,000 |\n| Free photography walks and supermarket meals instead of additional restaurant meals/paid attractions; teamLab remains the only planned paid Tokyo attraction | \u20b92,400 |\n| **Total planned reduction** | **\u20b920,000** |\n\nThis preserves the prepaid Kyoto stay on Days 15\u201318 and the locked Narita departure on Day 28, replaces the cancelled Miyajima day safely, moves teamLab outside its closure period, and keeps caf\u00e9s, vintage browsing, and photography in the itinerary under the reduced budget.",
+    "agent_metadata": {
+      "agent": "TravelPlanningAgent",
+      "llm": "OpenAILLM",
+      "reflection_approved": false,
+      "revision_triggered": true,
+      "reflection_critique": "Critical issues that must be corrected:\n\n1. **No adapted itinerary provided:** The draft does not give any Day 13\u201328 plan, despite the request being to adapt the itinerary around known disruptions.\n\n2. **Known Day 13 disruption is not resolved:** Miyajima ferries are explicitly canceled on Day 13. The itinerary must replace or defer Miyajima rather than asking whether the cancellation applies.\n\n3. **teamLab closure is not resolved:** The purchased Day 22 visit cannot occur because the museum is closed Days 21\u201323. The plan must move it to an available Tokyo day (such as Day 20 or Days 24\u201327, subject to ticket policy) or provide a concrete fallback.\n\n4. **Budget-cut requirement is unaddressed:** The traveler needs to reduce spending by \u20b920,000 over the remainder of the trip. The draft supplies no cost-saving measures, revised transport approach, lower-cost activities, or spending priorities.\n\n5. **Fixed commitments are not incorporated into a schedule:** The Kyoto accommodation on Days 15\u201318 and non-changeable Narita departure on Day 28 are known hard constraints, but the draft merely repeats them without building a viable routing plan around them.\n\n6. **Unnecessary dependency on missing details:** Actual calendar dates, precise remaining budget, and ticket/pass details may refine recommendations, but they are not required to produce a workable provisional itinerary based on the stated day numbers and fixed bookings.",
+      "final_plan_version": 2,
+      "mcp_validation": {
+        "status": "completed",
+        "revision_summary": {
+          "scenario_id": "travel-mid-trip-replanning",
+          "booking_actions": [
+            {
+              "booking_id": "kyoto-hostel",
+              "action": "preserve"
+            },
+            {
+              "booking_id": "narita-return-flight",
+              "action": "preserve"
+            }
+          ],
+          "changed_days": [
+            13,
+            19,
+            22,
+            24
+          ],
+          "savings_items": [
+            {
+              "label": "Kyoto-to-Tokyo overnight bus instead of Shinkansen on Day 19",
+              "amount_inr": 4800.0
+            },
+            {
+              "label": "Avoid one Tokyo hostel night by travelling overnight from Kyoto to Tokyo",
+              "amount_inr": 1800.0
+            },
+            {
+              "label": "Reduce vintage-thrifting purchase allowance while retaining free browsing in Shimokitazawa and Koenji",
+              "amount_inr": 8000.0
+            },
+            {
+              "label": "Replace paid caf\u00e9 meals with convenience-store or supermarket breakfasts and one low-cost drink stop per day",
+              "amount_inr": 3000.0
+            },
+            {
+              "label": "Use supermarket meals and free photography walks instead of restaurant meals and paid attractions, excluding the already-purchased teamLab ticket",
+              "amount_inr": 2400.0
+            }
+          ]
+        },
+        "locked_constraints": {
+          "scenario_id": "travel-mid-trip-replanning",
+          "immutable_booking_ids": [
+            "kyoto-hostel",
+            "narita-return-flight"
+          ],
+          "locked_bookings": [
+            {
+              "booking_id": "kyoto-hostel",
+              "description": "Kyoto hostel stay on Days 15\u201318",
+              "start_day": 15,
+              "end_day": 18,
+              "reason": "Pre-paid and non-refundable"
+            },
+            {
+              "booking_id": "narita-return-flight",
+              "description": "Return flight from Narita on Day 28",
+              "start_day": 28,
+              "end_day": 28,
+              "reason": "Non-changeable"
+            }
+          ],
+          "required_savings_inr": 20000.0,
+          "revision_start_day": 13
+        },
+        "revision_check": {
+          "valid": true,
+          "violations": [],
+          "immutable_booking_ids": [
+            "kyoto-hostel",
+            "narita-return-flight"
+          ],
+          "changed_days": [
+            13,
+            19,
+            22,
+            24
+          ]
+        },
+        "savings_check": {
+          "target_savings_inr": 20000.0,
+          "total_savings_inr": 20000.0,
+          "remaining_gap_inr": 0.0,
+          "target_met": true,
+          "accepted_items": [
+            {
+              "label": "Kyoto-to-Tokyo overnight bus instead of Shinkansen on Day 19",
+              "amount_inr": 4800.0
+            },
+            {
+              "label": "Avoid one Tokyo hostel night by travelling overnight from Kyoto to Tokyo",
+              "amount_inr": 1800.0
+            },
+            {
+              "label": "Reduce vintage-thrifting purchase allowance while retaining free browsing in Shimokitazawa and Koenji",
+              "amount_inr": 8000.0
+            },
+            {
+              "label": "Replace paid caf\u00e9 meals with convenience-store or supermarket breakfasts and one low-cost drink stop per day",
+              "amount_inr": 3000.0
+            },
+            {
+              "label": "Use supermarket meals and free photography walks instead of restaurant meals and paid attractions, excluding the already-purchased teamLab ticket",
+              "amount_inr": 2400.0
+            }
+          ],
+          "invalid_items": []
+        }
+      }
+    },
+    "evaluation": {
+      "overall_score": 89.45,
+      "passed": true,
+      "dimension_scores": {
+        "Adaptability": {
+          "score": 93.0,
+          "reason": "The revision handles each disruption directly and keeps changes tightly localized. The Miyajima cancellation is addressed by replacing only Day 13 with a Hiroshima-based, low-cost, weather-conscious photography and caf\u00e9 alternative, without jeopardizing the fixed Kyoto stay or attempting unsafe ferry travel. The budget reduction is met through specific changes\u2014an overnight Kyoto\u2013Tokyo bus, removal of one hostel night, reduced discretionary vintage purchases, cheaper meals, and free photography activities\u2014while retaining the traveler\u2019s backpacker style and core interests. The teamLab closure is managed especially well: the itinerary clearly avoids Toyosu during the closure window, preserves the existing paid ticket through rebooking rather than repurchasing, and substitutes photography-oriented Tokyo neighborhoods that suit the traveler\u2019s interests. The locked prepaid Kyoto hostel dates and non-changeable Narita flight are explicitly protected, minimizing cascading disruption. The overnight bus creates some unavoidable fatigue and a less comfortable transfer, but Day 20 is appropriately lightened to mitigate this. A minor limitation is that the typhoon-day replacement still suggests outdoor photography when advisories permit, rather than offering a fully indoor contingency, but it includes covered alternatives and does not materially undermine the adaptation."
+        },
+        "Constraint Satisfaction": {
+          "score": 94.0,
+          "reason": "The output satisfies all stated hard constraints. It replaces the cancelled Day 13 Miyajima ferry trip with a Hiroshima-based, typhoon-safe alternative and explicitly avoids attempting Miyajima travel. It preserves the non-refundable Kyoto hostel stay for Days 15\u201318, retains the non-changeable Day 28 Narita departure, and replaces the closed Day 22 teamLab Planets visit with a free Tokyo photography itinerary before rescheduling teamLab to Day 24. It also provides a concrete \u20b920,000 savings table with identifiable changes: a cheaper Kyoto\u2013Tokyo overnight bus, removal of one hostel night, reduced thrift purchases, lower food/caf\u00e9 spending, and substitution of free activities for paid ones. The itinerary consistently supports the stated interests through caf\u00e9s, thrift/vintage browsing, and photography while maintaining a backpacker-budget approach. Minor concerns prevent a perfect score: it asserts additional teamLab closures on Days 21 and 23 that were not supplied in the scenario, and some savings figures\u2014especially reduced shopping expenditure and the eliminated hostel night\u2014depend on assumptions about the original itinerary and booking flexibility. These do not undermine satisfaction of the explicit requirements, but they make parts of the rationale less firmly grounded."
+        },
+        "Planning Quality": {
+          "score": 88.0,
+          "reason": "The revised itinerary is well organized overall, with disruption changes kept localized and the original Kyoto-to-Tokyo-to-Narita flow preserved. Hiroshima to Himeji to Kyoto is a logical eastbound progression, and the Himeji stop is efficiently placed on the rail route rather than requiring a detour. The Kyoto portion is cohesive, using one main lodging base and grouping destinations into sensible geographic day trips or neighborhood-focused days. Tokyo is also largely organized by area and interest, with Shimokitazawa, Koenji, Shinjuku, Asakusa/Ueno, and Toyosu assigned distinct days rather than repeatedly crossing the city.\n\nAccommodation handling is strong given the fixed bookings: the prepaid Kyoto stay is retained, the overnight Kyoto\u2013Tokyo bus removes one lodging night, and the Tokyo stay then remains stable through departure. The only minor accommodation inefficiency is the separate Kyoto guesthouse night on Day 14 before the prepaid hostel begins, but this is a reasonable consequence of the booking structure rather than poor routing.\n\nPacing is generally balanced. The typhoon replacement day is appropriately conservative, Kyoto days mostly contain one principal area or theme, and the Tokyo schedule leaves several flexible, low-intensity days. Day 20 is labeled light after the overnight bus, but the proposed morning through evening Shinjuku photography could still be tiring after limited sleep; it would be better framed as optional rather than a full-day program. Day 22 combines Asakusa, Ueno/Ameyoko, and a potential evening return to Shinjuku, which is workable but slightly less geographically tidy than ending around Ueno or another nearby eastern Tokyo area.\n\nThe overnight bus is a sensible trade-off for the stated cost-reduction objective because it combines transport and accommodation savings without disturbing the locked Kyoto stay or Narita departure. It does impose a fatigue cost and requires daytime luggage storage on Day 19, but both are acknowledged and the following day is comparatively restrained. Moving teamLab to Day 24 is a coherent, minimally disruptive solution, and Toyosu is sensibly treated as that day\u2019s primary destination. Overall, the plan demonstrates strong route logic, stable lodging, practical contingency handling, and thoughtful cost-versus-convenience trade-offs, with only minor opportunities to reduce post-bus fatigue and cross-city evening travel."
+        },
+        "Information Accuracy": {
+          "score": 42.0,
+          "reason": "The evidence does not directly refute any itinerary claim, but it also verifies none of the 10 extracted factual claims. This is especially consequential because the unverified claims are central to the replanning rationale: the Day 13 Miyajima ferry cancellation, the alleged Days 21\u201323 teamLab Planets closure, the ability to move the ticket to Day 24, and the stated savings from replacing the Shinkansen and eliminating a hostel night. The teamLab closure attribute is specifically marked UNKNOWN, while the associated ticket rescheduling claim is NOT_FOUND; therefore the itinerary cannot substantiate that the museum is closed on those dates or that rebooking is available. All stated rupee savings, including the exact \u20b920,000 total, are also unsupported by the ground-truth records. The Kyoto hostel prepaid/non-refundable dates are likewise not verified. Although there is no evidence that these assertions are false, the absence of verification for every extracted claim\u2014particularly operational closure, transport, booking, and budget facts that travelers could act upon\u2014makes the factual reliability materially limited rather than generally trustworthy."
+        },
+        "Personalization": {
+          "score": 84.0,
+          "reason": "The itinerary is strongly tailored to the traveler\u2019s backpacker style and core interests in photography, vintage/second-hand shopping, and caf\u00e9s. It repeatedly prioritizes free or low-cost street, atmospheric, architectural, riverside, neon, and alley photography; includes especially relevant vintage neighborhoods such as Shimokitazawa and Koenji; and retains caf\u00e9 stops in a budget-conscious form. The substitutions are not generic: the typhoon replacement uses covered arcades and rain photography in Hiroshima, while the teamLab closure is replaced with photogenic Asakusa, Sumida River, Ueno, and Ameyoko areas before rescheduling the paid experience. Budget measures also fit the stated travel style through hostels, overnight bus travel, supermarket meals, free public spaces, and browsing-first thrift days rather than simply removing all interest-based activities. The plan acknowledges moderate walking tolerance and includes a lighter post-overnight-bus day. However, it does not visibly integrate any remote-work windows or identify work-suitable caf\u00e9s/hostel spaces, despite this being a relevant stated constraint in the rubric. Its caf\u00e9 recommendations are also fairly minimal and generic due to the budget focus, rather than offering particularly personalized caf\u00e9 choices. Overall, it is highly aligned with the traveler\u2019s interests and disruption context, with the main personalization gap being remote-work accommodation."
+        }
+      }
+    }
+  },
+  "deltas": {
+    "overall_score": 89.45,
+    "Adaptability": 93.0,
+    "Constraint Satisfaction": 94.0,
+    "Planning Quality": 88.0,
+    "Information Accuracy": 42.0,
+    "Personalization": 84.0
+  }
+}
