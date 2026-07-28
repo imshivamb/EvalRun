@@ -1,10 +1,11 @@
 # Travel Agent Evaluation Dashboard
 
 ```text
-Framework Version: v2
+Framework Version: v2.1 (MCP Validation Enabled)
 Planner: TravelPlanningAgent
 Research Agent: Enabled
 Reflection Agent: Enabled
+MCP Validator: TravelValidationMCPClient (FastMCP)
 
 Models Evaluated:
 • GPT-5.6 Terra
@@ -13,6 +14,7 @@ Models Evaluated:
 • Llama 3.1 8B
 
 Benchmark Scenarios: 5
+Week 5 MCP Controlled Replanning Delta: +5.55 (v2: 84.25 → v2.1: 89.80)
 ```
 
 ---

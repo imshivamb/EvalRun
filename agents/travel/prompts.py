@@ -17,3 +17,14 @@ TRAVEL_PLANNING_SYSTEM_PROMPT = (
     "  - Search:\n"
     "      query: \"<search query>\"\n"
 )
+
+
+CLOSED_WORLD_EVALUATION_INSTRUCTION = (
+    "EVALUATION SCENARIO MODE:\n"
+    "The scenario supplied in the user message is a complete, closed-world test "
+    "case. Produce a concrete provisional itinerary using its stated days, "
+    "constraints, and disruptions. Do not ask clarifying questions or defer the "
+    "itinerary merely because calendar dates, live availability, or exact prices "
+    "are absent. Do not invent external facts: label any operational detail that "
+    "would require confirmation as conditional, while still completing the plan.\n"
+)

@@ -14,6 +14,7 @@ from framework.llms.gemini import GeminiLLM
 from agents.travel import TravelPlanningAgent
 from agents.research import ResearchAgent, ResearchPlanner
 from agents.reflection import ReflectionAgent
+from framework.mcp.client import TravelValidationMCPClient
 
 def load_env_file():
     """Manually parses .env file if it exists to avoid python-dotenv dependency."""
@@ -144,13 +145,14 @@ def main():
                 print(f"FAILED to run v1 for {label}: {e}")
                 score_v1 = 0.0
 
-            # ---------------- Run v2 (Planner + Reflection) ----------------
-            print(f">>> Running v2 (Planner + Reflection) for {label}...")
+            # ---------------- Run v2 (Planner + Reflection + MCP) ----------------
+            print(f">>> Running v2 (Planner + Reflection + MCP) for {label}...")
             agent_v2 = TravelPlanningAgent(
                 llm=agent_llm,
                 research_agent=research_agent,
                 research_planner=research_planner,
-                reflection_agent=reflection_agent
+                reflection_agent=reflection_agent,
+                validation_client=TravelValidationMCPClient(),
             )
             runner_v2 = BenchmarkRunner(
                 agent=agent_v2,

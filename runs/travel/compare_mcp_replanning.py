@@ -93,6 +93,7 @@ def run_configuration(name, agent, benchmark, engine, use_mcp):
         benchmark.prompt,
         session_memory=fresh_replanning_memory(),
         validation_scenario_id=benchmark.benchmark_id if use_mcp else None,
+        planning_mode="closed_world_evaluation",
     )
     result = engine.evaluate(benchmark, output, TRAVEL_MID_TRIP_REPLANNING_PROFILE)
     return {
