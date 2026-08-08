@@ -23,3 +23,18 @@
 - [x] Build `ReflectionAgent` under `agents/reflection/`
 - [x] Add unit tests in `tests/test_reflection_agent.py` and verify implementation
 - [x] Refactor memory architecture: extract travel-specific schemas to `agents/travel/session.py` (`TravelSessionMemory`), exposing generic `BaseSessionMemory` in `framework/memory/`
+
+## Week 5 — MCP-Backed Constraint Validation
+
+- [x] Define the MCP validation hypothesis, scope, tool contracts, metrics, and non-goals in `docs/week5-mcp-validation-design.md`
+- [x] Create a Python 3.12 local environment and add reproducible MCP and Langfuse dependencies
+- [x] Implement and test the local MCP validation server (`get_locked_constraints`, `validate_revision`, `calculate_savings`)
+- [x] Implement and test the stdio MCP client, including real server discovery and tool invocation
+- [x] Define the structured revision-summary contract produced from a draft itinerary
+- [x] Integrate MCP validation feedback into the `TravelPlanningAgent` reflection/revision loop
+- [x] Add controlled mock-LLM tests proving MCP feedback changes the revision prompt correctly
+- [x] Add and test the closed-world evaluation prompt contract for the Phase 1 baseline
+- [x] Make v2.1 invoke MCP for every replanning draft and record final validation
+- [x] Run the real v2 versus v2.1 Mid-Trip Replanning comparison with GPT-5.6 Terra
+- [ ] Repeat the controlled replanning comparison with Gemini models
+- [ ] Analyze results, document latency and failures, and run the five-scenario regression suite

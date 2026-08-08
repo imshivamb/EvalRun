@@ -4,6 +4,18 @@ from agents.research import ResearchAgent, ResearchPlanner
 from framework.llms import MockLLM
 
 
+class RecordingMockLLM(MockLLM):
+    """Records calls so planning-policy selection can be tested."""
+
+    def __init__(self, responses):
+        super().__init__(responses)
+        self.calls = []
+
+    def generate(self, messages):
+        self.calls.append(messages)
+        return super().generate(messages)
+
+
 class TestAgentCollaboration(unittest.TestCase):
     """Tests the interaction/collaboration between TravelPlanningAgent, ResearchPlanner, and ResearchAgent."""
 
@@ -55,6 +67,30 @@ class TestAgentCollaboration(unittest.TestCase):
 
         output = agent.run("Plan a trip.", session_memory=session_memory)
         self.assertEqual(output.content, "Generated itinerary using session memory context.")
+
+    def test_closed_world_evaluation_mode_overrides_defer_policy(self):
+        planner_llm = RecordingMockLLM("Provisional Day 13–28 itinerary.")
+        agent = TravelPlanningAgent(llm=planner_llm, research_agent=None)
+
+        output = agent.run(
+            "Day 13–28 replanning benchmark.",
+            planning_mode="closed_world_evaluation",
+        )
+
+        self.assertEqual(output.content, "Provisional Day 13–28 itinerary.")
+        system_prompt = planner_llm.calls[0][0].content
+        self.assertIn("EVALUATION SCENARIO MODE", system_prompt)
+        self.assertIn("Do not ask clarifying questions", system_prompt)
+
+    def test_standard_mode_keeps_the_cautious_uncertainty_policy(self):
+        planner_llm = RecordingMockLLM("Clarifying questions.")
+        agent = TravelPlanningAgent(llm=planner_llm, research_agent=None)
+
+        agent.run("Plan a trip.")
+
+        system_prompt = planner_llm.calls[0][0].content
+        self.assertIn("CRITICAL RULE ON UNCERTAINTY", system_prompt)
+        self.assertNotIn("EVALUATION SCENARIO MODE", system_prompt)
 
     def test_travel_agent_with_reflection_loop(self):
         # We need two responses from the planner: v1 draft, and v2 revised draft

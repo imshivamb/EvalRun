@@ -1,1 +1,11 @@
 .env
+.venv/
+__pycache__/
+*.py[cod]
+*.code-workspace
+.DS_Store
+.tempmediaStorage/
+
+# Keep docs and scratch local only
+docs/
+scratch/
