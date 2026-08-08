@@ -60,18 +60,37 @@ Each benchmark includes predefined scoring criteria and pass/fail conditions.
 ## Architecture
 
 ```text
-Planner
+Planner (Draft)
       │
       ▼
-Reflection
+Reflection Critique
       │
       ▼
-Benchmark Evaluation
+Structured Revision Summary
+      │
+      ▼
+FastMCP Validator (Deterministic Check: Locks, Schedule & Arithmetic)
+      │
+      ├─ Passed & Approved ──► Return Itinerary
+      └─ Violations / Critique ──► Grounded Revision Loop ──► Final MCP Validation
+                                                                    │
+                                                                    ▼
+                                                            Benchmark Evaluation
 ```
 
-The reflection loop critiques planner outputs before they are evaluated.
+The platform combines LLM-based reflection with **deterministic MCP tools** to catch logical, temporal, and mathematical regressions that generative models struggle to evaluate purely in free text.
 
-Benchmark results determine whether changes actually improve the system rather than simply producing different outputs.
+---
+
+## MCP-Backed Deterministic Constraint Validation (Week 5)
+
+While reflection agents catch qualitative and structural issues, LLMs frequently hallucinate arithmetic totals and subtly drop locked constraints during replanning. 
+
+To solve this, the platform integrates **Model Context Protocol (FastMCP)** tools as a deterministic verification layer:
+
+* **Locked Anchor Preservation (`validate_revision`)**: Verifies that non-refundable, immovable bookings (e.g. Kyoto Days 15–18, Narita departure Day 28) are strictly preserved without key tampering or date drift.
+* **Exact Arithmetic Calculation (`calculate_savings`)**: Mathematically totals itemized savings rules against target reductions (e.g. ₹20,000 cut) instead of relying on generative estimations.
+* **Dual Validation Checkpoints**: Runs on every initial draft and final revision to prevent unverified bypasses.
 
 ---
 
@@ -129,6 +148,9 @@ OPENAI_MODEL=gpt-5.6-terra
 ```bash
 # Run multi-model comparison across all 5 benchmark scenarios
 PYTHONPATH=. python3 runs/travel/compare_all.py
+
+# Run Week 5 controlled MCP replanning benchmark (v2 vs v2.1)
+PYTHONPATH=. python3 runs/travel/compare_mcp_replanning.py
 
 # Run unit test suite
 PYTHONPATH=. python3 -m unittest discover -s tests -p "test_*.py"
