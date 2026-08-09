@@ -6,6 +6,8 @@ __pycache__/
 .DS_Store
 .tempmediaStorage/
 
-# Keep docs and scratch local only
+# Keep docs, scratch, and internal task planning local only
 docs/
 scratch/
+task.md
+tasks/
