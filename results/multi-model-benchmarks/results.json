@@ -15,44 +15,104 @@
       "provider": "openai",
       "model_id": "gpt-5.6-terra",
       "scenarios": {
-        "Budget": { "v1": 61.25, "v2": 71.50 },
-        "Route Optimization": { "v1": 82.85, "v2": 81.20 },
-        "Remote Worker": { "v1": 79.15, "v2": 79.80 },
-        "Replanning": { "v1": 60.10, "v2": 77.00 },
-        "Information Gathering": { "v1": 67.95, "v2": 71.65 }
+        "Budget": {
+          "v1": 61.25,
+          "v2": 71.5
+        },
+        "Route Optimization": {
+          "v1": 82.85,
+          "v2": 81.2
+        },
+        "Remote Worker": {
+          "v1": 79.15,
+          "v2": 79.8
+        },
+        "Replanning": {
+          "v1": 60.1,
+          "v2": 77.0
+        },
+        "Information Gathering": {
+          "v1": 67.95,
+          "v2": 71.65
+        }
       }
     },
     "Gemini 3.1 Pro": {
       "provider": "gemini",
       "model_id": "models/gemini-3.1-pro-preview",
       "scenarios": {
-        "Budget": { "v1": 65.15, "v2": 71.25 },
-        "Route Optimization": { "v1": 66.65, "v2": 76.15 },
-        "Remote Worker": { "v1": 49.15, "v2": 86.10 },
-        "Replanning": { "v1": 84.65, "v2": 84.15 },
-        "Information Gathering": { "v1": 68.05, "v2": 73.50 }
+        "Budget": {
+          "v1": 25.0,
+          "v2": 84.6
+        },
+        "Route Optimization": {
+          "v1": 41.5,
+          "v2": 90.5
+        },
+        "Remote Worker": {
+          "v1": 13.0,
+          "v2": 95.0
+        },
+        "Replanning": {
+          "v1": 84.65,
+          "v2": 84.15
+        },
+        "Information Gathering": {
+          "v1": 68.05,
+          "v2": 73.5
+        }
       }
     },
     "Gemini 3.5 Flash": {
       "provider": "gemini",
       "model_id": "models/gemini-3.5-flash",
       "scenarios": {
-        "Budget": { "v1": 67.15, "v2": 73.55 },
-        "Route Optimization": { "v1": 84.10, "v2": 83.20 },
-        "Remote Worker": { "v1": 82.00, "v2": 85.10 },
-        "Replanning": { "v1": 80.00, "v2": 86.30 },
-        "Information Gathering": { "v1": 70.50, "v2": 73.35 }
+        "Budget": {
+          "v1": 67.15,
+          "v2": 73.55
+        },
+        "Route Optimization": {
+          "v1": 84.1,
+          "v2": 83.2
+        },
+        "Remote Worker": {
+          "v1": 82.0,
+          "v2": 85.1
+        },
+        "Replanning": {
+          "v1": 85.45,
+          "v2": 86.3
+        },
+        "Information Gathering": {
+          "v1": 70.5,
+          "v2": 73.35
+        }
       }
     },
     "Llama 3.1 8B": {
       "provider": "nvidia",
       "model_id": "meta/llama-3.1-8b-instruct",
       "scenarios": {
-        "Budget": { "v1": 71.95, "v2": 40.30 },
-        "Route Optimization": { "v1": 73.90, "v2": 76.45 },
-        "Remote Worker": { "v1": 2.00, "v2": 34.70 },
-        "Replanning": { "v1": 83.50, "v2": 80.85 },
-        "Information Gathering": { "v1": 71.50, "v2": 59.75 }
+        "Budget": {
+          "v1": 71.95,
+          "v2": 40.3
+        },
+        "Route Optimization": {
+          "v1": 73.9,
+          "v2": 76.45
+        },
+        "Remote Worker": {
+          "v1": 2.0,
+          "v2": 34.7
+        },
+        "Replanning": {
+          "v1": 83.5,
+          "v2": 80.85
+        },
+        "Information Gathering": {
+          "v1": 71.5,
+          "v2": 59.75
+        }
       }
     }
   }

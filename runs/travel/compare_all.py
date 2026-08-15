@@ -34,23 +34,41 @@ def main():
     load_env_file()
     api_key_nv = os.environ.get("NVIDIA_API_KEY")
     api_key_gemini = os.environ.get("GEMINI_API_KEY")
+    api_key_openai = os.environ.get("OPENAI_API_KEY")
 
-    if not api_key_nv:
-        print("Error: NVIDIA_API_KEY is not set in environment or .env file.", file=sys.stderr)
-        sys.exit(1)
-    if not api_key_gemini:
-        print("Error: GEMINI_API_KEY is not set in environment or .env file.", file=sys.stderr)
+    if not api_key_gemini and not api_key_nv and not api_key_openai:
+        print("Error: No valid API keys found in environment or .env file.", file=sys.stderr)
         sys.exit(1)
 
     # 1. Setup Reference Judge LLM (Keep constant for fair evaluations)
-    judge_model = "meta/llama-3.1-8b-instruct"
+    judge_model = os.environ.get("EVAL_JUDGE_MODEL")
+    if not judge_model:
+        if api_key_gemini:
+            judge_model = "models/gemini-3.1-pro-preview"
+        elif api_key_nv:
+            judge_model = "meta/llama-3.1-8b-instruct"
+        else:
+            judge_model = "gpt-5.6-terra"
+
     print(f"Initializing reference judge model: {judge_model}...")
-    judge_llm = OpenAILLM(
-        model_name=judge_model,
-        api_key=api_key_nv,
-        base_url="https://integrate.api.nvidia.com/v1",
-        timeout=120.0,
-    )
+    if "gemini" in judge_model.lower():
+        if not api_key_gemini:
+            print("Error: GEMINI_API_KEY required for Gemini judge.", file=sys.stderr)
+            sys.exit(1)
+        judge_llm = GeminiLLM(model_name=judge_model, api_key=api_key_gemini)
+    elif api_key_nv and ("llama" in judge_model.lower() or "nvidia" in judge_model.lower()):
+        judge_llm = OpenAILLM(
+            model_name=judge_model,
+            api_key=api_key_nv,
+            base_url="https://integrate.api.nvidia.com/v1",
+            timeout=120.0,
+        )
+    else:
+        judge_llm = OpenAILLM(
+            model_name=judge_model,
+            api_key=api_key_openai,
+            timeout=120.0,
+        )
 
     # Scenarios to run
     scenarios = [

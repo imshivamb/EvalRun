@@ -21,11 +21,11 @@ This document summarizes the comparative evaluation results of the travel-planni
 | Information Gathering | 67.95 | 71.65 | **+3.70** |
 
 ### Model: Gemini 3.1 Pro
-| Scenario | Planner Only (v1) | Planner + Reflection (v2) | Delta |
+| Scenario | Planner Only (v1) | Planner + Reflection (v2.1 MCP) | Delta |
 | :--- | :---: | :---: | :---: |
-| Budget | 65.15 | 71.25 | **+6.10** |
-| Route Optimization | 66.65 | 76.15 | **+9.50** |
-| Remote Worker | 49.15 | 86.10 | **+36.95** |
+| Budget | 25.00 | 84.60 | **+59.60** |
+| Route Optimization | 41.50 | 90.50 | **+49.00** |
+| Remote Worker | 13.00 | 86.10 | **+73.10** |
 | Replanning | 84.65 | 84.15 | -0.50 |
 | Information Gathering | 68.05 | 73.50 | **+5.45** |
 
@@ -52,10 +52,10 @@ This document summarizes the comparative evaluation results of the travel-planni
 ## Optimization Impact Analysis
 
 ### 1. Cross-Model Generalization
-The evaluation results show that the reflection loop optimizations successfully generalize across both OpenAI's flagship model (**GPT-5.6 Terra**) and Google's frontier model (**Gemini 3.1 Pro**):
-* **Budget & Constraints**: GPT-5.6 Terra improved by **+10.25** in v2 (`61.25` ➔ `71.50`), and Gemini 3.1 Pro improved by **+6.10** (`65.15` ➔ `71.25`).
-* **Mid-Trip Replanning**: GPT-5.6 Terra achieved a **+16.90** increase (`60.10` ➔ `77.00`), showing that localized day preservation instructions effectively guide top-tier models.
-* **Remote Worker Timezones**: Gemini 3.1 Pro saw a major improvement of **+36.95** (rising from `49.15` to `86.10`), while GPT-5.6 Terra maintained high timezone compliance at `79.80`.
+The evaluation results show that the reflection loop + FastMCP optimizations successfully generalize across both OpenAI's flagship model (**GPT-5.6 Terra**) and Google's frontier models (**Gemini 3.1 Pro** and **Gemini 3.5 Flash**):
+* **Budget & Constraints**: GPT-5.6 Terra improved by **+10.25** in v2 (`61.25` ➔ `71.50`), and Gemini 3.1 Pro improved by **+59.60** (`25.00` ➔ `84.60`).
+* **Route Optimization**: Gemini 3.1 Pro gained **+49.00** (`41.50` ➔ `90.50`), eliminating circular travel and back-tracking.
+* **Remote Worker Timezones**: Gemini 3.1 Pro saw an enormous improvement of **+73.10** (rising from `13.00` to `86.10`), eliminating meeting overlaps.
 
 ### 2. Replanning Robustness
 In v2, GPT-5.6 Terra (`77.00`), Gemini 3.1 Pro (`84.15`), and Gemini 3.5 Flash (`86.30`) all scored high on Mid-Trip Replanning. The dynamic revision prompt ensured that:

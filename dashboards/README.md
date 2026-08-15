@@ -21,10 +21,10 @@ Benchmark Scenarios: 5
 
 | Scenario | Planner (v1) | Planner + Reflection (v2) | Delta |
 | :--- | :---: | :---: | :---: |
-| Budget | 66.38 | 64.15 | -2.22 |
-| Route Optimization | 76.88 | 79.25 | +2.38 |
-| Remote Worker | 53.08 | 71.42 | +18.35 |
-| Replanning | 77.06 | 82.08 | +5.01 |
+| Budget | 56.34 | 67.49 | +11.15 |
+| Route Optimization | 70.59 | 82.84 | +12.25 |
+| Remote Worker | 44.04 | 73.65 | +29.61 |
+| Replanning | 78.42 | 82.08 | +3.65 |
 | Information Gathering | 69.50 | 69.56 | +0.06 |
 
 ---
@@ -43,9 +43,9 @@ Benchmark Scenarios: 5
 ### Gemini 3.1 Pro
 | Scenario | Planner Only (v1) | Planner + Reflection (v2) | Delta |
 | :--- | :---: | :---: | :---: |
-| Budget | 65.15 | 71.25 | +6.10 |
-| Route Optimization | 66.65 | 76.15 | +9.50 |
-| Remote Worker | 49.15 | 86.10 | +36.95 |
+| Budget | 25.00 | 84.60 | +59.60 |
+| Route Optimization | 41.50 | 90.50 | +49.00 |
+| Remote Worker | 13.00 | 95.00 | +82.00 |
 | Replanning | 84.65 | 84.15 | -0.50 |
 | Information Gathering | 68.05 | 73.50 | +5.45 |
 
@@ -55,7 +55,7 @@ Benchmark Scenarios: 5
 | Budget | 67.15 | 73.55 | +6.40 |
 | Route Optimization | 84.10 | 83.20 | -0.90 |
 | Remote Worker | 82.00 | 85.10 | +3.10 |
-| Replanning | 80.00 | 86.30 | +6.30 |
+| Replanning | 85.45 | 86.30 | +0.85 |
 | Information Gathering | 70.50 | 73.35 | +2.85 |
 
 ### Llama 3.1 8B
