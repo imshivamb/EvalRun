@@ -6,6 +6,7 @@ between reflection and its final revision.
 
 Usage:
     PYTHONPATH=. .venv/bin/python runs/travel/compare_mcp_replanning.py
+    PLANNER_MODEL=models/gemini-3.1-pro-preview MCP_RESULTS_PATH=results/week5/mcp-replanning-gemini-3-1-pro.json PYTHONPATH=. .venv/bin/python runs/travel/compare_mcp_replanning.py
 """
 
 import json
@@ -35,6 +36,7 @@ from framework import (
     parse_benchmark,
 )
 from framework.llms.openai import OpenAILLM
+from framework.llms.gemini import GeminiLLM
 from framework.mcp.client import TravelValidationMCPClient
 
 
@@ -51,6 +53,30 @@ def load_env_file():
         if line and not line.startswith("#") and "=" in line:
             key, value = line.split("=", 1)
             os.environ[key.strip()] = value.strip().strip('"').strip("'")
+
+
+def create_llm(model_name: str, timeout: float = 180.0):
+    """Factory creating appropriate LLM client instance for OpenAI, Gemini, or NVIDIA NIM."""
+    if "gemini" in model_name.lower():
+        api_key = os.environ.get("GEMINI_API_KEY")
+        if not api_key:
+            raise ValueError("GEMINI_API_KEY is not set in environment or .env file.")
+        return GeminiLLM(model_name=model_name, api_key=api_key)
+    elif "llama" in model_name.lower() or "nvidia" in model_name.lower():
+        api_key = os.environ.get("NVIDIA_API_KEY")
+        if not api_key:
+            raise ValueError("NVIDIA_API_KEY is not set in environment or .env file.")
+        return OpenAILLM(
+            model_name=model_name,
+            api_key=api_key,
+            base_url="https://integrate.api.nvidia.com/v1",
+            timeout=timeout,
+        )
+    else:
+        api_key = os.environ.get("OPENAI_API_KEY")
+        if not api_key:
+            raise ValueError("OPENAI_API_KEY is not set in environment or .env file.")
+        return OpenAILLM(model_name=model_name, api_key=api_key, timeout=timeout)
 
 
 def create_engine(judge_llm):
@@ -106,16 +132,24 @@ def run_configuration(name, agent, benchmark, engine, use_mcp):
 
 def main():
     load_env_file()
-    api_key = os.environ.get("OPENAI_API_KEY")
-    if not api_key:
-        print("OPENAI_API_KEY is required for this experiment.", file=sys.stderr)
+    
+    # Model configuration
+    model_name = os.environ.get("PLANNER_MODEL") or os.environ.get("OPENAI_MODEL") or "gpt-5.6-terra"
+    judge_model = os.environ.get("EVAL_JUDGE_MODEL", model_name)
+    
+    # Target results path
+    sanitized_model = model_name.replace("models/", "").replace(".", "-").replace("/", "-").replace("_", "-")
+    default_path = f"results/week5/mcp-replanning-{sanitized_model}.json"
+    results_path = Path(os.environ.get("MCP_RESULTS_PATH", default_path))
+    
+    try:
+        planner_llm = create_llm(model_name=model_name, timeout=180.0)
+        judge_llm = create_llm(model_name=judge_model, timeout=180.0)
+    except ValueError as e:
+        print(f"Configuration Error: {e}", file=sys.stderr)
         sys.exit(1)
 
-    model_name = os.environ.get("OPENAI_MODEL", "gpt-5.6-terra")
-    judge_model = os.environ.get("EVAL_JUDGE_MODEL", model_name)
     benchmark = parse_benchmark(SCENARIO_PATH)
-    planner_llm = OpenAILLM(model_name=model_name, api_key=api_key, timeout=180.0)
-    judge_llm = OpenAILLM(model_name=judge_model, api_key=api_key, timeout=180.0)
     engine = create_engine(judge_llm)
 
     baseline_agent = TravelPlanningAgent(
@@ -150,11 +184,11 @@ def main():
         "mcp": mcp,
         "deltas": deltas,
     }
-    results_path = Path(os.environ.get("MCP_RESULTS_PATH", DEFAULT_RESULTS_PATH))
     results_path.parent.mkdir(parents=True, exist_ok=True)
     results_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
 
     print("\nControlled comparison complete")
+    print(f"Model:        {model_name}")
     print(f"v2 overall:   {baseline['evaluation']['overall_score']:.2f}")
     print(f"v2.1 overall: {mcp['evaluation']['overall_score']:.2f}")
     print(f"Delta:        {deltas['overall_score']:+.2f}")
