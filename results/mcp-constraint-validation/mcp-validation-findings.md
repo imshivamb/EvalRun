@@ -1,8 +1,8 @@
-# Week 5 Evaluation Findings: MCP-Backed Deterministic Constraint Validation
+# Evaluation Findings: MCP-Backed Deterministic Constraint Validation
 
 ## Executive Summary
 
-Week 5 evaluates **`v2.1` (Planner + Reflection + MCP Validation)** against the **`v2` Baseline (Planner + Reflection)** on mid-trip disruption replanning (`travel-mid-trip-replanning`) across frontier models: **GPT-5.6 Terra** and **Gemini 3.1 Pro Preview**.
+This study evaluates **`v2.1` (Planner + Reflection + MCP Validation)** against the **`v2` Baseline (Planner + Reflection)** on mid-trip disruption replanning (`travel-mid-trip-replanning`) across frontier models: **GPT-5.6 Terra** and **Gemini 3.1 Pro Preview**.
 
 In this verified evaluation harness:
 1. **MCP Validation Executes on Every Draft**: Every replanning draft undergoes deterministic verification of immutable booking locks (Kyoto hostel Days 15–18, Narita return flight Day 28) and itemized ₹20,000 cost reductions.
@@ -76,6 +76,6 @@ In this verified evaluation harness:
 
 ## Saved File Locations
 
-- **Authoritative Gemini Dataset**: [`results/week5/mcp-replanning-gemini-3-1-pro.json`](file:///Users/shivam/Projects/AI/agent-eval-platform/results/week5/mcp-replanning-gemini-3-1-pro.json)
-- **Authoritative GPT Dataset**: [`results/week5/mcp-replanning-gpt-5-6-terra.json`](file:///Users/shivam/Projects/AI/agent-eval-platform/results/week5/mcp-replanning-gpt-5-6-terra.json)
-- **Consolidated Findings Report**: [`results/week5/mcp-validation-findings.md`](file:///Users/shivam/Projects/AI/agent-eval-platform/results/week5/mcp-validation-findings.md)
+- **Authoritative Gemini Dataset**: [`results/mcp-constraint-validation/mcp-replanning-gemini-3-1-pro.json`](file:///Users/shivam/Projects/AI/agent-eval-platform/results/mcp-constraint-validation/mcp-replanning-gemini-3-1-pro.json)
+- **Authoritative GPT Dataset**: [`results/mcp-constraint-validation/mcp-replanning-gpt-5-6-terra.json`](file:///Users/shivam/Projects/AI/agent-eval-platform/results/mcp-constraint-validation/mcp-replanning-gpt-5-6-terra.json)
+- **Consolidated Findings Report**: [`results/mcp-constraint-validation/mcp-validation-findings.md`](file:///Users/shivam/Projects/AI/agent-eval-platform/results/mcp-constraint-validation/mcp-validation-findings.md)

@@ -1,7 +1,7 @@
-# Week 4 Comparative Evaluation Results
+# Multi-Model Comparative Benchmark Results
 
 ## Overview
-This document summarizes the comparative evaluation results of the travel-planning agent after applying the Week 4 quality optimizations. To ensure robust findings and prevent instruction-overfitting, the evaluations were executed across four different model configurations:
+This document summarizes the comparative evaluation results of the travel-planning agent across architectures (`v1` Planner-Only vs `v2` Planner + Reflection). To ensure robust findings and prevent instruction-overfitting, the evaluations were executed across four different model configurations:
 1. **GPT-5.6 Terra** (`gpt-5.6-terra`)
 2. **Gemini 3.1 Pro** (`models/gemini-3.1-pro-preview`)
 3. **Gemini 3.5 Flash** (`models/gemini-3.5-flash`)
@@ -52,7 +52,7 @@ This document summarizes the comparative evaluation results of the travel-planni
 ## Optimization Impact Analysis
 
 ### 1. Cross-Model Generalization
-The evaluation results show that the Week 4 optimizations successfully generalize across both OpenAI's flagship model (**GPT-5.6 Terra**) and Google's frontier model (**Gemini 3.1 Pro**):
+The evaluation results show that the reflection loop optimizations successfully generalize across both OpenAI's flagship model (**GPT-5.6 Terra**) and Google's frontier model (**Gemini 3.1 Pro**):
 * **Budget & Constraints**: GPT-5.6 Terra improved by **+10.25** in v2 (`61.25` ➔ `71.50`), and Gemini 3.1 Pro improved by **+6.10** (`65.15` ➔ `71.25`).
 * **Mid-Trip Replanning**: GPT-5.6 Terra achieved a **+16.90** increase (`60.10` ➔ `77.00`), showing that localized day preservation instructions effectively guide top-tier models.
 * **Remote Worker Timezones**: Gemini 3.1 Pro saw a major improvement of **+36.95** (rising from `49.15` to `86.10`), while GPT-5.6 Terra maintained high timezone compliance at `79.80`.

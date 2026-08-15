@@ -1,7 +1,7 @@
-# Week 3 Evaluation Findings — Travel Agent Benchmark
+# Baseline Evaluation Findings & Reflection Analysis
 
 ## Executive Summary
-Week 3 introduced several core enhancements to the travel-planning agent framework:
+This evaluation investigated early multi-agent travel planning architectures across core capabilities:
 * **Session Memory** (isolated storage of preferences, constraints, state, and bookings).
 * **Research Agent** & **Research Planner** (external search and planning integrations).
 * **Reflection Agent** (auditing draft itineraries for constraint violations).
@@ -12,7 +12,7 @@ To evaluate these capabilities, five benchmark scenarios were executed using the
 2. **Mid-trip replanning cascades** (excessive rewriting of unaffected travel days and locked bookings).
 3. **Reflection over-editing/nitpicking** (lack of a clear itinerary approval threshold).
 
-These findings directly established our Week 4 quality optimization cycle, guiding us to implement strict stopping criteria and dynamic constraint-preservation rules.
+These findings directly guided our quality optimization cycle, leading to strict stopping criteria and dynamic constraint-preservation rules.
 
 ---
 
@@ -20,11 +20,11 @@ These findings directly established our Week 4 quality optimization cycle, guidi
 
 ```mermaid
 graph TD
-    subgraph "Week 3 Baseline Workflow"
+    subgraph "Baseline Workflow"
         P3[Planner Agent] -->|Generates Draft Plan| B3[Benchmark Evaluator]
         B3 -->|Scores & Insights| W3[Identify Major Weaknesses]
     end
-    subgraph "Week 4 Optimization Workflow"
+    subgraph "Optimized Reflection Workflow"
         P4[Planner Agent] -->|1. Draft Plan| R4[Reflection Agent]
         R4 -->|2. Critique / ITINERARY APPROVED| P4
         P4 -->|3. Revised Plan| B4[Benchmark Evaluator]
@@ -65,7 +65,7 @@ The planner focused on arranging traditional travel activities sequentially with
 **High.** 
 Violating meeting slots or working core windows results in severe planning failure, rendering the itinerary unusable and disruptive for working professionals.
 
-### Week 4 Planned Fix
+### Planned Architectural Fix
 * Refine the `ReflectionAgent` system prompt to perform a strict checklist verification of calendar overlap blocks and timezone conversion.
 * Adjust the revision prompt to enforce the absolute immutability of core remote work hours.
 
@@ -88,7 +88,7 @@ The planner's revision prompt gave the LLM too much creative freedom to regenera
 **High.**
 A replanning agent must localize adjustments to minimize disruption. Altering unaffected days or invalidating pre-paid, non-refundable hotels is unacceptable.
 
-### Week 4 Planned Fix
+### Planned Architectural Fix
 * Update the revision instructions to strictly forbid rewriting or shifting days unaffected by the critique.
 * Declare pre-existing locked bookings as immutable anchors that must not be modified or rearranged.
 * Restrict changes to the absolute minimum necessary to resolve the disruption constraints.
@@ -112,7 +112,7 @@ The `ReflectionAgent` lacked a strict stopping threshold, behaving as if it was 
 **Medium.**
 Unnecessary revision cycles increase API token usage and latency, while occasionally introducing errors into a previously correct plan.
 
-### Week 4 Planned Fix
+### Planned Architectural Fix
 * Add a strict instruction to the reflection system prompt: if an itinerary satisfies all hard constraints, budget limits, must-visit locations, and timezone windows, it must bypass critiques and return `ITINERARY APPROVED`.
 * Forbid critiques on stylistic or cosmetic preferences (e.g., swapping cafes or rewording descriptions).
 
@@ -134,7 +134,7 @@ The reflection criteria did not differentiate between a final day-by-day travel 
 **Low.**
 Increased latency and API overhead without yielding material improvements to the query output.
 
-### Week 4 Planned Fix
+### Planned Architectural Fix
 * Align the reflection auditor to bypass reviews for stylistic preferences, ensuring it only flags failures to gather crucial information or structural query errors.
 
 ---

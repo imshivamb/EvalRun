@@ -6,7 +6,7 @@ between reflection and its final revision.
 
 Usage:
     PYTHONPATH=. .venv/bin/python runs/travel/compare_mcp_replanning.py
-    PLANNER_MODEL=models/gemini-3.1-pro-preview MCP_RESULTS_PATH=results/week5/mcp-replanning-gemini-3-1-pro.json PYTHONPATH=. .venv/bin/python runs/travel/compare_mcp_replanning.py
+    PLANNER_MODEL=models/gemini-3.1-pro-preview MCP_RESULTS_PATH=results/mcp-constraint-validation/mcp-replanning-gemini-3-1-pro.json PYTHONPATH=. .venv/bin/python runs/travel/compare_mcp_replanning.py
 """
 
 import json
@@ -41,7 +41,7 @@ from framework.mcp.client import TravelValidationMCPClient
 
 
 SCENARIO_PATH = "evals/scenarios/travel-agent/mid-trip-replanning.md"
-DEFAULT_RESULTS_PATH = "results/week5/mcp-replanning-gpt-5-6-terra.json"
+DEFAULT_RESULTS_PATH = "results/mcp-constraint-validation/mcp-replanning-gpt-5-6-terra.json"
 
 
 def load_env_file():
@@ -97,7 +97,7 @@ def create_engine(judge_llm):
 def fresh_replanning_memory():
     """Returns the same Day 12 state for each side of the comparison."""
     return TravelSessionMemory(
-        session_id="week5-mcp-replanning",
+        session_id="mcp-replanning-eval",
         state=CurrentTripState(current_day=12),
     )
 
@@ -139,7 +139,7 @@ def main():
     
     # Target results path
     sanitized_model = model_name.replace("models/", "").replace(".", "-").replace("/", "-").replace("_", "-")
-    default_path = f"results/week5/mcp-replanning-{sanitized_model}.json"
+    default_path = f"results/mcp-constraint-validation/mcp-replanning-{sanitized_model}.json"
     results_path = Path(os.environ.get("MCP_RESULTS_PATH", default_path))
     
     try:
@@ -174,7 +174,7 @@ def main():
         deltas[dimension] = score["score"] - baseline["evaluation"]["dimension_scores"][dimension]["score"]
 
     report = {
-        "experiment": "week5-mcp-replanning-v2-vs-v2.1",
+        "experiment": "mcp-replanning-v2-vs-v2.1",
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
         "benchmark": benchmark.benchmark_id,
         "planner_model": model_name,

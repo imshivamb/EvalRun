@@ -82,7 +82,7 @@ The platform combines LLM-based reflection with **deterministic MCP tools** to c
 
 ---
 
-## MCP-Backed Deterministic Constraint Validation (Week 5)
+## MCP-Backed Deterministic Constraint Validation
 
 While reflection agents catch qualitative and structural issues, LLMs frequently hallucinate arithmetic totals and subtly drop locked constraints during replanning. 
 
@@ -149,7 +149,7 @@ OPENAI_MODEL=gpt-5.6-terra
 # Run multi-model comparison across all 5 benchmark scenarios
 PYTHONPATH=. python3 runs/travel/compare_all.py
 
-# Run Week 5 controlled MCP replanning benchmark (v2 vs v2.1)
+# Run controlled MCP replanning benchmark (v2 vs v2.1)
 PYTHONPATH=. python3 runs/travel/compare_mcp_replanning.py
 
 # Run unit test suite
@@ -187,11 +187,11 @@ PYTHONPATH=. python3 -m unittest discover -s tests -p "test_*.py"
 
 ## Documentation & Evaluation Findings
 
-Benchmark reports and development logs are included in the repository:
+Benchmark reports and evaluation datasets are organized by topic:
 
-- [Week 3 Evaluation Findings](results/week3/evaluation-findings.md)
-- [Week 4 Multi-Model Comparison](results/week4/comparison.md)
-- [Week 5 MCP Constraint Validation Findings](results/week5/mcp-validation-findings.md)
+- [Reflection Failure Analysis & Baseline Findings](results/reflection-analysis/evaluation-findings.md)
+- [Multi-Model Comparative Benchmarks](results/multi-model-benchmarks/comparison.md)
+- [MCP Constraint Validation Findings](results/mcp-constraint-validation/mcp-validation-findings.md)
 - [Evaluation Dashboard](dashboards/README.md)
 
 ---

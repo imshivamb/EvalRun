@@ -212,7 +212,7 @@ def main():
             "model_id": model_name,
             "scenarios": scenario_scores
         }
-    results_path = os.environ.get("BENCHMARK_RESULTS_PATH", "results/week4/results.json")
+    results_path = os.environ.get("BENCHMARK_RESULTS_PATH", "results/multi-model-benchmarks/results.json")
     os.makedirs(os.path.dirname(results_path) or ".", exist_ok=True)
     with open(results_path, "w") as f:
         json.dump(export_data, f, indent=2)

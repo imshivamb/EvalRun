@@ -1,5 +1,5 @@
 {
-  "experiment": "week5-mcp-replanning-v2-vs-v2.1",
+  "experiment": "mcp-replanning-v2-vs-v2.1",
   "timestamp_utc": "2026-07-28T17:14:46.254552+00:00",
   "benchmark": "travel-mid-trip-replanning",
   "planner_model": "gpt-5.6-terra",

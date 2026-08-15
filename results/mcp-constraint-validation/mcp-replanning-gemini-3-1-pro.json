@@ -1,5 +1,5 @@
 {
-  "experiment": "week5-mcp-replanning-v2-vs-v2.1",
+  "experiment": "mcp-replanning-v2-vs-v2.1",
   "timestamp_utc": "2026-08-15T12:01:52.262344+00:00",
   "benchmark": "travel-mid-trip-replanning",
   "planner_model": "models/gemini-3.1-pro-preview",

@@ -1,11 +1,10 @@
 # Travel Agent Evaluation Dashboard
 
 ```text
-Framework Version: v2.1 (MCP Validation Enabled)
+Framework Version: v2
 Planner: TravelPlanningAgent
 Research Agent: Enabled
 Reflection Agent: Enabled
-MCP Validator: TravelValidationMCPClient (FastMCP)
 
 Models Evaluated:
 • GPT-5.6 Terra
@@ -14,7 +13,6 @@ Models Evaluated:
 • Llama 3.1 8B
 
 Benchmark Scenarios: 5
-Week 5 MCP Controlled Replanning Delta: +5.55 (v2: 84.25 → v2.1: 89.80)
 ```
 
 ---
@@ -26,7 +24,7 @@ Week 5 MCP Controlled Replanning Delta: +5.55 (v2: 84.25 → v2.1: 89.80)
 | Budget | 66.38 | 64.15 | -2.22 |
 | Route Optimization | 76.88 | 79.25 | +2.38 |
 | Remote Worker | 53.08 | 71.42 | +18.35 |
-| Replanning | 77.06 | 82.07 | +5.01 |
+| Replanning | 77.06 | 82.08 | +5.01 |
 | Information Gathering | 69.50 | 69.56 | +0.06 |
 
 ---
@@ -105,7 +103,7 @@ Planner ➔ Research ➔ Reflection ➔ Evaluation ➔ Dashboard
 
 ---
 
-## Week 4 Summary
+## Multi-Model Benchmark Summary
 
 * **Scenarios**: 5 benchmark scenarios evaluated.
 * **Models**: 3 target LLMs validated.

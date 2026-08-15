@@ -10,7 +10,7 @@ def calculate_mean(values: List[float]) -> float:
     return sum(values) / len(values)
 
 def main():
-    json_path = "results/week4/results.json"
+    json_path = os.environ.get("BENCHMARK_RESULTS_PATH", "results/multi-model-benchmarks/results.json")
     output_path = "dashboards/README.md"
 
     if not os.path.exists(json_path):
@@ -119,8 +119,8 @@ def main():
     md.append("```\n")
     md.append("---\n")
 
-    # Section 7: Week 4 Outcome
-    md.append("## Week 4 Summary\n")
+    # Section 7: Multi-Model Benchmark Summary
+    md.append("## Multi-Model Benchmark Summary\n")
     md.append("* **Scenarios**: 5 benchmark scenarios evaluated.")
     md.append("* **Models**: 3 target LLMs validated.")
     md.append("* **Constraint Satisfaction**: Reflection improved constraint satisfaction and calendar slot reasoning.")
