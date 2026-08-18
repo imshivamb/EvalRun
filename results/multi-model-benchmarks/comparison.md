@@ -9,7 +9,9 @@ This document summarizes the comparative evaluation results of the travel-planni
 
 ---
 
-## Consolidated Multi-Model Report
+## 1. Five-Scenario Regression Suite Report
+
+The scores below represent the comprehensive **Five-Scenario Regression Suite**, which verifies cross-scenario agent stability when reflection and closed-world planning controls are activated.
 
 ### Model: GPT-5.6 Terra
 | Scenario | Planner Only (v1) | Planner + Reflection (v2) | Delta |
@@ -46,6 +48,20 @@ This document summarizes the comparative evaluation results of the travel-planni
 | Remote Worker | 2.00 | 34.70 | **+32.70** |
 | Replanning | 83.50 | 80.85 | -2.65 |
 | Information Gathering | 71.50 | 59.75 | -11.75 |
+
+---
+
+## 2. Focused Mid-Trip Replanning FastMCP Audits
+
+In addition to the five-scenario regression check, a **dedicated controlled audit** was executed for Mid-Trip Replanning (`travel-mid-trip-replanning`) to isolate and certify the deterministic MCP layer under exact Day 12 session conditions. Each run generates complete per-run `agent_metadata` containing validated locked booking IDs and exact arithmetic savings checks.
+
+| Model | Baseline (`v2`) | MCP-Validated (`v2.1`) | Net Delta ($\Delta$) | Deterministic Audit Artifact |
+| :--- | :---: | :---: | :---: | :--- |
+| **GPT-5.6 Terra** | 86.40 | **87.30** | **+0.90** | [`mcp-replanning-gpt-5-6-terra.json`](file:///Users/shivam/Projects/AI/agent-eval-platform/results/mcp-constraint-validation/mcp-replanning-gpt-5-6-terra.json) |
+| **Gemini 3.1 Pro** | 99.25 | **99.25** | **0.00** | [`mcp-replanning-gemini-3-1-pro.json`](file:///Users/shivam/Projects/AI/agent-eval-platform/results/mcp-constraint-validation/mcp-replanning-gemini-3-1-pro.json) |
+| **Gemini 3.5 Flash** | 98.50 | **99.25** | **+0.75** | [`mcp-replanning-gemini-3-5-flash.json`](file:///Users/shivam/Projects/AI/agent-eval-platform/results/mcp-constraint-validation/mcp-replanning-gemini-3-5-flash.json) |
+
+For comprehensive qualitative analysis of the MCP validation traces across models, see [`mcp-validation-findings.md`](file:///Users/shivam/Projects/AI/agent-eval-platform/results/mcp-constraint-validation/mcp-validation-findings.md).
 
 ---
 
