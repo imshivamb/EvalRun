@@ -73,6 +73,6 @@ In Mid-Trip Replanning, both GPT-5.6 Terra (`77.00` / `87.30` in focused MCP run
 
 ## Overall Conclusions
 
-1. **Targeted Validation Works**: MCP delivered deterministic constraint enforcement where LLMs struggle most (arithmetic totals and immutable anchor preservation under mid-trip stress).
-2. **Zero Regressions Across the Suite**: The five-scenario regression check confirmed that reflection-enabled agent execution maintained high stability across all other planning tasks.
-3. **Artifact Audit Trail**: Every run produces persistent JSON reports and Markdown summaries containing full score breakdowns and metadata traces.
+1. **Targeted Validation Works**: FastMCP delivered deterministic constraint enforcement where LLMs struggle most (arithmetic totals and immutable anchor preservation under mid-trip replanning stress).
+2. **Surfacing Real Trade-Offs**: The regression suite detected mixed effects—reflection substantially improved complex constraint scenarios (e.g., +82.00 on Remote Worker for Gemini 3.1 Pro) but also introduced measurable regressions in certain model/scenario combinations (e.g., Gemini 3.5 Flash Budget -8.95, Route -0.90, Gemini 3.1 Pro Budget -1.00). The framework successfully surfaced these nuances rather than obscuring them.
+3. **End-to-End Audit Trail**: Every run produces persistent JSON reports containing `agent_metadata` and Markdown summaries with full MCP validation traces for verification.
