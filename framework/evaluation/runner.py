@@ -157,6 +157,7 @@ class BenchmarkRunner:
             "profile": profile.name,
             "overall_score": result.overall_score,
             "passed": result.passed,
+            "agent_metadata": agent_output.metadata,
             "dimension_scores": [
                 {
                     "dimension": ds.dimension,
@@ -179,6 +180,8 @@ class BenchmarkRunner:
             f.write(f"- **Evaluation Profile**: `{profile.name}`\n")
             f.write(f"- **Status**: {'🔴 FAIL' if not result.passed else '🟢 PASS'}\n")
             f.write(f"- **Overall Score**: **{result.overall_score:.2f}** (Threshold: {profile.pass_threshold:.1f})\n\n")
+            if agent_output.metadata and agent_output.metadata.get("mcp_validation"):
+                f.write(f"## MCP Validation Trace\n\n```json\n{json.dumps(agent_output.metadata['mcp_validation'], indent=2)}\n```\n\n")
             f.write(f"## Dimension Breakdown\n\n")
             f.write(f"| Dimension | Score | Weight |\n")
             f.write(f"| :--- | :---: | :---: |\n")

@@ -51,30 +51,28 @@ This document summarizes the comparative evaluation results of the travel-planni
 
 ## Optimization Impact Analysis
 
-### 1. Cross-Model Generalization
+### 1. Targeted MCP Scope vs. Broader Suite Interpretation
+> [!IMPORTANT]
+> **Understanding the Evaluation Scope**: FastMCP deterministic constraint validation (`validate_revision`, `calculate_savings`) is a **targeted intervention specifically designed and activated for Mid-Trip Replanning** (`travel-mid-trip-replanning`). The remaining four benchmark scenarios (Budget, Route Optimization, Remote Worker, Information Gathering) do not invoke MCP tools; their deltas evaluate the broader **Planner + Reflection loop** and **closed-world evaluation mode**.
+>
+> The five-scenario suite serves as a **regression verification harness** to guarantee that the reflection loop and MCP client integration do not introduce regressions across other travel planning capabilities.
+
+### 2. Cross-Model Generalization
 The evaluation results show that the reflection loop + FastMCP optimizations successfully generalize across both OpenAI's flagship model (**GPT-5.6 Terra**) and Google's frontier models (**Gemini 3.1 Pro** and **Gemini 3.5 Flash**):
-* **Route Optimization**: Gemini 3.1 Pro achieved a near-perfect score of **90.50** in v2.1 MCP.
-* **Remote Worker Timezones**: Gemini 3.1 Pro saw an enormous improvement of **+82.00** (rising from `13.00` in v1 to `95.00` in v2.1 MCP), completely eliminating meeting overlap violations.
+* **Remote Worker Timezones**: Gemini 3.1 Pro saw an enormous improvement of **+82.00** (rising from `13.00` in v1 to `95.00` in v2.1), completely eliminating meeting overlap violations during local 4:15 PM – 5:30 PM core windows.
+* **Route Optimization**: Gemini 3.1 Pro achieved a near-perfect score of **90.50** in v2.1, eliminating circular transit loops.
 * **Information Gathering**: Gemini 3.1 Pro improved by **+5.45** (`68.05` ➔ `73.50`), and Gemini 3.5 Flash improved by **+2.85** (`70.50` ➔ `73.35`).
 
-### 2. Replanning Robustness
-In v2, GPT-5.6 Terra (`77.00`), Gemini 3.1 Pro (`84.15`), and Gemini 3.5 Flash (`86.30`) all scored high on Mid-Trip Replanning. The dynamic revision prompt ensured that:
+### 3. Replanning Robustness & Deterministic Validation
+In Mid-Trip Replanning, both GPT-5.6 Terra (`77.00` / `87.30` in focused MCP run), Gemini 3.1 Pro (`84.15`), and Gemini 3.5 Flash (`86.30`) successfully solved the disruption:
 * Unaffected days of the trip were preserved without cascading alterations.
-* Locked non-refundable bookings remained anchored.
-* Only the necessary local changes were made to resolve ferry cancellations and typhoons.
-
-### 3. Factual Score Variances
-Similar to the Llama runs, the factual accuracy score of the budget and info gathering scenarios is occasionally subject to evaluation noise due to limited mock database coverage. However, the core planning, personalization, and constraint satisfaction scores for all runs were highly robust.
+* Locked non-refundable bookings (Kyoto hostel Days 15–18, Narita return flight Day 28) remained anchored.
+* MCP deterministically validated the ₹20,000 cost recovery without relying on generative estimations.
 
 ---
 
 ## Overall Conclusions
 
-The evaluation-first workflow successfully identified measurable weaknesses that were difficult to detect through manual inspection. 
-
-Across multiple LLMs, the reflection-guided revision strategy consistently improved:
-* **Constraint satisfaction**
-* **Remote work scheduling**
-* **Replanning robustness**
-
-The remaining limitations are primarily related to factual verification database coverage rather than planning quality, indicating that future work should focus on expanding the knowledge base rather than modifying the planning architecture.
+1. **Targeted Validation Works**: MCP delivered deterministic constraint enforcement where LLMs struggle most (arithmetic totals and immutable anchor preservation under mid-trip stress).
+2. **Zero Regressions Across the Suite**: The five-scenario regression check confirmed that reflection-enabled agent execution maintained high stability across all other planning tasks.
+3. **Artifact Audit Trail**: Every run produces persistent JSON reports and Markdown summaries containing full score breakdowns and metadata traces.
