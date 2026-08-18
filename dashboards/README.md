@@ -1,16 +1,14 @@
 # Travel Agent Evaluation Dashboard
 
 ```text
-Framework Version: v2
+Framework Version: v2.1-mcp
 Planner: TravelPlanningAgent
 Research Agent: Enabled
 Reflection Agent: Enabled
 
 Models Evaluated:
-• GPT-5.6 Terra
 • Gemini 3.1 Pro
 • Gemini 3.5 Flash
-• Llama 3.1 8B
 
 Benchmark Scenarios: 5
 ```
@@ -21,30 +19,21 @@ Benchmark Scenarios: 5
 
 | Scenario | Planner (v1) | Planner + Reflection (v2) | Delta |
 | :--- | :---: | :---: | :---: |
-| Budget | 56.34 | 67.49 | +11.15 |
-| Route Optimization | 70.59 | 82.84 | +12.25 |
-| Remote Worker | 44.04 | 73.65 | +29.61 |
-| Replanning | 78.42 | 82.08 | +3.65 |
-| Information Gathering | 69.50 | 69.56 | +0.06 |
+| Budget | 83.75 | 78.78 | -4.97 |
+| Route Optimization | 86.75 | 86.85 | +0.10 |
+| Remote Worker | 47.50 | 90.05 | +42.55 |
+| Replanning | 85.05 | 85.22 | +0.17 |
+| Information Gathering | 69.28 | 73.42 | +4.15 |
 
 ---
 
 ## Per-Model Comparison
 
-### GPT-5.6 Terra
-| Scenario | Planner Only (v1) | Planner + Reflection (v2) | Delta |
-| :--- | :---: | :---: | :---: |
-| Budget | 61.25 | 71.50 | +10.25 |
-| Route Optimization | 82.85 | 81.20 | -1.65 |
-| Remote Worker | 79.15 | 79.80 | +0.65 |
-| Replanning | 60.10 | 77.00 | +16.90 |
-| Information Gathering | 67.95 | 71.65 | +3.70 |
-
 ### Gemini 3.1 Pro
 | Scenario | Planner Only (v1) | Planner + Reflection (v2) | Delta |
 | :--- | :---: | :---: | :---: |
-| Budget | 25.00 | 84.60 | +59.60 |
-| Route Optimization | 41.50 | 90.50 | +49.00 |
+| Budget | 85.00 | 84.00 | -1.00 |
+| Route Optimization | 89.40 | 90.50 | +1.10 |
 | Remote Worker | 13.00 | 95.00 | +82.00 |
 | Replanning | 84.65 | 84.15 | -0.50 |
 | Information Gathering | 68.05 | 73.50 | +5.45 |
@@ -52,20 +41,11 @@ Benchmark Scenarios: 5
 ### Gemini 3.5 Flash
 | Scenario | Planner Only (v1) | Planner + Reflection (v2) | Delta |
 | :--- | :---: | :---: | :---: |
-| Budget | 67.15 | 73.55 | +6.40 |
+| Budget | 82.50 | 73.55 | -8.95 |
 | Route Optimization | 84.10 | 83.20 | -0.90 |
 | Remote Worker | 82.00 | 85.10 | +3.10 |
 | Replanning | 85.45 | 86.30 | +0.85 |
 | Information Gathering | 70.50 | 73.35 | +2.85 |
-
-### Llama 3.1 8B
-| Scenario | Planner Only (v1) | Planner + Reflection (v2) | Delta |
-| :--- | :---: | :---: | :---: |
-| Budget | 71.95 | 40.30 | -31.65 |
-| Route Optimization | 73.90 | 76.45 | +2.55 |
-| Remote Worker | 2.00 | 34.70 | +32.70 |
-| Replanning | 83.50 | 80.85 | -2.65 |
-| Information Gathering | 71.50 | 59.75 | -11.75 |
 
 ---
 

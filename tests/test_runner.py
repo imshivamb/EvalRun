@@ -15,6 +15,17 @@ class MockAgent:
         return AgentOutput(content="Test itinerary planned by agent.")
 
 
+class ConfigurableMockAgent:
+    """Agent exposing the optional evaluation controls used by the runner."""
+
+    def __init__(self):
+        self.calls = []
+
+    def run(self, prompt: str, validation_scenario_id=None, planning_mode="standard"):
+        self.calls.append((prompt, validation_scenario_id, planning_mode))
+        return AgentOutput(content="Configured itinerary.")
+
+
 class TestRunner(unittest.TestCase):
     """Tests the BenchmarkRunner class."""
 
@@ -133,6 +144,33 @@ class TestRunner(unittest.TestCase):
         results = runner.run_directory(self.temp_dir)
         self.assertIn("test-gathering", results)
         self.assertEqual(results["test-gathering"].overall_score, 90.0)
+
+    @patch("framework.evaluation.runner.parse_benchmark")
+    def test_runner_passes_evaluation_context_to_opt_in_agent(self, mock_parse):
+        mock_parse.return_value = self.benchmark
+        agent = ConfigurableMockAgent()
+        runner = BenchmarkRunner(
+            agent=agent,
+            judge_llm=self.judge_llm,
+            local_verifier_path=self.db_path,
+            output_dir=self.temp_dir,
+        )
+        runner.engine.evaluate = MagicMock(
+            return_value=EvaluationResult(
+                benchmark_id=self.benchmark.benchmark_id,
+                benchmark_name=self.benchmark.name,
+                overall_score=80.0,
+                dimension_scores=[],
+                passed=True,
+            )
+        )
+
+        runner.run("dummy_path.md")
+
+        self.assertEqual(
+            agent.calls,
+            [("Prompt", "test-gathering", "closed_world_evaluation")],
+        )
 
 
 if __name__ == "__main__":

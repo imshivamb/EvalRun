@@ -58,7 +58,28 @@ class GeminiLLM(BaseLLM):
         if system_instruction:
             config["system_instruction"] = system_instruction
 
+        import time
+
         model = self._genai.GenerativeModel(self.model_name, **config)
-        response = model.generate_content(gemini_contents)
-        response_text = response.text or ""
-        return LLMResponse(text=response_text)
+        
+        max_retries = 4
+        for attempt in range(max_retries):
+            try:
+                response = model.generate_content(
+                    gemini_contents,
+                    request_options={"timeout": 300.0},
+                )
+                response_text = response.text or ""
+                return LLMResponse(text=response_text)
+            except Exception as e:
+                err_str = str(e).lower()
+                is_transient = any(
+                    err in err_str
+                    for err in ["504", "deadline", "timeout", "resourceexhausted", "429", "503", "unavailable"]
+                )
+                if is_transient and attempt < max_retries - 1:
+                    sleep_seconds = 5 * (attempt + 1)
+                    print(f"[GeminiLLM] Transient error ({e}). Retrying in {sleep_seconds}s (attempt {attempt + 1}/{max_retries})...")
+                    time.sleep(sleep_seconds)
+                else:
+                    raise e

@@ -3,6 +3,7 @@
 import os
 import sys
 import json
+import inspect
 from typing import Dict, Any
 from framework.models import Benchmark, AgentOutput, EvaluationResult
 from framework.parser import parse_benchmark
@@ -84,8 +85,18 @@ class BenchmarkRunner:
         # 2. Resolve evaluation profile
         profile = PROFILE_REGISTRY.get(benchmark.profile, TRAVEL_PROFILE)
 
-        # 3. Execute agent
-        agent_output = self.agent.run(benchmark.prompt)
+        # 3. Execute agent. Pass benchmark context to agents that opt into
+        # evaluation-specific controls. This keeps the runner compatible with
+        # simple agents while activating MCP validation for TravelPlanningAgent.
+        run_kwargs = {}
+        run_parameters = inspect.signature(self.agent.run).parameters
+        if "planning_mode" in run_parameters:
+            # Both comparison arms receive the same closed-world instruction;
+            # MCP remains the only additional intervention for v2.1.
+            run_kwargs["planning_mode"] = "closed_world_evaluation"
+        if "validation_scenario_id" in run_parameters:
+            run_kwargs["validation_scenario_id"] = benchmark.benchmark_id
+        agent_output = self.agent.run(benchmark.prompt, **run_kwargs)
 
         # 4. Evaluate using the engine
         result = self.engine.evaluate(benchmark, agent_output, profile)

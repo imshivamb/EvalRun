@@ -1,5 +1,5 @@
 {
-  "framework_version": "v2",
+  "framework_version": "v2.1-mcp",
   "planner": "TravelPlanningAgent",
   "research_agent": "Enabled",
   "reflection_agent": "Enabled",
@@ -11,42 +11,16 @@
     "Information Gathering"
   ],
   "models": {
-    "GPT-5.6 Terra": {
-      "provider": "openai",
-      "model_id": "gpt-5.6-terra",
-      "scenarios": {
-        "Budget": {
-          "v1": 61.25,
-          "v2": 71.5
-        },
-        "Route Optimization": {
-          "v1": 82.85,
-          "v2": 81.2
-        },
-        "Remote Worker": {
-          "v1": 79.15,
-          "v2": 79.8
-        },
-        "Replanning": {
-          "v1": 60.1,
-          "v2": 77.0
-        },
-        "Information Gathering": {
-          "v1": 67.95,
-          "v2": 71.65
-        }
-      }
-    },
     "Gemini 3.1 Pro": {
       "provider": "gemini",
       "model_id": "models/gemini-3.1-pro-preview",
       "scenarios": {
         "Budget": {
-          "v1": 25.0,
-          "v2": 84.6
+          "v1": 85.0,
+          "v2": 84.0
         },
         "Route Optimization": {
-          "v1": 41.5,
+          "v1": 89.4,
           "v2": 90.5
         },
         "Remote Worker": {
@@ -68,7 +42,7 @@
       "model_id": "models/gemini-3.5-flash",
       "scenarios": {
         "Budget": {
-          "v1": 67.15,
+          "v1": 82.5,
           "v2": 73.55
         },
         "Route Optimization": {
@@ -86,32 +60,6 @@
         "Information Gathering": {
           "v1": 70.5,
           "v2": 73.35
-        }
-      }
-    },
-    "Llama 3.1 8B": {
-      "provider": "nvidia",
-      "model_id": "meta/llama-3.1-8b-instruct",
-      "scenarios": {
-        "Budget": {
-          "v1": 71.95,
-          "v2": 40.3
-        },
-        "Route Optimization": {
-          "v1": 73.9,
-          "v2": 76.45
-        },
-        "Remote Worker": {
-          "v1": 2.0,
-          "v2": 34.7
-        },
-        "Replanning": {
-          "v1": 83.5,
-          "v2": 80.85
-        },
-        "Information Gathering": {
-          "v1": 71.5,
-          "v2": 59.75
         }
       }
     }

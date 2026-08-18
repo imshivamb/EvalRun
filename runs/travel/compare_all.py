@@ -163,8 +163,8 @@ def main():
                 print(f"FAILED to run v1 for {label}: {e}")
                 score_v1 = 0.0
 
-            # ---------------- Run v2 (Planner + Reflection + MCP) ----------------
-            print(f">>> Running v2 (Planner + Reflection + MCP) for {label}...")
+            # ---------------- Run v2.1 (Planner + Reflection + MCP) ----------------
+            print(f">>> Running v2.1 (Planner + Reflection + MCP) for {label}...")
             agent_v2 = TravelPlanningAgent(
                 llm=agent_llm,
                 research_agent=research_agent,
@@ -181,7 +181,7 @@ def main():
             try:
                 result_v2 = runner_v2.run(filepath)
                 score_v2 = result_v2.overall_score
-                print(f"v2 Score: {score_v2:.2f}")
+                print(f"v2.1 Score: {score_v2:.2f}")
             except Exception as e:
                 print(f"FAILED to run v2 for {label}: {e}")
                 score_v2 = 0.0
@@ -210,7 +210,7 @@ def main():
     # 5. Export results to JSON for dashboard generator
     import json
     export_data = {
-        "framework_version": "v2",
+        "framework_version": "v2.1-mcp",
         "planner": "TravelPlanningAgent",
         "research_agent": "Enabled",
         "reflection_agent": "Enabled",
