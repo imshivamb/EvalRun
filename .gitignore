@@ -1,3 +1,4 @@
+# Environment & Virtual Env
 .env
 .venv/
 __pycache__/
@@ -6,10 +7,18 @@ __pycache__/
 .DS_Store
 .tempmediaStorage/
 
-# Keep docs, scratch, results, and internal task planning local only
-docs/
-scratch/
-eval_results/
-results/
+# Internal Task Planning & Implementation Plans
 task.md
 tasks/
+docs/*implementation-plan.md
+docs/*usability-findings.md
+docs/12-week-applied-ai-plan.md
+
+# Temporary Scratch Scripts
+scratch/
+
+# Test Execution Outputs & Raw Result JSONs
+eval_results/
+results/**/*.json
+traces/*.json
+*.log

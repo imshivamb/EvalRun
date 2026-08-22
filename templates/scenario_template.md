@@ -16,8 +16,11 @@ User Request: [Insert exact prompt sent to the target agent]
 
 # Extracted Constraints
 
-- Constraint 1: [Hard budget limit or SLA requirement]
-- Constraint 2: [Required tool invocation or verification step]
+```yaml
+constraints:
+  budget_limit: "[Hard budget limit or SLA requirement]"
+  required_verification: "[Required tool invocation or verification step]"
+```
 
 # Expected Behaviour
 
