@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>evalrun — Guided Agent Evaluation UI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar / Header -->
+        <header class="app-header">
+            <div class="logo-box">
+                <span class="logo-badge">EVALRUN UI</span>
+                <h1>Guided Agent Evaluation & Regression Platform</h1>
+            </div>
+            <div class="header-subtitle">
+                Quality score &ne; Release decision. Run local evaluations, enforce auditor gates, and detect score regressions.
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Form Card -->
+            <section class="card config-card">
+                <h2>1. Configure Run Parameters</h2>
+                <form id="eval-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="scenario-select">Select Benchmark Scenario / Suite *</label>
+                            <select id="scenario-select" required>
+                                <option value="">Loading scenarios...</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="agent-spec">Agent Specifier *</label>
+                            <input type="text" id="agent-spec" value="agents.travel:TravelPlanningAgent" placeholder="agents.travel:TravelPlanningAgent, http://..., cli:..." required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="target-model">Target Agent Model *</label>
+                            <input type="text" id="target-model" value="qwen2.5-72b-instruct" placeholder="qwen2.5-72b-instruct, gpt-4o" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="base-url">OpenAI-Compatible Base URL *</label>
+                            <input type="text" id="base-url" value="http://localhost:8000/v1" placeholder="http://localhost:8000/v1 or https://api.openai.com/v1" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="api-key">API Key (In-Memory Only)</label>
+                            <input type="password" id="api-key" placeholder="EMPTY or sk-proj-..." autocomplete="off">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="baseline-select">Baseline Run (Optional Regression Comparison)</label>
+                            <select id="baseline-select">
+                                <option value="">None (Single Evaluation Run)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" id="run-btn" class="btn primary-btn">
+                            <span id="btn-text">Run Benchmark Evaluation</span>
+                            <div id="btn-spinner" class="spinner hidden"></div>
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Results Card -->
+            <section id="results-card" class="card results-card hidden">
+                <div id="verdict-banner" class="verdict-banner">
+                    <h2 id="verdict-title">RELEASE APPROVED</h2>
+                    <p id="verdict-sub">All benchmark scenarios passed quality thresholds and auditor release gates.</p>
+                    <a id="open-report-btn" class="btn report-btn" target="_blank" href="#">Open Interactive HTML Report</a>
+                </div>
+
+                <div class="scenarios-table-box">
+                    <h3>Scenario Evaluation Results</h3>
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>Scenario Name</th>
+                                <th>Score</th>
+                                <th>Evaluator</th>
+                                <th>Auditor Gate</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-table-body">
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

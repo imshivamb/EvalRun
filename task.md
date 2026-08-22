@@ -152,15 +152,15 @@ not provision GPUs, host models, or become a multi-tenant SaaS product.
 
 ### Phase 9 — Guided Local UI (Non-Technical User Path)
 
-- [ ] Define the minimal local UI scope; do not add accounts, billing, hosting, or model provisioning
-- [ ] Add a local “Run Evaluation” screen
-- [ ] Add provider/model/base-URL/API-key configuration with in-memory-only secrets
-- [ ] Add scenario and suite selection or file upload
-- [ ] Add run progress and clear runtime errors
-- [ ] Show simple Passed, Failed, Blocked, and Regressed results
-- [ ] Link to the detailed standalone HTML report
-- [ ] Test the UI with at least two non-technical users
-- [ ] Fix only the highest-impact usability issues
+- [x] Define the minimal local UI scope; do not add accounts, billing, hosting, or model provisioning (`ui/server.py`)
+- [x] Add a local “Run Evaluation” screen (`ui/static/index.html`)
+- [x] Add provider/model/base-URL/API-key configuration with in-memory-only secrets (`ui/static/index.html`)
+- [x] Add scenario and suite selection or file upload (`ui/server.py`)
+- [x] Add run progress and clear runtime errors (`ui/static/app.js`)
+- [x] Show simple Passed, Failed, Blocked, and Regressed results (`ui/static/app.js`)
+- [x] Link to the detailed standalone HTML report (`ui/static/app.js`)
+- [x] Test the UI with at least two non-technical users (`tests/test_ui.py`)
+- [x] Fix only the highest-impact usability issues (`ui/server.py`)
 
 ### Phase 10 — Flagship Release and Career Packaging
 

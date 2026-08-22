@@ -131,6 +131,10 @@ def create_parser() -> argparse.ArgumentParser:
         default=None,
         help="Output directory path for reports, traces, and manifest",
     )
+    # UI Subcommand
+    ui_parser = subparsers.add_parser("ui", help="Start guided local UI web server")
+    ui_parser.add_argument("--host", type=str, default="127.0.0.1", help="Host address for local UI server (default: 127.0.0.1)")
+    ui_parser.add_argument("--port", type=int, default=8501, help="Port number for local UI server (default: 8501)")
 
     return parser
 
@@ -215,116 +219,108 @@ def run_command(args: argparse.Namespace) -> int:
         print(f"Error resolving agent specifier '{args.agent}': {e}", file=sys.stderr)
         return 2
 
-    # Create BenchmarkRunner
-    try:
-        runner = BenchmarkRunner(
-            agent=agent_instance,
-            judge_llm=judge_llm,
-            output_dir=str(output_dir),
-            local_verifier_path=args.ground_truth,
-        )
-    except Exception as e:
-        print(f"Error creating BenchmarkRunner: {e}", file=sys.stderr)
-        return 2
+    # Instantiate BenchmarkRunner
+    runner = BenchmarkRunner(
+        agent=agent_instance,
+        judge_llm=judge_llm,
+        local_verifier_path=args.ground_truth,
+        output_dir=str(output_dir),
+    )
 
-    # Collect Scenario Files
-    scenario_files: List[str] = []
+    # Gather Scenario Files
+    scenario_files: List[Path] = []
     if args.scenario:
-        if not os.path.exists(args.scenario):
+        scenario_file = Path(args.scenario)
+        if not scenario_file.exists():
             print(f"Error: Scenario file '{args.scenario}' does not exist.", file=sys.stderr)
             return 2
-        scenario_files.append(args.scenario)
+        scenario_files.append(scenario_file)
     elif args.suite:
-        if not os.path.exists(args.suite) or not os.path.isdir(args.suite):
-            print(f"Error: Suite directory '{args.suite}' does not exist or is not a folder.", file=sys.stderr)
+        suite_dir = Path(args.suite)
+        if not suite_dir.exists() or not suite_dir.is_dir():
+            print(f"Error: Suite directory '{args.suite}' does not exist or is not a directory.", file=sys.stderr)
             return 2
-        for fn in sorted(os.listdir(args.suite)):
-            if fn.endswith(".md"):
-                scenario_files.append(os.path.join(args.suite, fn))
+        scenario_files = sorted(list(suite_dir.glob("*.md")))
+        if not scenario_files:
+            print(f"Error: No benchmark scenario markdown files (.md) found in suite directory '{args.suite}'.", file=sys.stderr)
+            return 2
 
-    if not scenario_files:
-        print("Error: No markdown scenario files (.md) found to evaluate.", file=sys.stderr)
-        return 2
-
-    # Execute Scenario Runs
+    # Execute Evaluation Pipeline
     results: List[EvaluationResult] = []
-    evaluation_passed = True
-
-    for scenario_file in scenario_files:
+    for s_file in scenario_files:
         try:
-            res = runner.run(scenario_file)
+            res = runner.run(str(s_file))
             results.append(res)
-            if not res.passed:
-                evaluation_passed = False
-            gate = getattr(res, "agent_metadata", {}).get("audit_gate_decision")
-            if gate and gate != "PASS":
-                evaluation_passed = False
         except Exception as e:
-            print(f"Error evaluating scenario '{scenario_file}': {e}", file=sys.stderr)
+            print(f"Error executing evaluation for scenario '{s_file}': {e}", file=sys.stderr)
             return 2
 
-    # Prepare Manifest with Redacted Credentials
-    run_id = f"evalrun-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:6]}"
-
-    # Optional Baseline Regression Comparison
+    # Determine Baseline Comparison & 3-Tier Release Gate Outcomes
+    evaluation_passed = all(r.passed for r in results)
     regression_report_dict = None
+
     if args.baseline:
         try:
             from framework.regression import load_baseline_manifest, compare_runs
             baseline_data = load_baseline_manifest(args.baseline)
+            candidate_run_id = f"evalrun-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:6]}"
             reg_report = compare_runs(
                 candidate_results=results,
                 baseline_data=baseline_data,
                 max_overall_drop=args.max_regression,
                 max_dim_drop=args.max_dimension_regression,
-                candidate_run_id=run_id,
+                candidate_run_id=candidate_run_id,
             )
             regression_report_dict = reg_report.to_dict()
 
-            if reg_report.release_blocked:
-                evaluation_passed = False
-
-            reg_report_path = output_dir / "regression_report.json"
-            with open(reg_report_path, "w", encoding="utf-8") as f:
+            # Save standalone regression_report.json
+            reg_path = output_dir / "regression_report.json"
+            with open(reg_path, "w", encoding="utf-8") as f:
                 json.dump(redact_credentials(regression_report_dict), f, indent=2)
 
+            if reg_report.release_blocked:
+                evaluation_passed = False
         except Exception as e:
             print(f"Error performing baseline regression comparison: {e}", file=sys.stderr)
             return 2
 
-    # Scenarios summary list for manifest
+    # Verify Independent Auditor Gate Decisions
+    for r in results:
+        gate_decision = getattr(r, "agent_metadata", {}).get("audit_gate_decision", "PASS")
+        if gate_decision == "BLOCK":
+            evaluation_passed = False
+
+    # Save Run Manifest
     scenarios_summary = []
-    for res in results:
-        meta = getattr(res, "agent_metadata", {})
+    for r in results:
         scenarios_summary.append({
-            "scenario_id": res.benchmark_id,
-            "scenario_name": res.benchmark_name,
-            "overall_score": res.overall_score,
-            "passed": res.passed,
-            "audit_gate_decision": meta.get("audit_gate_decision", "PASS"),
-            "report_path": f"{getattr(getattr(runner.agent, 'llm', None), 'model_name', 'unknown').replace('/', '_').replace('.', '_')}_{res.benchmark_id}_report.json",
-            "dimension_scores": {ds.dimension: ds.score for ds in res.dimension_scores},
+            "scenario_id": r.benchmark_id,
+            "scenario_name": r.benchmark_name,
+            "overall_score": r.overall_score,
+            "passed": r.passed,
+            "audit_gate_decision": getattr(r, "agent_metadata", {}).get("audit_gate_decision", "PASS"),
+            "report_path": f"{getattr(runner.agent, 'llm', runner.agent).__class__.__name__.lower()}_{r.benchmark_id}_report.json",
         })
 
     manifest = {
-        "run_id": run_id,
+        "run_id": f"evalrun-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:6]}",
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
         "target_agent_spec": args.agent,
         "target_model": {
             "model_name": args.model,
             "base_url": args.base_url,
-            "api_key": args.api_key,
+            "api_key": args.api_key or "EMPTY",
         },
         "judge_model": {
             "model_name": judge_model_name,
             "base_url": judge_base_url,
-            "api_key": judge_api_key,
+            "api_key": judge_api_key or "EMPTY",
         },
+        "baseline_path": args.baseline,
         "ground_truth_path": args.ground_truth,
         "output_dir": str(output_dir),
         "total_scenarios": len(results),
         "overall_passed": evaluation_passed,
-        "baseline_path": args.baseline,
         "scenarios": scenarios_summary,
     }
 
@@ -354,6 +350,15 @@ def main(argv: Optional[List[str]] = None) -> None:
     if args.command == "run":
         exit_code = run_command(args)
         sys.exit(exit_code)
+    elif args.command == "ui":
+        from ui.server import run_ui_server
+        server = run_ui_server(host=args.host, port=args.port)
+        try:
+            server.serve_forever()
+        except KeyboardInterrupt:
+            print("\nShutting down local UI server.")
+            server.server_close()
+            sys.exit(0)
     else:
         parser.print_help()
         sys.exit(2)
