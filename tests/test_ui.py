@@ -118,6 +118,16 @@ class TestUIServer(unittest.TestCase):
             self.assertTrue(res_data["all_passed"])
             self.assertFalse(res_data["release_blocked"])
 
+    def test_path_traversal_protection(self):
+        if not self.server:
+            self.skipTest("Server unavailable")
+        url = f"http://127.0.0.1:{self.port}/eval_results/../../../../etc/passwd"
+        try:
+            with urllib.request.urlopen(url) as resp:
+                self.assertNotEqual(resp.status, 200)
+        except urllib.error.HTTPError as e:
+            self.assertIn(e.code, (403, 404))
+
 
 if __name__ == "__main__":
     unittest.main()

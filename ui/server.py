@@ -94,12 +94,17 @@ class UIRequestHandler(SimpleHTTPRequestHandler):
             self.send_json_response(200, {"baselines": baselines})
             return
         elif path.startswith("/eval_results/") or path.startswith("/results/"):
-            # Serve local evaluation report files safely
-            file_path = Path("." + path)
-            if file_path.exists() and file_path.is_file():
-                content_type = "text/html" if file_path.suffix == ".html" else "application/json"
-                try:
-                    with open(file_path, "rb") as f:
+            # Enforce strict path traversal protection: ensure file remains within workspace root
+            try:
+                requested_path = (Path.cwd() / path.lstrip("/")).resolve()
+                workspace_root = Path.cwd().resolve()
+                if not requested_path.is_relative_to(workspace_root):
+                    self.send_json_response(403, {"error": "Access denied: Path traversal outside workspace is forbidden."})
+                    return
+
+                if requested_path.exists() and requested_path.is_file():
+                    content_type = "text/html" if requested_path.suffix == ".html" else "application/json"
+                    with open(requested_path, "rb") as f:
                         data = f.read()
                     self.send_response(200)
                     self.send_header("Content-Type", content_type)
@@ -107,9 +112,12 @@ class UIRequestHandler(SimpleHTTPRequestHandler):
                     self.end_headers()
                     self.wfile.write(data)
                     return
-                except Exception as e:
-                    self.send_json_response(500, {"error": str(e)})
+                else:
+                    self.send_json_response(404, {"error": "File not found."})
                     return
+            except Exception as e:
+                self.send_json_response(500, {"error": str(e)})
+                return
 
         # Serve static UI files
         if path == "/":
@@ -211,5 +219,8 @@ def run_ui_server(host: str = "127.0.0.1", port: int = 8501) -> HTTPServer:
     print(f"=====================================================================")
     print(f"   EVALRUN GUIDED LOCAL UI SERVER STARTED")
     print(f"   URL: http://{host}:{port}")
+    if host not in ("127.0.0.1", "localhost"):
+        print(f"   SECURITY WARNING: Bound to non-localhost address '{host}'.")
+        print(f"   Ensure plain HTTP port is protected behind a secure network firewall.")
     print(f"=====================================================================")
     return server
