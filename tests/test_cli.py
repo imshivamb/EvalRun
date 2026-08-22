@@ -153,6 +153,64 @@ class TestCLIFunctionality(unittest.TestCase):
         self.assertIn("BLOCK", summary)
         self.assertIn("EVALUATION OR GATE FAILURE (Exit Code: 1)", summary)
 
+    @patch("cli.main.BenchmarkRunner")
+    @patch("cli.main.OpenAICompatibleLLM")
+    def test_baseline_regression_gate_triggers_exit_code_1(self, mock_llm_class, mock_runner_class):
+        mock_runner = MagicMock()
+        mock_runner_class.return_value = mock_runner
+
+        # Candidate result with dropped score (75.0 vs 90.0 baseline)
+        mock_res = EvaluationResult(
+            benchmark_id="budget-constrained-itinerary",
+            benchmark_name="Budget Constrained Itinerary",
+            overall_score=75.0,
+            dimension_scores=[DimensionScore("Constraint Satisfaction", 75.0, "Score dropped")],
+            passed=True,
+            agent_metadata={"audit_gate_decision": "PASS"},
+        )
+        mock_runner.run.return_value = mock_res
+
+        # Create baseline directory & manifest.json
+        baseline_dir = os.path.join(self.temp_dir, "baseline_run")
+        os.makedirs(baseline_dir, exist_ok=True)
+        baseline_manifest = {
+            "run_id": "baseline-001",
+            "scenarios": [
+                {
+                    "scenario_id": "budget-constrained-itinerary",
+                    "scenario_name": "Budget Constrained Itinerary",
+                    "overall_score": 90.0,
+                    "passed": True,
+                    "audit_gate_decision": "PASS",
+                    "dimension_scores": {"Constraint Satisfaction": 90.0},
+                }
+            ],
+        }
+        with open(os.path.join(baseline_dir, "manifest.json"), "w", encoding="utf-8") as f:
+            json.dump(baseline_manifest, f)
+
+        parser = create_parser()
+        args = parser.parse_args([
+            "run",
+            "--scenario", "evals/scenarios/travel-agent/budget-constrained-itinerary.md",
+            "--agent", "tests.test_cli:DummyAgentClass",
+            "--model", "qwen2.5-72b",
+            "--baseline", baseline_dir,
+            "--max-regression", "5.0",
+            "--output", self.temp_dir,
+        ])
+
+        exit_code = run_command(args)
+        self.assertEqual(exit_code, 1)
+
+        reg_report_path = os.path.join(self.temp_dir, "regression_report.json")
+        self.assertTrue(os.path.exists(reg_report_path))
+        with open(reg_report_path, "r", encoding="utf-8") as f:
+            reg_data = json.load(f)
+
+        self.assertTrue(reg_data["regression_detected"])
+        self.assertTrue(reg_data["release_blocked"])
+
     def test_run_command_missing_file_returns_exit_code_2(self):
         parser = create_parser()
         args = parser.parse_args([

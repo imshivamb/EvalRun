@@ -90,7 +90,25 @@ def create_parser() -> argparse.ArgumentParser:
         help="Judge API key (defaults to target --api-key if unspecified)",
     )
 
-    # Output & Verification flags
+    # Output, Baseline & Verification flags
+    run_parser.add_argument(
+        "--baseline",
+        type=str,
+        default=None,
+        help="Path to a baseline manifest.json file or directory from a prior run for regression comparison",
+    )
+    run_parser.add_argument(
+        "--max-regression",
+        type=float,
+        default=5.0,
+        help="Maximum allowed overall score drop before release is blocked (default: 5.0)",
+    )
+    run_parser.add_argument(
+        "--max-dimension-regression",
+        type=float,
+        default=10.0,
+        help="Maximum allowed per-dimension score drop before release is blocked (default: 10.0)",
+    )
     run_parser.add_argument(
         "--ground-truth",
         type=str,
@@ -190,6 +208,47 @@ def run_command(args: argparse.Namespace) -> int:
 
     # Prepare Manifest with Redacted Credentials
     run_id = f"evalrun-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:6]}"
+
+    # Optional Baseline Regression Comparison
+    regression_report_dict = None
+    if args.baseline:
+        try:
+            from framework.regression import load_baseline_manifest, compare_runs
+            baseline_data = load_baseline_manifest(args.baseline)
+            reg_report = compare_runs(
+                candidate_results=results,
+                baseline_data=baseline_data,
+                max_overall_drop=args.max_regression,
+                max_dim_drop=args.max_dimension_regression,
+                candidate_run_id=run_id,
+            )
+            regression_report_dict = reg_report.to_dict()
+
+            if reg_report.release_blocked:
+                evaluation_passed = False
+
+            reg_report_path = output_dir / "regression_report.json"
+            with open(reg_report_path, "w", encoding="utf-8") as f:
+                json.dump(redact_credentials(regression_report_dict), f, indent=2)
+
+        except Exception as e:
+            print(f"Error performing baseline regression comparison: {e}", file=sys.stderr)
+            return 2
+
+    # Scenarios summary list for manifest
+    scenarios_summary = []
+    for res in results:
+        meta = getattr(res, "agent_metadata", {})
+        scenarios_summary.append({
+            "scenario_id": res.benchmark_id,
+            "scenario_name": res.benchmark_name,
+            "overall_score": res.overall_score,
+            "passed": res.passed,
+            "audit_gate_decision": meta.get("audit_gate_decision", "PASS"),
+            "report_path": f"{getattr(getattr(runner.agent, 'llm', None), 'model_name', 'unknown').replace('/', '_').replace('.', '_')}_{res.benchmark_id}_report.json",
+            "dimension_scores": {ds.dimension: ds.score for ds in res.dimension_scores},
+        })
+
     manifest = {
         "run_id": run_id,
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
@@ -208,6 +267,8 @@ def run_command(args: argparse.Namespace) -> int:
         "output_dir": str(output_dir),
         "total_scenarios": len(results),
         "overall_passed": evaluation_passed,
+        "baseline_path": args.baseline,
+        "scenarios": scenarios_summary,
     }
 
     redacted_manifest = redact_credentials(manifest)
@@ -218,12 +279,12 @@ def run_command(args: argparse.Namespace) -> int:
     # Generate Local HTML Report
     try:
         from cli.html_reporter import generate_html_report
-        generate_html_report(results, redacted_manifest, str(output_dir))
+        generate_html_report(results, redacted_manifest, str(output_dir), regression_report=regression_report_dict)
     except Exception as e:
         print(f"Warning: Failed to generate HTML report: {e}", file=sys.stderr)
 
     # Render Terminal Summary
-    terminal_report = format_terminal_summary(results, redacted_manifest)
+    terminal_report = format_terminal_summary(results, redacted_manifest, regression_report=regression_report_dict)
     print(terminal_report)
 
     return 0 if evaluation_passed else 1
