@@ -181,6 +181,9 @@ def run_command(args: argparse.Namespace) -> int:
             results.append(res)
             if not res.passed:
                 evaluation_passed = False
+            gate = getattr(res, "agent_metadata", {}).get("audit_gate_decision")
+            if gate and gate != "PASS":
+                evaluation_passed = False
         except Exception as e:
             print(f"Error evaluating scenario '{scenario_file}': {e}", file=sys.stderr)
             return 2

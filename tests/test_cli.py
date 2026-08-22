@@ -120,6 +120,39 @@ class TestCLIFunctionality(unittest.TestCase):
         self.assertEqual(manifest_data["target_model"]["api_key"], "[REDACTED]")
         self.assertEqual(manifest_data["total_scenarios"], 1)
 
+    @patch("cli.main.BenchmarkRunner")
+    @patch("cli.main.OpenAICompatibleLLM")
+    def test_auditor_block_triggers_exit_code_1(self, mock_llm_class, mock_runner_class):
+        mock_runner = MagicMock()
+        mock_runner_class.return_value = mock_runner
+
+        # Mock result where evaluator score is 100 but auditor gate blocked
+        mock_res = EvaluationResult(
+            benchmark_id="test-b",
+            benchmark_name="Test Benchmark",
+            overall_score=100.0,
+            dimension_scores=[DimensionScore("Planning Quality", 100.0, "Great")],
+            passed=True,
+            agent_metadata={"audit_gate_decision": "BLOCK"},
+        )
+        mock_runner.run.return_value = mock_res
+
+        parser = create_parser()
+        args = parser.parse_args([
+            "run",
+            "--scenario", "evals/scenarios/travel-agent/budget-constrained-itinerary.md",
+            "--agent", "tests.test_cli:DummyAgentClass",
+            "--model", "qwen2.5-72b",
+            "--output", self.temp_dir,
+        ])
+
+        exit_code = run_command(args)
+        self.assertEqual(exit_code, 1)
+
+        summary = format_terminal_summary([mock_res], {"output_dir": self.temp_dir})
+        self.assertIn("BLOCK", summary)
+        self.assertIn("EVALUATION OR GATE FAILURE (Exit Code: 1)", summary)
+
     def test_run_command_missing_file_returns_exit_code_2(self):
         parser = create_parser()
         args = parser.parse_args([

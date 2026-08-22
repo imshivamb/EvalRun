@@ -48,6 +48,7 @@ class EvaluationResult:
     overall_score: float
     dimension_scores: List[DimensionScore]
     passed: bool
+    agent_metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass

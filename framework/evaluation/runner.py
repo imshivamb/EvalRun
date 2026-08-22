@@ -120,6 +120,7 @@ class BenchmarkRunner:
 
             # 5. Evaluate using the engine
             result = self.engine.evaluate(benchmark, agent_output, profile)
+            result.agent_metadata = agent_output.metadata
 
             latency = time.time() - t0
             finished_time = datetime.now(timezone.utc)
