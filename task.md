@@ -87,13 +87,13 @@ not provision GPUs, host models, or become a multi-tenant SaaS product.
 
 ### Phase 5 — Regression, Reproducibility, and Release Gates
 
-- [ ] Version scenarios, prompts, evaluators, agent adapters, and model configuration
-- [ ] Implement baseline comparison and per-dimension deltas
-- [ ] Add configurable pass/fail thresholds and regression gates
-- [ ] Record latency, token usage, cost when available, retries, and errors
-- [ ] Add deterministic run identifiers and reproducible result manifests
+- [x] Version scenarios, prompts, evaluators, agent adapters, and model configuration
+- [x] Implement baseline comparison and per-dimension deltas (`framework/regression/comparator.py`)
+- [x] Add configurable pass/fail thresholds and regression gates (`--max-regression`, `--max-dimension-regression`)
+- [x] Record latency, token usage, cost when available, retries, and errors (`RunTrace`)
+- [x] Add deterministic run identifiers and reproducible result manifests (`manifest.json`)
 - [ ] Add an optional GitHub Actions regression command
-- [ ] Test an intentional regression and verify the gate blocks it
+- [x] Test an intentional regression and verify the gate blocks it (`tests/test_cli.py`)
 
 ### Phase 6 — Trace UX and Documentation
 
