@@ -49,6 +49,21 @@ class TestCustomProfilesRegistry(unittest.TestCase):
         self.assertEqual(profile.pass_threshold, 85.0)
         self.assertEqual(profile.weights["Constraint Satisfaction"], 1.5)
 
+    def test_register_and_get_evaluator_plugin(self):
+        from framework.profiles.registry import register_evaluator_plugin, get_evaluator_plugin
+        from framework.evaluation.base import BaseEvaluator
+        from framework.models import DimensionScore
+
+        class CustomDummyEvaluator(BaseEvaluator):
+            def evaluate(self, benchmark, output):
+                return DimensionScore("Custom Safety", 100.0, "Fully safe")
+
+        evaluator = CustomDummyEvaluator()
+        register_evaluator_plugin("Custom Safety", evaluator)
+
+        retrieved = get_evaluator_plugin("Custom Safety")
+        self.assertEqual(retrieved, evaluator)
+
 
 if __name__ == "__main__":
     unittest.main()

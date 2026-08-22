@@ -64,15 +64,16 @@ def evaluate(
     # Resolve target agent
     resolved_agent = resolve_agent(agent, target_llm)
 
-    # Instantiate BenchmarkRunner
+    out_path = Path(output_dir)
+    out_path.mkdir(parents=True, exist_ok=True)
+
+    # Instantiate BenchmarkRunner with output_dir
     runner = BenchmarkRunner(
         agent=resolved_agent,
         judge_llm=judge_llm,
-        ground_truth_path=ground_truth,
+        local_verifier_path=ground_truth,
+        output_dir=str(out_path),
     )
-
-    out_path = Path(output_dir)
-    out_path.mkdir(parents=True, exist_ok=True)
 
     scenario_path = Path(scenario)
     results: List[EvaluationResult] = []
@@ -89,6 +90,32 @@ def evaluate(
     else:
         res = runner.run(str(scenario_path))
         results.append(res)
+
+    # Write SDK evaluation artifacts
+    try:
+        from datetime import datetime, timezone
+        import uuid
+        from cli.formatter import redact_credentials
+        from cli.html_reporter import generate_html_report
+
+        run_id = f"evalrun-sdk-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:6]}"
+        manifest = {
+            "run_id": run_id,
+            "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+            "target_agent_spec": agent,
+            "target_model": {"model_name": model, "base_url": base_url, "api_key": target_api_key},
+            "judge_model": {"model_name": judge_model_name, "base_url": j_base_url, "api_key": j_api_key},
+            "ground_truth_path": ground_truth,
+            "output_dir": str(out_path),
+            "total_scenarios": len(results),
+            "overall_passed": all(r.passed for r in results),
+        }
+        with open(out_path / "manifest.json", "w", encoding="utf-8") as f:
+            json.dump(redact_credentials(manifest), f, indent=2)
+
+        generate_html_report(results, redact_credentials(manifest), str(out_path))
+    except Exception as e:
+        print(f"Warning: Failed to generate SDK report artifacts: {e}")
 
     return results
 

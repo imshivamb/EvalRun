@@ -75,6 +75,15 @@ class BenchmarkRunner:
             PERSONALIZATION: PersonalizationEvaluator(judge_llm),
             ADAPTABILITY: AdaptabilityEvaluator(judge_llm),
         }
+
+        # Merge dynamic evaluator plugins from registry
+        try:
+            from framework.profiles.registry import _DYNAMIC_EVALUATOR_REGISTRY
+            for dim_name, plugin_instance in _DYNAMIC_EVALUATOR_REGISTRY.items():
+                evaluators[dim_name] = plugin_instance
+        except Exception:
+            pass
+
         self.engine = EvaluationEngine(evaluators=evaluators)
 
     def run(self, filepath: str) -> EvaluationResult:
