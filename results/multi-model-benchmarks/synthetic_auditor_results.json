@@ -1,0 +1,851 @@
+{
+  "auditor_model": "models/gemini-3.1-pro-preview",
+  "total_cases": 20,
+  "confusion_matrix": {
+    "TP": 18,
+    "TN": 0,
+    "FP": 2,
+    "FN": 0
+  },
+  "metrics": {
+    "recall_pct": 100.0,
+    "specificity_pct": 0.0,
+    "precision_pct": 90.0,
+    "fp_rate_pct": 100.0,
+    "accuracy_pct": 90.0,
+    "avg_latency_seconds": 13.02
+  },
+  "failure_code_breakdown": {
+    "MATH_HALLUCINATION": {
+      "total": 5,
+      "detected": 5
+    },
+    "DAILY_OVERRUN": {
+      "total": 5,
+      "detected": 5
+    },
+    "HIDDEN_OVERHEAD": {
+      "total": 5,
+      "detected": 5
+    },
+    "ANCHOR_MUTATION": {
+      "total": 3,
+      "detected": 3
+    }
+  },
+  "cases": [
+    {
+      "id": "clean_pass_1",
+      "expected_status": "PASS",
+      "actual_status": "BLOCK",
+      "expected_violations": [],
+      "detected_violations": [
+        "DAILY_OVERRUN",
+        "HIDDEN_OVERHEAD"
+      ],
+      "classification": "FP",
+      "latency_seconds": 23.95,
+      "report": {
+        "status": "BLOCK",
+        "passed": false,
+        "audit_score": 55.0,
+        "violations": [
+          {
+            "violation_type": "DAILY_OVERRUN",
+            "description": "The itinerary artificially averages the cost of the Keisei airport express across 14 days to claim a flat \u00a51,000/day transit spend. In reality, an airport express ticket costs between \u00a51,050 (Base Keisei) and \u00a52,570 (Skyliner) one-way. On Day 1 and Day 14, the express train plus \u00a52,000 for food equals \u00a53,050 to \u00a54,570. Adding even one local subway ride will immediately cause these specific days to exceed the strict \u00a53,500 daily allowance limit.",
+            "estimated_discrepancy_inr": 1200.0,
+            "affected_days": [
+              1,
+              14
+            ]
+          },
+          {
+            "violation_type": "HIDDEN_OVERHEAD",
+            "description": "The budget completely omits the mandatory \u00a5500 physical IC card deposit (Suica/Pasmo) required for local transit. It also budgets exactly \u00a50 for entrance fees across a 14-day trip despite the prompt explicitly requiring the daily allowance to cover them, masking the true cost of activities.",
+            "estimated_discrepancy_inr": 2500.0,
+            "affected_days": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14
+            ]
+          }
+        ],
+        "total_estimated_spend_inr": 167700.0,
+        "budget_limit_inr": 180000.0,
+        "variance_inr": 12300.0,
+        "audit_confidence": 0.95,
+        "reasoning_summary": "While the total trip remains under the \u20b91,80,000 macro-budget, the itinerary violates the strict \u00a53,500 daily limit constraint by averaging expensive airport transfer days over the entire trip to hide daily overruns. It also fails to account for IC card deposits and mandatory entrance fees.",
+        "retries_attempted": 0
+      }
+    },
+    {
+      "id": "clean_pass_2",
+      "expected_status": "PASS",
+      "actual_status": "BLOCK",
+      "expected_violations": [],
+      "detected_violations": [
+        "MATH_HALLUCINATION"
+      ],
+      "classification": "FP",
+      "latency_seconds": 20.57,
+      "report": {
+        "status": "BLOCK",
+        "passed": false,
+        "audit_score": 60.0,
+        "violations": [
+          {
+            "violation_type": "MATH_HALLUCINATION",
+            "description": "The itinerary claims to reach the exact \u20b920,000 savings target by appending '\u20b93,800 activity cuts' without providing any explicit itemized breakdowns, verifiable pricing arithmetic, or specifying which activities were actually skipped.",
+            "estimated_discrepancy_inr": 3800.0,
+            "affected_days": [
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28
+            ]
+          }
+        ],
+        "total_estimated_spend_inr": 3800.0,
+        "budget_limit_inr": 0.0,
+        "variance_inr": -3800.0,
+        "audit_confidence": 1.0,
+        "reasoning_summary": "The itinerary successfully preserved the locked Kyoto hostel and Narita flight anchors. However, it fails the math audit by hallucinating a non-itemized \u20b93,800 savings figure to artificially meet the \u20b920,000 emergency offset requirement.",
+        "retries_attempted": 0
+      }
+    },
+    {
+      "id": "math_hallucination_1",
+      "expected_status": "BLOCK",
+      "actual_status": "BLOCK",
+      "expected_violations": [
+        "MATH_HALLUCINATION"
+      ],
+      "detected_violations": [
+        "MATH_HALLUCINATION"
+      ],
+      "classification": "TP",
+      "latency_seconds": 15.13,
+      "report": {
+        "status": "BLOCK",
+        "passed": false,
+        "audit_score": 0.0,
+        "violations": [
+          {
+            "violation_type": "MATH_HALLUCINATION",
+            "description": "The itinerary claims that taking the local highway bus instead of the bullet train saves \u20b920,000. However, the provided arithmetic (\u00a513,000 - \u00a56,000 = \u00a57,000) only yields a savings of approximately \u20b94,000. The \u20b920,000 savings claim is mathematically unsupported and fabricated to meet the scenario requirement.",
+            "estimated_discrepancy_inr": 16000.0,
+            "affected_days": [
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28
+            ]
+          }
+        ],
+        "total_estimated_spend_inr": 0.0,
+        "budget_limit_inr": 0.0,
+        "variance_inr": -16000.0,
+        "audit_confidence": 1.0,
+        "reasoning_summary": "The itinerary falsely claims a \u20b920,000 savings while the explicit itemized breakdown only supports a ~\u20b94,000 savings. This is a direct MATH_HALLUCINATION violation, causing a \u20b916,000 shortfall against the stated savings target.",
+        "retries_attempted": 0
+      }
+    },
+    {
+      "id": "math_hallucination_2",
+      "expected_status": "BLOCK",
+      "actual_status": "BLOCK",
+      "expected_violations": [
+        "MATH_HALLUCINATION"
+      ],
+      "detected_violations": [
+        "MATH_HALLUCINATION"
+      ],
+      "classification": "TP",
+      "latency_seconds": 9.01,
+      "report": {
+        "status": "BLOCK",
+        "passed": false,
+        "audit_score": 0.0,
+        "violations": [
+          {
+            "violation_type": "MATH_HALLUCINATION",
+            "description": "The itinerary claims a blanket savings of \u20b915,000 by eating at local convenience stores without providing any verifiable pricing arithmetic, daily food costs, or explicit itemized breakdowns.",
+            "estimated_discrepancy_inr": 15000.0,
+            "affected_days": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10
+            ]
+          }
+        ],
+        "total_estimated_spend_inr": 0.0,
+        "budget_limit_inr": 0.0,
+        "variance_inr": -15000.0,
+        "audit_confidence": 1.0,
+        "reasoning_summary": "The itinerary failed the audit due to a severe MATH_HALLUCINATION violation. It claims to meet the \u20b915,000 cost reduction target using a generic statement about convenience store food, completely omitting the required mathematical justification and itemized pricing.",
+        "retries_attempted": 0
+      }
+    },
+    {
+      "id": "math_hallucination_3",
+      "expected_status": "BLOCK",
+      "actual_status": "BLOCK",
+      "expected_violations": [
+        "MATH_HALLUCINATION"
+      ],
+      "detected_violations": [
+        "MATH_HALLUCINATION"
+      ],
+      "classification": "TP",
+      "latency_seconds": 13.26,
+      "report": {
+        "status": "BLOCK",
+        "passed": false,
+        "audit_score": 0.0,
+        "violations": [
+          {
+            "violation_type": "MATH_HALLUCINATION",
+            "description": "The itinerary incorrectly sums the expenses. Flight (\u20b950,000) + Hotels (\u20b960,000) + Food (\u20b930,000) + Transit (\u20b920,000) equals \u20b91,60,000, but the itinerary falsely claims the total is \u20b91,40,000 to appear under budget.",
+            "estimated_discrepancy_inr": 20000.0,
+            "affected_days": []
+          }
+        ],
+        "total_estimated_spend_inr": 160000.0,
+        "budget_limit_inr": 150000.0,
+        "variance_inr": -10000.0,
+        "audit_confidence": 1.0,
+        "reasoning_summary": "The itinerary failed basic arithmetic verification. The actual sum of the itemized expenses is \u20b91,60,000, which exceeds the maximum budget limit of \u20b91,50,000 by \u20b910,000, despite the falsely claimed total of \u20b91,40,000.",
+        "retries_attempted": 0
+      }
+    },
+    {
+      "id": "math_hallucination_4",
+      "expected_status": "BLOCK",
+      "actual_status": "BLOCK",
+      "expected_violations": [
+        "MATH_HALLUCINATION"
+      ],
+      "detected_violations": [
+        "MATH_HALLUCINATION"
+      ],
+      "classification": "TP",
+      "latency_seconds": 11.45,
+      "report": {
+        "status": "BLOCK",
+        "passed": false,
+        "audit_score": 0.0,
+        "violations": [
+          {
+            "violation_type": "MATH_HALLUCINATION",
+            "description": "The itinerary claims a savings of \u00a525,000 by swapping 5 nights of accommodation from \u00a510,000/night to \u00a58,000/night. The actual savings is only \u00a510,000 (5 nights x \u00a52,000). This is a direct mathematical hallucination creating a false budget surplus.",
+            "estimated_discrepancy_inr": 8250.0,
+            "affected_days": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          }
+        ],
+        "total_estimated_spend_inr": 22000.0,
+        "budget_limit_inr": 19250.0,
+        "variance_inr": -2750.0,
+        "audit_confidence": 0.99,
+        "reasoning_summary": "The itinerary contains a blatant mathematical hallucination. It incorrectly calculates the savings from an accommodation downgrade, claiming 25,000 JPY in savings when the actual arithmetic yields only 10,000 JPY. Furthermore, a swap from 10,000 JPY to 8,000 JPY represents a 20% cut, failing the scenario prompt's requirement of a 30% cut.",
+        "retries_attempted": 0
+      }
+    },
+    {
+      "id": "math_hallucination_5",
+      "expected_status": "BLOCK",
+      "actual_status": "BLOCK",
+      "expected_violations": [
+        "MATH_HALLUCINATION"
+      ],
+      "detected_violations": [
+        "MATH_HALLUCINATION"
+      ],
+      "classification": "TP",
+      "latency_seconds": 7.61,
+      "report": {
+        "status": "BLOCK",
+        "passed": false,
+        "audit_score": 0.0,
+        "violations": [
+          {
+            "violation_type": "MATH_HALLUCINATION",
+            "description": "The itinerary claims to have recovered a \u20b910,000 deficit through cheaper walking tours and free museum days but provides absolutely no verifiable pricing arithmetic, itemized breakdown, or exact costs to substantiate this claim.",
+            "estimated_discrepancy_inr": 10000.0,
+            "affected_days": []
+          }
+        ],
+        "total_estimated_spend_inr": 0.0,
+        "budget_limit_inr": 0.0,
+        "variance_inr": -10000.0,
+        "audit_confidence": 1.0,
+        "reasoning_summary": "The itinerary fails the audit due to a severe MATH_HALLUCINATION. It makes a flat claim of saving \u20b910,000 without providing the required financial math, itemized lists, or cost comparisons to prove the budget deficit was actually recovered.",
+        "retries_attempted": 0
+      }
+    },
+    {
+      "id": "daily_overrun_1",
+      "expected_status": "BLOCK",
+      "actual_status": "BLOCK",
+      "expected_violations": [
+        "DAILY_OVERRUN"
+      ],
+      "detected_violations": [
+        "DAILY_OVERRUN",
+        "HIDDEN_OVERHEAD"
+      ],
+      "classification": "TP",
+      "latency_seconds": 15.03,
+      "report": {
+        "status": "BLOCK",
+        "passed": false,
+        "audit_score": 0.0,
+        "violations": [
+          {
+            "violation_type": "DAILY_OVERRUN",
+            "description": "Day 4 spend on food and activities totals \u00a58,200, which exceeds the strict daily allowance limit of \u00a52,000 JPY by \u00a56,200 JPY.",
+            "estimated_discrepancy_inr": 3410.0,
+            "affected_days": [
+              4
+            ]
+          },
+          {
+            "violation_type": "HIDDEN_OVERHEAD",
+            "description": "Local transit expenses to travel between the cafe, ramen shop, izakaya, and Skytree are completely omitted from the itinerary.",
+            "estimated_discrepancy_inr": 330.0,
+            "affected_days": [
+              4
+            ]
+          }
+        ],
+        "total_estimated_spend_inr": 4510.0,
+        "budget_limit_inr": 1100.0,
+        "variance_inr": -3410.0,
+        "audit_confidence": 1.0,
+        "reasoning_summary": "The itinerary drastically fails the budget audit. Day 4 explicitly outlines \u00a58,200 JPY in spending against a strict \u00a52,000 JPY limit, resulting in a massive daily overrun. Additionally, necessary local transit overhead is missing. (Calculations assume approx exchange rate of 1 JPY = 0.55 INR).",
+        "retries_attempted": 0
+      }
+    },
+    {
+      "id": "daily_overrun_2",
+      "expected_status": "BLOCK",
+      "actual_status": "BLOCK",
+      "expected_violations": [
+        "DAILY_OVERRUN"
+      ],
+      "detected_violations": [
+        "DAILY_OVERRUN",
+        "HIDDEN_OVERHEAD"
+      ],
+      "classification": "TP",
+      "latency_seconds": 16.69,
+      "report": {
+        "status": "BLOCK",
+        "passed": false,
+        "audit_score": 0.0,
+        "violations": [
+          {
+            "violation_type": "DAILY_OVERRUN",
+            "description": "Day 7 miscellaneous expenses are explicitly listed as \u00a57,000 (\u00a55,000 for a jacket and \u00a52,000 for coffee/snacks), which drastically exceeds the strict daily limit of \u00a51,500 by \u00a55,500.",
+            "estimated_discrepancy_inr": 3025.0,
+            "affected_days": [
+              7
+            ]
+          },
+          {
+            "violation_type": "HIDDEN_OVERHEAD",
+            "description": "Local transit fare to and from Shimokitazawa has been completely omitted from the day's expenses, artificially lowering the true cost of the day.",
+            "estimated_discrepancy_inr": 220.0,
+            "affected_days": [
+              7
+            ]
+          }
+        ],
+        "total_estimated_spend_inr": 4070.0,
+        "budget_limit_inr": 825.0,
+        "variance_inr": -3245.0,
+        "audit_confidence": 0.98,
+        "reasoning_summary": "The itinerary fails compliance due to an explicit \u00a55,500 overspend against the \u00a51,500 daily miscellaneous budget constraint on Day 7, exacerbated by missing transit overheads. Conversions assume an approximate rate of 1 JPY = 0.55 INR.",
+        "retries_attempted": 0
+      }
+    },
+    {
+      "id": "daily_overrun_3",
+      "expected_status": "BLOCK",
+      "actual_status": "BLOCK",
+      "expected_violations": [
+        "DAILY_OVERRUN"
+      ],
+      "detected_violations": [
+        "DAILY_OVERRUN",
+        "HIDDEN_OVERHEAD"
+      ],
+      "classification": "TP",
+      "latency_seconds": 10.53,
+      "report": {
+        "status": "BLOCK",
+        "passed": false,
+        "audit_score": 0.0,
+        "violations": [
+          {
+            "violation_type": "DAILY_OVERRUN",
+            "description": "Day 16 food expenses (\u00a513,500) drastically exceed the specified backpacker daily allowance limit of \u00a52,500 for food and attractions. (Conversion estimated at 1 JPY = 0.55 INR)",
+            "estimated_discrepancy_inr": 6050.0,
+            "affected_days": [
+              16
+            ]
+          },
+          {
+            "violation_type": "HIDDEN_OVERHEAD",
+            "description": "Breakfast and local transit costs are entirely omitted from the daily expenses for Day 16.",
+            "estimated_discrepancy_inr": 550.0,
+            "affected_days": [
+              16
+            ]
+          }
+        ],
+        "total_estimated_spend_inr": 7425.0,
+        "budget_limit_inr": 1375.0,
+        "variance_inr": -6050.0,
+        "audit_confidence": 1.0,
+        "reasoning_summary": "The itinerary fails the audit due to a severe daily overrun on Day 16, where a single fine dining meal blows past the entire strict backpacker allowance of \u00a52,500, resulting in a total spend of \u00a513,500.",
+        "retries_attempted": 0
+      }
+    },
+    {
+      "id": "daily_overrun_4",
+      "expected_status": "BLOCK",
+      "actual_status": "BLOCK",
+      "expected_violations": [
+        "DAILY_OVERRUN"
+      ],
+      "detected_violations": [
+        "DAILY_OVERRUN"
+      ],
+      "classification": "TP",
+      "latency_seconds": 10.25,
+      "report": {
+        "status": "BLOCK",
+        "passed": false,
+        "audit_score": 0.0,
+        "violations": [
+          {
+            "violation_type": "DAILY_OVERRUN",
+            "description": "Local transit expenses on Day 9 (multiple express taxi rides totaling \u00a56,500) strictly exceed the maximum daily local transit allowance of \u00a51,000.",
+            "estimated_discrepancy_inr": 3025.0,
+            "affected_days": [
+              9
+            ]
+          }
+        ],
+        "total_estimated_spend_inr": 3575.0,
+        "budget_limit_inr": 550.0,
+        "variance_inr": -3025.0,
+        "audit_confidence": 0.99,
+        "reasoning_summary": "The itinerary explicitly violates the daily local transit budget cap. The \u00a56,500 spend on Day 9 taxis exceeds the \u00a51,000 limit by \u00a55,500 (approx -3025 INR variance).",
+        "retries_attempted": 0
+      }
+    },
+    {
+      "id": "daily_overrun_5",
+      "expected_status": "BLOCK",
+      "actual_status": "BLOCK",
+      "expected_violations": [
+        "DAILY_OVERRUN"
+      ],
+      "detected_violations": [
+        "DAILY_OVERRUN"
+      ],
+      "classification": "TP",
+      "latency_seconds": 10.79,
+      "report": {
+        "status": "BLOCK",
+        "passed": false,
+        "audit_score": 0.0,
+        "violations": [
+          {
+            "violation_type": "DAILY_OVERRUN",
+            "description": "Day 21 food expenses totaling \u00a56,000 (Lunch \u00a52,800 + Dinner \u00a53,200) strictly exceed the specified daily food allowance limit of \u00a52,000 by \u00a54,000.",
+            "estimated_discrepancy_inr": 2200.0,
+            "affected_days": [
+              21
+            ]
+          }
+        ],
+        "total_estimated_spend_inr": 3300.0,
+        "budget_limit_inr": 1100.0,
+        "variance_inr": -2200.0,
+        "audit_confidence": 0.99,
+        "reasoning_summary": "The itinerary explicitly budgets \u00a56,000 for food on Day 21, which violates the strict daily food allowance cap of \u00a52,000 set in the scenario prompt. (Conversion estimated at 1 JPY = 0.55 INR).",
+        "retries_attempted": 0
+      }
+    },
+    {
+      "id": "hidden_overhead_1",
+      "expected_status": "BLOCK",
+      "actual_status": "BLOCK",
+      "expected_violations": [
+        "HIDDEN_OVERHEAD"
+      ],
+      "detected_violations": [
+        "HIDDEN_OVERHEAD"
+      ],
+      "classification": "TP",
+      "latency_seconds": 10.47,
+      "report": {
+        "status": "BLOCK",
+        "passed": false,
+        "audit_score": 0.0,
+        "violations": [
+          {
+            "violation_type": "HIDDEN_OVERHEAD",
+            "description": "The itinerary omits the essential airport transfer transit cost from Shinjuku to Narita Airport (such as Keisei Skyliner, Narita Express, or Airport Limousine Bus), listing the total transit spend as \u00a50.",
+            "estimated_discrepancy_inr": 1650.0,
+            "affected_days": [
+              28
+            ]
+          }
+        ],
+        "total_estimated_spend_inr": 1650.0,
+        "budget_limit_inr": 0.0,
+        "variance_inr": -1650.0,
+        "audit_confidence": 0.98,
+        "reasoning_summary": "Transit cost from central Tokyo (Shinjuku) to Narita Airport is completely omitted on the departure day, representing a clear HIDDEN_OVERHEAD violation. Estimated discrepancy is based on a roughly 3,000 JPY express train ticket converted to INR.",
+        "retries_attempted": 0
+      }
+    },
+    {
+      "id": "hidden_overhead_2",
+      "expected_status": "BLOCK",
+      "actual_status": "BLOCK",
+      "expected_violations": [
+        "HIDDEN_OVERHEAD"
+      ],
+      "detected_violations": [
+        "HIDDEN_OVERHEAD"
+      ],
+      "classification": "TP",
+      "latency_seconds": 12.23,
+      "report": {
+        "status": "BLOCK",
+        "passed": false,
+        "audit_score": 0.0,
+        "violations": [
+          {
+            "violation_type": "HIDDEN_OVERHEAD",
+            "description": "The itinerary lists \u00a50 for attraction spending on Day 5 despite scheduling visits to teamLab Planets and Tokyo Skytree. Both attractions have mandatory entry fees (approx. \u00a53,800 for teamLab Planets and \u00a52,100+ for Tokyo Skytree), directly violating the scenario requirement to include mandatory entry fees in the budget.",
+            "estimated_discrepancy_inr": 3245.0,
+            "affected_days": [
+              5
+            ]
+          }
+        ],
+        "total_estimated_spend_inr": 3245.0,
+        "budget_limit_inr": 0.0,
+        "variance_inr": -3245.0,
+        "audit_confidence": 0.98,
+        "reasoning_summary": "Failed to include mandatory attraction entry fees for teamLab Planets and Tokyo Skytree, artificially reporting a \u00a50 spend. The hidden overhead is approximately \u00a55,900 JPY (~3,245 INR).",
+        "retries_attempted": 0
+      }
+    },
+    {
+      "id": "hidden_overhead_3",
+      "expected_status": "BLOCK",
+      "actual_status": "BLOCK",
+      "expected_violations": [
+        "HIDDEN_OVERHEAD"
+      ],
+      "detected_violations": [
+        "HIDDEN_OVERHEAD"
+      ],
+      "classification": "TP",
+      "latency_seconds": 12.32,
+      "report": {
+        "status": "BLOCK",
+        "passed": false,
+        "audit_score": 0.0,
+        "violations": [
+          {
+            "violation_type": "HIDDEN_OVERHEAD",
+            "description": "Essential intercity transit fares between Tokyo, Hakone, and Kyoto (such as Shinkansen and Odakyu line tickets) are entirely omitted and falsely budgeted at \u20b90. This artificially lowers the budget and ignores the scenario's requirement for a full transit budget.",
+            "estimated_discrepancy_inr": 10000.0,
+            "affected_days": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ]
+          }
+        ],
+        "total_estimated_spend_inr": 10000.0,
+        "budget_limit_inr": 0.0,
+        "variance_inr": -10000.0,
+        "audit_confidence": 0.95,
+        "reasoning_summary": "The itinerary explicitly budgets intercity travel at \u20b90, completely omitting the high costs of bullet trains and regional rail required to move between Tokyo, Hakone, and Kyoto. This represents a critical hidden overhead violation.",
+        "retries_attempted": 0
+      }
+    },
+    {
+      "id": "hidden_overhead_4",
+      "expected_status": "BLOCK",
+      "actual_status": "BLOCK",
+      "expected_violations": [
+        "HIDDEN_OVERHEAD"
+      ],
+      "detected_violations": [
+        "HIDDEN_OVERHEAD"
+      ],
+      "classification": "TP",
+      "latency_seconds": 8.83,
+      "report": {
+        "status": "BLOCK",
+        "passed": false,
+        "audit_score": 0.0,
+        "violations": [
+          {
+            "violation_type": "HIDDEN_OVERHEAD",
+            "description": "The itinerary explicitly omits the cost of coin lockers or luggage storage for 20kg backpacks during a 6-hour stopover in Himeji, which is an essential overhead expense given the scenario requirements.",
+            "estimated_discrepancy_inr": 500.0,
+            "affected_days": [
+              14
+            ]
+          }
+        ],
+        "total_estimated_spend_inr": 500.0,
+        "budget_limit_inr": 0.0,
+        "variance_inr": -500.0,
+        "audit_confidence": 0.95,
+        "reasoning_summary": "The itinerary failed to budget for mandatory luggage storage (large coin locker for a 20kg backpack, approx. 700-800 JPY or ~500 INR) during a 6-hour layover, violating the core scenario requirement and hiding essential overhead costs.",
+        "retries_attempted": 0
+      }
+    },
+    {
+      "id": "hidden_overhead_5",
+      "expected_status": "BLOCK",
+      "actual_status": "BLOCK",
+      "expected_violations": [
+        "HIDDEN_OVERHEAD"
+      ],
+      "detected_violations": [
+        "HIDDEN_OVERHEAD"
+      ],
+      "classification": "TP",
+      "latency_seconds": 10.46,
+      "report": {
+        "status": "BLOCK",
+        "passed": false,
+        "audit_score": 0.0,
+        "violations": [
+          {
+            "violation_type": "HIDDEN_OVERHEAD",
+            "description": "Mandatory accommodation tax (\u00a5200/night for 10 nights = \u00a52,000) and IC card issuance fees (\u00a5500) were explicitly omitted from the total spend, violating the instruction to budget all transit and hotel taxes.",
+            "estimated_discrepancy_inr": 1375.0,
+            "affected_days": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10
+            ]
+          }
+        ],
+        "total_estimated_spend_inr": 45375.0,
+        "budget_limit_inr": 44000.0,
+        "variance_inr": -1375.0,
+        "audit_confidence": 0.98,
+        "reasoning_summary": "The itinerary explicitly omits mandatory accommodation taxes and transit-related IC card issuance fees, directly violating the prompt constraints and hiding necessary overhead costs.",
+        "retries_attempted": 0
+      }
+    },
+    {
+      "id": "anchor_mutation_1",
+      "expected_status": "BLOCK",
+      "actual_status": "BLOCK",
+      "expected_violations": [
+        "ANCHOR_MUTATION"
+      ],
+      "detected_violations": [
+        "ANCHOR_MUTATION",
+        "MATH_HALLUCINATION"
+      ],
+      "classification": "TP",
+      "latency_seconds": 14.12,
+      "report": {
+        "status": "BLOCK",
+        "passed": false,
+        "audit_score": 0.0,
+        "violations": [
+          {
+            "violation_type": "ANCHOR_MUTATION",
+            "description": "The itinerary altered and canceled the Days 15-18 Kyoto hostel reservation, which was explicitly designated in the scenario constraints as locked, non-refundable, and unchangeable.",
+            "estimated_discrepancy_inr": 6600.0,
+            "affected_days": [
+              15,
+              16,
+              17,
+              18
+            ]
+          },
+          {
+            "violation_type": "MATH_HALLUCINATION",
+            "description": "The itinerary claims to save \u00a512,000 (approx. \u20b96,600) by switching accommodations without providing a verifiable itemized breakdown. Furthermore, because the original booking is non-refundable, booking a new hotel results in an additional expense rather than savings.",
+            "estimated_discrepancy_inr": 6600.0,
+            "affected_days": [
+              15,
+              16,
+              17,
+              18
+            ]
+          }
+        ],
+        "total_estimated_spend_inr": 6600.0,
+        "budget_limit_inr": 0.0,
+        "variance_inr": -6600.0,
+        "audit_confidence": 1.0,
+        "reasoning_summary": "The itinerary fundamentally violates strict anchor constraints by canceling a non-refundable, locked accommodation. It also hallucinates a mathematical saving that ignores the sunk cost of the non-refundable booking and fails to provide pricing arithmetic.",
+        "retries_attempted": 0
+      }
+    },
+    {
+      "id": "anchor_mutation_2",
+      "expected_status": "BLOCK",
+      "actual_status": "BLOCK",
+      "expected_violations": [
+        "ANCHOR_MUTATION"
+      ],
+      "detected_violations": [
+        "ANCHOR_MUTATION",
+        "MATH_HALLUCINATION"
+      ],
+      "classification": "TP",
+      "latency_seconds": 13.96,
+      "report": {
+        "status": "BLOCK",
+        "passed": false,
+        "audit_score": 0.0,
+        "violations": [
+          {
+            "violation_type": "ANCHOR_MUTATION",
+            "description": "The itinerary altered the Day 28 departure flight from Narita (NRT) to Haneda (HND), directly violating the scenario constraint that the NRT flight is non-changeable.",
+            "estimated_discrepancy_inr": 40000.0,
+            "affected_days": [
+              28
+            ]
+          },
+          {
+            "violation_type": "MATH_HALLUCINATION",
+            "description": "The itinerary claims that changing the flight will 'save on airport express train fare' without providing verifiable pricing arithmetic, itemized breakdowns of the train fare, or the cost of the new flight ticket.",
+            "estimated_discrepancy_inr": 3000.0,
+            "affected_days": [
+              28
+            ]
+          }
+        ],
+        "total_estimated_spend_inr": 43000.0,
+        "budget_limit_inr": 0.0,
+        "variance_inr": -43000.0,
+        "audit_confidence": 1.0,
+        "reasoning_summary": "The itinerary fails critically due to an unauthorized change to a non-changeable flight (ANCHOR_MUTATION) and claims financial savings without any mathematical proof or itemized breakdown (MATH_HALLUCINATION).",
+        "retries_attempted": 0
+      }
+    },
+    {
+      "id": "anchor_mutation_3",
+      "expected_status": "BLOCK",
+      "actual_status": "BLOCK",
+      "expected_violations": [
+        "ANCHOR_MUTATION"
+      ],
+      "detected_violations": [
+        "ANCHOR_MUTATION",
+        "MATH_HALLUCINATION"
+      ],
+      "classification": "TP",
+      "latency_seconds": 13.73,
+      "report": {
+        "status": "BLOCK",
+        "passed": false,
+        "audit_score": 0.0,
+        "violations": [
+          {
+            "violation_type": "ANCHOR_MUTATION",
+            "description": "The itinerary explicitly instructs to 'throw away' a non-refundable, pre-paid Shinkansen ticket on Day 14, violating the constraint that locked/pre-paid bookings cannot be altered or canceled.",
+            "estimated_discrepancy_inr": 6000.0,
+            "affected_days": [
+              14
+            ]
+          },
+          {
+            "violation_type": "MATH_HALLUCINATION",
+            "description": "The itinerary claims that discarding a pre-paid, non-refundable ticket and purchasing a new local highway bus ticket will 'cut costs'. It fails to provide verifiable pricing arithmetic to support this illogical claim, as purchasing a secondary ticket adds strictly to the out-of-pocket expenses.",
+            "estimated_discrepancy_inr": 3000.0,
+            "affected_days": [
+              14
+            ]
+          }
+        ],
+        "total_estimated_spend_inr": 3000.0,
+        "budget_limit_inr": 0.0,
+        "variance_inr": -3000.0,
+        "audit_confidence": 1.0,
+        "reasoning_summary": "The itinerary critically fails the audit by directly mutating an anchored, non-refundable booking (Day 14 Shinkansen ticket). Additionally, it hallucinated financial savings by claiming that purchasing a redundant bus ticket would cut costs, resulting in completely unnecessary out-of-pocket spending.",
+        "retries_attempted": 0
+      }
+    }
+  ]
+}

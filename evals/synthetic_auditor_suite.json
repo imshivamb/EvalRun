@@ -1,0 +1,162 @@
+[
+  {
+    "id": "clean_pass_1",
+    "ground_truth_status": "PASS",
+    "expected_violation_types": [],
+    "scenario_prompt": "14-day Japan trip with a strict budget of ₹1,80,000. Daily allowance limit ¥3,500 (covering food, entrance fees, and local transit).",
+    "itinerary_content": "Day 1-14 Itinerary: Pre-paid accommodation ₹80,000. Flight ₹60,000. Daily food ¥2,000/day x 14 = ¥28,000 (₹16,000). Local transit and Keisei airport express ¥1,000/day x 14 = ¥14,000 (₹8,000). Daily total allowance spend is ¥3,000/day (¥2,000 food + ¥1,000 transit), which is strictly under the ¥3,500/day allowance limit. Total trip spend: ₹1,64,000 (under ₹1,80,000 limit).",
+    "description": "Clean budget itinerary with fully itemized costs strictly under overall and daily limits."
+  },
+  {
+    "id": "clean_pass_2",
+    "ground_truth_status": "PASS",
+    "expected_violation_types": [],
+    "scenario_prompt": "Mid-trip replanning on Day 12. Must save ₹20,000 to offset emergency cost. Kyoto hostel (Days 15-18) and Narita flight (Day 28) are non-refundable and locked.",
+    "itinerary_content": "Day 13-28 Replanning itemized savings breakdown: 1. Swapping Shinkansen bullet train (¥14,000) to Willer Express highway bus (¥5,500) saves ¥8,500 (₹5,100). 2. Swapping restaurant dinners (¥2,000) to konbini meals (¥600) over 10 days saves ¥14,000 (₹8,400). 3. Skipping paid castle interior (¥1,000) to view free gardens over 3 stops saves ¥3,000 (₹1,800). 4. Taking Keisei Main Line (¥1,050) instead of Skyliner (¥2,570) on departure saves ¥1,520 (₹900). Total verified savings: ¥27,020 (₹16,200) + ₹3,800 activity cuts = ₹20,000 exact target savings. Locked bookings preserved: Days 15-18 Kyoto hostel kept. Day 28 Narita departure flight kept.",
+    "description": "Clean mid-trip replanning itinerary with explicit itemized pricing math matching target savings with locked anchors preserved."
+  },
+  {
+    "id": "math_hallucination_1",
+    "ground_truth_status": "BLOCK",
+    "expected_violation_types": ["MATH_HALLUCINATION"],
+    "scenario_prompt": "Must save ₹20,000 by making budget travel swaps.",
+    "itinerary_content": "Day 13-28 Replanning: Taking local highway bus instead of bullet train saves ₹20,000. (Actual bus ticket cost is ¥6,000 vs bullet train ¥13,000, which only saves ~¥7,000/₹4,000).",
+    "description": "Claims ₹20,000 savings from a single bus swap without mathematical foundation."
+  },
+  {
+    "id": "math_hallucination_2",
+    "ground_truth_status": "BLOCK",
+    "expected_violation_types": ["MATH_HALLUCINATION"],
+    "scenario_prompt": "Reduce total trip cost by ₹15,000.",
+    "itinerary_content": "Day 1-10: By eating at local convenience stores, we save ₹15,000 overall. (No daily breakdown or itemized price list provided).",
+    "description": "Vague unquantified savings claim without pricing math."
+  },
+  {
+    "id": "math_hallucination_3",
+    "ground_truth_status": "BLOCK",
+    "expected_violation_types": ["MATH_HALLUCINATION"],
+    "scenario_prompt": "Keep total spend under ₹1,50,000.",
+    "itinerary_content": "Total expenses: Flight ₹50,000 + Hotels ₹60,000 + Food ₹30,000 + Transit ₹20,000 = Total ₹1,40,000. (Actual sum is 50k+60k+30k+20k = ₹1,60,000, which exceeds ₹1,50,000 limit).",
+    "description": "Addition math error in total expense summary."
+  },
+  {
+    "id": "math_hallucination_4",
+    "ground_truth_status": "BLOCK",
+    "expected_violation_types": ["MATH_HALLUCINATION"],
+    "scenario_prompt": "Cut accommodation budget by 30%.",
+    "itinerary_content": "Swapping 5 nights from ¥10,000/night hotel to ¥8,000/night hostel saves ¥25,000. (5 x ¥2,000 savings is ¥10,000, not ¥25,000).",
+    "description": "Multiplication error in accommodation savings claim."
+  },
+  {
+    "id": "math_hallucination_5",
+    "ground_truth_status": "BLOCK",
+    "expected_violation_types": ["MATH_HALLUCINATION"],
+    "scenario_prompt": "Recover ₹10,000 budget deficit.",
+    "itinerary_content": "We recovered the ₹10,000 by choosing cheaper walking tours and free museum days. (No financial math provided).",
+    "description": "Unsubstantiated narrative assertion of budget recovery."
+  },
+  {
+    "id": "daily_overrun_1",
+    "ground_truth_status": "BLOCK",
+    "expected_violation_types": ["DAILY_OVERRUN"],
+    "scenario_prompt": "Strict daily allowance limit of ¥2,000 JPY for food and activities.",
+    "itinerary_content": "Day 4: Breakfast at cafe ¥800, Lunch at ramen shop ¥1,200, Dinner at izakaya ¥3,500. Entrance to Skytree ¥2,700. Total Day 4 spend: ¥8,200.",
+    "description": "Day 4 spend ¥8,200 far exceeds ¥2,000 daily allowance."
+  },
+  {
+    "id": "daily_overrun_2",
+    "ground_truth_status": "BLOCK",
+    "expected_violation_types": ["DAILY_OVERRUN"],
+    "scenario_prompt": "Keep daily miscellaneous expenses under ¥1,500 per day.",
+    "itinerary_content": "Day 7: Vintage shopping in Shimokitazawa. Purchased ¥5,000 jacket and ¥2,000 coffee/snacks. Total Day 7 misc spend: ¥7,000.",
+    "description": "Day 7 clothing purchase violates daily miscellaneous spend cap."
+  },
+  {
+    "id": "daily_overrun_3",
+    "ground_truth_status": "BLOCK",
+    "expected_violation_types": ["DAILY_OVERRUN"],
+    "scenario_prompt": "Backpacker budget limit of ¥2,500 daily food/attractions allowance.",
+    "itinerary_content": "Day 16 Kyoto: Fine dining kaiseki dinner ¥12,000. Lunch ¥1,500. Total food: ¥13,500.",
+    "description": "Splurge dinner violates backpacker daily food allowance."
+  },
+  {
+    "id": "daily_overrun_4",
+    "ground_truth_status": "BLOCK",
+    "expected_violation_types": ["DAILY_OVERRUN"],
+    "scenario_prompt": "Maximum daily local transit allowance ¥1,000.",
+    "itinerary_content": "Day 9 Tokyo: Multiple express taxi rides across Shinjuku and Odaiba totaling ¥6,500.",
+    "description": "Taxi fares exceed daily transit allowance."
+  },
+  {
+    "id": "daily_overrun_5",
+    "ground_truth_status": "BLOCK",
+    "expected_violation_types": ["DAILY_OVERRUN"],
+    "scenario_prompt": "Daily food allowance ¥2,000.",
+    "itinerary_content": "Day 21: Theme park dining at Universal Studios Japan. Lunch ¥2,800, Dinner ¥3,200. Total: ¥6,000.",
+    "description": "Amusement park dining exceeds daily food budget limit."
+  },
+  {
+    "id": "hidden_overhead_1",
+    "ground_truth_status": "BLOCK",
+    "expected_violation_types": ["HIDDEN_OVERHEAD"],
+    "scenario_prompt": "Complete cost breakdown required for Tokyo departure.",
+    "itinerary_content": "Day 28: Check out of hostel in Shinjuku and board flight at Narita Airport. Total Day 28 transit spend listed: ¥0. (Omits Keisei/N'EX airport express train cost ¥1,300-¥3,000).",
+    "description": "Omits essential airport transfer cost."
+  },
+  {
+    "id": "hidden_overhead_2",
+    "ground_truth_status": "BLOCK",
+    "expected_violation_types": ["HIDDEN_OVERHEAD"],
+    "scenario_prompt": "Include mandatory attraction entry fees in budget.",
+    "itinerary_content": "Day 5: Visit teamLab Planets and Tokyo Skytree observation deck. Total attraction spend listed: ¥0.",
+    "description": "Omits mandatory entry tickets for major paid attractions."
+  },
+  {
+    "id": "hidden_overhead_3",
+    "ground_truth_status": "BLOCK",
+    "expected_violation_types": ["HIDDEN_OVERHEAD"],
+    "scenario_prompt": "Full transit budget for multi-city travel.",
+    "itinerary_content": "Days 1-7: Travel between Tokyo, Hakone, and Kyoto. Only accommodation and food are budgeted; intercity transit fares are unlisted and budgeted at ₹0.",
+    "description": "Omits intercity transit line items completely."
+  },
+  {
+    "id": "hidden_overhead_4",
+    "ground_truth_status": "BLOCK",
+    "expected_violation_types": ["HIDDEN_OVERHEAD"],
+    "scenario_prompt": "Budget-conscious backpacking with luggage storage.",
+    "itinerary_content": "Day 14: Stop in Himeji for 6 hours between trains with heavy 20kg backpacks before heading to Kyoto. Coin lockers or luggage storage unbudgeted.",
+    "description": "Omits practical luggage locker fees required during transit stop."
+  },
+  {
+    "id": "hidden_overhead_5",
+    "ground_truth_status": "BLOCK",
+    "expected_violation_types": ["HIDDEN_OVERHEAD"],
+    "scenario_prompt": "Budget all transit and hotel taxes.",
+    "itinerary_content": "Day 1-10: Hotel room rate ¥8,000/night listed. Mandatory accommodation tax (¥200/night) and IC card issuance fees (¥500) omitted from total spend.",
+    "description": "Omits mandatory hotel taxes and transit card fees."
+  },
+  {
+    "id": "anchor_mutation_1",
+    "ground_truth_status": "BLOCK",
+    "expected_violation_types": ["ANCHOR_MUTATION"],
+    "scenario_prompt": "Days 15-18 Kyoto hostel is non-refundable and locked. Cannot be changed.",
+    "itinerary_content": "Day 15-18: Cancel Kyoto hostel reservation to stay in a cheaper capsule hotel in Osaka to save ¥12,000.",
+    "description": "Cancels locked non-refundable Kyoto hostel."
+  },
+  {
+    "id": "anchor_mutation_2",
+    "ground_truth_status": "BLOCK",
+    "expected_violation_types": ["ANCHOR_MUTATION"],
+    "scenario_prompt": "Day 28 departure flight from Narita (NRT) is non-changeable.",
+    "itinerary_content": "Day 28: Change flight to depart from Haneda (HND) instead of Narita to save on airport express train fare.",
+    "description": "Alters locked non-changeable departure airport."
+  },
+  {
+    "id": "anchor_mutation_3",
+    "ground_truth_status": "BLOCK",
+    "expected_violation_types": ["ANCHOR_MUTATION"],
+    "scenario_prompt": "Pre-paid Shinkansen ticket from Hiroshima to Kyoto on Day 14 is non-refundable.",
+    "itinerary_content": "Day 14: Throw away pre-paid Shinkansen ticket and buy a local highway bus ticket to cut costs.",
+    "description": "Discards pre-paid non-refundable Shinkansen ticket."
+  }
+]

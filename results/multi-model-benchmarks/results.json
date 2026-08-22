@@ -16,24 +16,24 @@
       "model_id": "models/gemini-3.1-pro-preview",
       "scenarios": {
         "Budget": {
-          "v1": 85.0,
-          "v2": 84.0
+          "v1": 84.0,
+          "v2": 81.5
         },
         "Route Optimization": {
           "v1": 89.4,
-          "v2": 90.5
+          "v2": 86.1
         },
         "Remote Worker": {
-          "v1": 13.0,
-          "v2": 95.0
+          "v1": 94.0,
+          "v2": 93.1
         },
         "Replanning": {
-          "v1": 84.65,
-          "v2": 84.15
+          "v1": 99.25,
+          "v2": 96.45
         },
         "Information Gathering": {
-          "v1": 68.05,
-          "v2": 73.5
+          "v1": 35.0,
+          "v2": 14.75
         }
       }
     },
@@ -42,24 +42,24 @@
       "model_id": "models/gemini-3.5-flash",
       "scenarios": {
         "Budget": {
-          "v1": 82.5,
-          "v2": 73.55
+          "v1": 84.6,
+          "v2": 72.85
         },
         "Route Optimization": {
-          "v1": 84.1,
-          "v2": 83.2
+          "v1": 90.5,
+          "v2": 87.9
         },
         "Remote Worker": {
-          "v1": 82.0,
-          "v2": 85.1
+          "v1": 93.1,
+          "v2": 94.6
         },
         "Replanning": {
-          "v1": 85.45,
-          "v2": 86.3
+          "v1": 0.0,
+          "v2": 0.0
         },
         "Information Gathering": {
-          "v1": 70.5,
-          "v2": 73.35
+          "v1": 0.0,
+          "v2": 0.0
         }
       }
     }
