@@ -100,28 +100,21 @@ class TestOpenAICompatibleLLM(unittest.TestCase):
         self.assertEqual(llm.retries_attempted, 1)
 
     @patch("framework.llms.openai_compatible.OpenAI")
-    def test_retry_succeeds_after_transient_failure(self, mock_openai_class):
+    def test_non_transient_error_not_retried(self, mock_openai_class):
         mock_client = MagicMock()
         mock_openai_class.return_value = mock_client
 
-        mock_choice = MagicMock()
-        mock_choice.message.content = "Success after 1 retry"
-        mock_success_response = MagicMock()
-        mock_success_response.choices = [mock_choice]
-        mock_success_response.usage = None
+        auth_error = RuntimeError("401 Unauthorized: Invalid API Key")
+        setattr(auth_error, "status_code", 401)
+        mock_client.chat.completions.create.side_effect = auth_error
 
-        # Fail once, then succeed
-        mock_client.chat.completions.create.side_effect = [
-            RuntimeError("504 Gateway Timeout"),
-            mock_success_response,
-        ]
+        llm = OpenAICompatibleLLM(model_name="test-model", max_retries=3, retry_delay=0.01)
+        with self.assertRaises(RuntimeError):
+            llm.generate([Message(role="user", content="Hello")])
 
-        llm = OpenAICompatibleLLM(model_name="test-model", max_retries=2, retry_delay=0.01)
-        resp = llm.generate([Message(role="user", content="Hello")])
-
-        self.assertEqual(resp.text, "Success after 1 retry")
-        self.assertEqual(llm.retries_attempted, 1)
-        self.assertEqual(resp.metadata["retries_attempted"], 1)
+        # Should fail immediately on attempt 0 without retrying
+        self.assertEqual(llm.retries_attempted, 0)
+        self.assertEqual(mock_client.chat.completions.create.call_count, 1)
 
 
 if __name__ == "__main__":

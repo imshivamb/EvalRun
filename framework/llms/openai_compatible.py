@@ -57,6 +57,21 @@ class OpenAICompatibleLLM(BaseLLM):
         self.last_error: Optional[str] = None
         self.last_token_usage: Optional[Dict[str, int]] = None
 
+    def _is_transient_error(self, e: Exception) -> bool:
+        """Determines whether an exception is a transient network/server error suitable for retries."""
+        if isinstance(e, (TimeoutError, ConnectionError)):
+            return True
+        status_code = getattr(e, "status_code", None)
+        if status_code is not None:
+            if status_code in (429, 500, 502, 503, 504):
+                return True
+            if 400 <= status_code < 500 and status_code != 429:
+                return False
+        err_str = str(e).lower()
+        if any(k in err_str for k in ("timeout", "connection", "rate limit", "500", "502", "503", "504", "deadline exceeded")):
+            return True
+        return False
+
     def generate(self, messages: List[Message]) -> LLMResponse:
         """Generates a text response from chat messages with retry logic.
 
@@ -82,7 +97,7 @@ class OpenAICompatibleLLM(BaseLLM):
             except Exception as e:
                 last_exception = e
                 self.last_error = str(e)
-                if attempt < self.max_retries:
+                if attempt < self.max_retries and self._is_transient_error(e):
                     retries_this_call += 1
                     self.retries_attempted += 1
                     time.sleep(self.retry_delay * (2 ** attempt))
@@ -108,6 +123,7 @@ class OpenAICompatibleLLM(BaseLLM):
                     "error": "Empty choices array in model response",
                     "provider": self.provider,
                     "model_name": self.model_name,
+                    "retries_attempted": retries_this_call,
                 },
             )
 
@@ -118,6 +134,6 @@ class OpenAICompatibleLLM(BaseLLM):
                 "provider": self.provider,
                 "model_name": self.model_name,
                 "token_usage": self.last_token_usage,
-                "retries_attempted": self.retries_attempted,
+                "retries_attempted": retries_this_call,
             },
         )

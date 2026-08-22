@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-eval-platform"
+version = "0.4.0"
+description = "Provider-agnostic evaluation and regression-testing toolkit for tool-using AI agents."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "openai>=1.0.0",
+    "requests>=2.28.0",
+    "pydantic>=2.0.0",
+    "langfuse>=2.0.0",
+    "fastmcp>=0.1.0"
+]
+
+[project.scripts]
+evalrun = "cli.main:main"
