@@ -258,7 +258,7 @@ class BenchmarkRunner:
             f.write(f"- **Agent Model**: {report_data['model_name']}\n")
             f.write(f"- **Evaluation Profile**: `{profile.name}`\n")
             f.write(f"- **Overall Score**: **{result.overall_score:.2f} / 100**\n")
-            f.write(f"- **Outcome**: {'✅ PASSED' if result.passed else '❌ FAILED'}\n\n")
+            f.write(f"- **Outcome**: {'PASSED' if result.passed else 'FAILED'}\n\n")
 
             # Render Auditor Gate metadata section if present
             if "audit_report" in agent_output.metadata:

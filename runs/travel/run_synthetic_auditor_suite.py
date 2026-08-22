@@ -95,16 +95,16 @@ def main():
 
         if is_tp:
             tp += 1
-            result_tag = "✓ TRUE POSITIVE (Correct BLOCK)"
+            result_tag = "TRUE POSITIVE (Correct BLOCK)"
         elif is_tn:
             tn += 1
-            result_tag = "✓ TRUE NEGATIVE (Correct PASS)"
+            result_tag = "TRUE NEGATIVE (Correct PASS)"
         elif is_fp:
             fp += 1
-            result_tag = "❌ FALSE POSITIVE (False Alarm BLOCK)"
+            result_tag = "FALSE POSITIVE (False Alarm BLOCK)"
         else:
             fn += 1
-            result_tag = "❌ FALSE NEGATIVE (Missed Violation PASS)"
+            result_tag = "FALSE NEGATIVE (Missed Violation PASS)"
 
         print(f"[{idx:02d}/{len(cases):02d}] {case_id:22s} | Expected: {expected_status:5s} | Actual: {actual_status:5s} | {latency:4.2f}s | {result_tag}")
 

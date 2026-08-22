@@ -38,7 +38,7 @@ def format_terminal_summary(results: List[EvaluationResult], manifest: Dict[str,
     all_passed = True
 
     for res in results:
-        eval_status = "✅ PASS" if res.passed else "❌ FAIL"
+        eval_status = "PASS" if res.passed else "FAIL"
         if not res.passed:
             all_passed = False
 
@@ -47,14 +47,14 @@ def format_terminal_summary(results: List[EvaluationResult], manifest: Dict[str,
         if hasattr(res, "agent_metadata") and isinstance(res.agent_metadata, dict):
             gate = res.agent_metadata.get("audit_gate_decision")
             if gate:
-                audit_status = "✅ PASS" if gate == "PASS" else "🛑 BLOCK"
+                audit_status = "PASS" if gate == "PASS" else "BLOCK"
                 if gate != "PASS":
                     all_passed = False
 
         lines.append(f"{res.benchmark_name[:32]:<32} | {res.overall_score:6.2f}   | {eval_status:<10} | {audit_status:<12}")
 
     lines.append("=" * 80)
-    final_verdict = "✅ ALL SCENARIOS PASSED (Exit Code: 0)" if all_passed else "🛑 EVALUATION OR GATE FAILURE (Exit Code: 1)"
+    final_verdict = "ALL SCENARIOS PASSED (Exit Code: 0)" if all_passed else "EVALUATION OR GATE FAILURE (Exit Code: 1)"
     lines.append(f" Final Verdict: {final_verdict}")
     lines.append("=" * 80)
     lines.append(f" Artifacts saved to: {manifest.get('output_dir', './eval_results')}")
