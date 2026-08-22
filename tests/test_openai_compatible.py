@@ -92,11 +92,36 @@ class TestOpenAICompatibleLLM(unittest.TestCase):
         mock_openai_class.return_value = mock_client
         mock_client.chat.completions.create.side_effect = RuntimeError("API connection failure")
 
-        llm = OpenAICompatibleLLM(model_name="test-model")
+        llm = OpenAICompatibleLLM(model_name="test-model", max_retries=1, retry_delay=0.01)
         with self.assertRaises(RuntimeError):
             llm.generate([Message(role="user", content="Hello")])
 
         self.assertEqual(llm.last_error, "API connection failure")
+        self.assertEqual(llm.retries_attempted, 1)
+
+    @patch("framework.llms.openai_compatible.OpenAI")
+    def test_retry_succeeds_after_transient_failure(self, mock_openai_class):
+        mock_client = MagicMock()
+        mock_openai_class.return_value = mock_client
+
+        mock_choice = MagicMock()
+        mock_choice.message.content = "Success after 1 retry"
+        mock_success_response = MagicMock()
+        mock_success_response.choices = [mock_choice]
+        mock_success_response.usage = None
+
+        # Fail once, then succeed
+        mock_client.chat.completions.create.side_effect = [
+            RuntimeError("504 Gateway Timeout"),
+            mock_success_response,
+        ]
+
+        llm = OpenAICompatibleLLM(model_name="test-model", max_retries=2, retry_delay=0.01)
+        resp = llm.generate([Message(role="user", content="Hello")])
+
+        self.assertEqual(resp.text, "Success after 1 retry")
+        self.assertEqual(llm.retries_attempted, 1)
+        self.assertEqual(resp.metadata["retries_attempted"], 1)
 
 
 if __name__ == "__main__":

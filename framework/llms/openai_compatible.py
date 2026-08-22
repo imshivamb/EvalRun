@@ -1,6 +1,5 @@
-"""Provider-agnostic OpenAI-compatible LLM client adapter for hosted and local models."""
-
 import os
+import time
 from typing import Any, Dict, List, Optional
 from openai import OpenAI
 
@@ -20,6 +19,8 @@ class OpenAICompatibleLLM(BaseLLM):
         api_key: Optional[str] = None,
         base_url: Optional[str] = None,
         timeout: float = 180.0,
+        max_retries: int = 3,
+        retry_delay: float = 1.0,
         extra_headers: Optional[Dict[str, str]] = None,
         provider: str = "openai_compatible",
     ):
@@ -30,6 +31,8 @@ class OpenAICompatibleLLM(BaseLLM):
             api_key: API key. Defaults to OPENAI_API_KEY environment variable or 'EMPTY' for local endpoints.
             base_url: Base endpoint URL (e.g. 'http://localhost:8000/v1', 'https://integrate.api.nvidia.com/v1').
             timeout: Request timeout in seconds.
+            max_retries: Maximum retry attempts on transient errors.
+            retry_delay: Base delay between retries in seconds.
             extra_headers: Optional custom HTTP headers.
             provider: Human-readable provider label.
         """
@@ -37,6 +40,8 @@ class OpenAICompatibleLLM(BaseLLM):
         self.provider = provider
         self.base_url = base_url or "https://api.openai.com/v1"
         self.timeout = timeout
+        self.max_retries = max_retries
+        self.retry_delay = retry_delay
         self.extra_headers = extra_headers
 
         resolved_api_key = api_key or os.environ.get("OPENAI_API_KEY") or "EMPTY"
@@ -53,7 +58,7 @@ class OpenAICompatibleLLM(BaseLLM):
         self.last_token_usage: Optional[Dict[str, int]] = None
 
     def generate(self, messages: List[Message]) -> LLMResponse:
-        """Generates a text response from chat messages.
+        """Generates a text response from chat messages with retry logic.
 
         Args:
             messages: List of Message instances.
@@ -63,14 +68,26 @@ class OpenAICompatibleLLM(BaseLLM):
         """
         formatted_messages = [{"role": msg.role, "content": msg.content} for msg in messages]
 
-        try:
-            response = self.client.chat.completions.create(
-                model=self.model_name,
-                messages=formatted_messages,
-            )
-        except Exception as e:
-            self.last_error = str(e)
-            raise
+        response = None
+        last_exception = None
+        retries_this_call = 0
+
+        for attempt in range(1 + self.max_retries):
+            try:
+                response = self.client.chat.completions.create(
+                    model=self.model_name,
+                    messages=formatted_messages,
+                )
+                break
+            except Exception as e:
+                last_exception = e
+                self.last_error = str(e)
+                if attempt < self.max_retries:
+                    retries_this_call += 1
+                    self.retries_attempted += 1
+                    time.sleep(self.retry_delay * (2 ** attempt))
+                else:
+                    raise last_exception
 
         self.request_count += 1
         self.last_error = None
@@ -101,5 +118,6 @@ class OpenAICompatibleLLM(BaseLLM):
                 "provider": self.provider,
                 "model_name": self.model_name,
                 "token_usage": self.last_token_usage,
+                "retries_attempted": self.retries_attempted,
             },
         )
