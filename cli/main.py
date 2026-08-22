@@ -215,6 +215,13 @@ def run_command(args: argparse.Namespace) -> int:
     with open(manifest_path, "w", encoding="utf-8") as f:
         json.dump(redacted_manifest, f, indent=2)
 
+    # Generate Local HTML Report
+    try:
+        from cli.html_reporter import generate_html_report
+        generate_html_report(results, redacted_manifest, str(output_dir))
+    except Exception as e:
+        print(f"Warning: Failed to generate HTML report: {e}", file=sys.stderr)
+
     # Render Terminal Summary
     terminal_report = format_terminal_summary(results, redacted_manifest)
     print(terminal_report)
