@@ -240,5 +240,15 @@ class TestRegressionEngine(unittest.TestCase):
         self.assertIn("budget-constrained-itinerary", baseline["scenarios"])
 
 
+    def test_load_empty_manifest_raises_value_error(self):
+        empty_manifest_path = os.path.join(self.temp_dir, "empty_manifest.json")
+        with open(empty_manifest_path, "w", encoding="utf-8") as f:
+            json.dump({"run_id": "empty-run", "scenarios": []}, f)
+
+        with self.assertRaises(ValueError) as ctx:
+            load_baseline_manifest(empty_manifest_path)
+        self.assertIn("contains no scenario results", str(ctx.exception))
+
+
 if __name__ == "__main__":
     unittest.main()

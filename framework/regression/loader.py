@@ -126,6 +126,12 @@ def load_baseline_manifest(path_str: str) -> Dict[str, Any]:
                 except Exception:
                     pass
 
+    if not scenarios_by_id:
+        raise ValueError(
+            f"Baseline manifest '{manifest_file}' contains no scenario results. "
+            "Pass a dedicated run directory containing scenario reports or a manifest with scenario/report entries."
+        )
+
     return {
         "manifest": manifest_data,
         "scenarios": scenarios_by_id,
