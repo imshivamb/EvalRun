@@ -1,11 +1,15 @@
 """Benchmark runner for orchestrating end-to-end agent evaluation pipelines."""
 
+import inspect
+import json
 import os
 import sys
-import json
-import inspect
-from typing import Dict, Any
-from framework.models import Benchmark, AgentOutput, EvaluationResult
+import time
+import uuid
+from datetime import datetime, timezone
+from typing import Any, Dict
+from framework.core import RunTrace
+from framework.models import AgentOutput, Benchmark, EvaluationResult
 from framework.parser import parse_benchmark
 from framework.profiles import PROFILE_REGISTRY, TRAVEL_PROFILE
 from framework.evaluation.engine import EvaluationEngine
@@ -88,15 +92,24 @@ class BenchmarkRunner:
         # 2. Resolve evaluation profile
         profile = PROFILE_REGISTRY.get(benchmark.profile, TRAVEL_PROFILE)
 
-        # 3. Execute agent. Pass benchmark context to agents that opt into
-        # evaluation-specific controls.
+        # 3. Execute agent with RunTrace instrumentation
+        t0 = time.time()
+        start_time = datetime.now(timezone.utc)
         run_kwargs = {}
         run_parameters = inspect.signature(self.agent.run).parameters
         if "planning_mode" in run_parameters:
             run_kwargs["planning_mode"] = "closed_world_evaluation"
         if "validation_scenario_id" in run_parameters:
             run_kwargs["validation_scenario_id"] = benchmark.benchmark_id
-        agent_output = self.agent.run(benchmark.prompt, **run_kwargs)
+        
+        status = "success"
+        err_msg = None
+        try:
+            agent_output = self.agent.run(benchmark.prompt, **run_kwargs)
+        except Exception as e:
+            status = "error"
+            err_msg = str(e)
+            raise
 
         # 4. Optional v3 Independent Budget Auditor Gate Pass
         if self.auditor is not None:
@@ -107,10 +120,40 @@ class BenchmarkRunner:
             agent_output.metadata["audit_report"] = audit_report.to_dict()
             agent_output.metadata["audit_gate_decision"] = audit_report.status
 
-        # 5. Evaluate using the engine
+        latency = time.time() - t0
+        finished_time = datetime.now(timezone.utc)
+
+        # 5. Record RunTrace metadata
+        llm_obj = getattr(self.agent, "llm", None)
+        raw_usage = getattr(llm_obj, "last_token_usage", None) if llm_obj else None
+        token_usage = raw_usage if isinstance(raw_usage, dict) else None
+
+        trace = RunTrace(
+            trace_id=f"tr-{uuid.uuid4().hex[:8]}",
+            scenario_id=benchmark.benchmark_id,
+            agent_id=getattr(self.agent, "agent_name", self.agent.__class__.__name__),
+            model_name=getattr(llm_obj, "model_name", "unknown") if llm_obj else "unknown",
+            started_at_utc=start_time.isoformat(),
+            finished_at_utc=finished_time.isoformat(),
+            latency_seconds=round(latency, 2),
+            status=status,
+            error=err_msg,
+            token_usage=token_usage,
+            metadata=agent_output.metadata,
+        )
+        agent_output.metadata["run_trace"] = {
+            "trace_id": trace.trace_id,
+            "started_at_utc": trace.started_at_utc,
+            "finished_at_utc": trace.finished_at_utc,
+            "latency_seconds": trace.latency_seconds,
+            "status": trace.status,
+            "token_usage": trace.token_usage,
+        }
+
+        # 6. Evaluate using the engine
         result = self.engine.evaluate(benchmark, agent_output, profile)
 
-        # 6. Save reports and outputs
+        # 7. Save reports and outputs
         self._save_execution_files(benchmark, agent_output, result, profile)
 
         return result
