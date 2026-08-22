@@ -168,7 +168,10 @@ class TestRegressionEngine(unittest.TestCase):
                 benchmark_id="budget-constrained-itinerary",
                 benchmark_name="Budget Constrained Itinerary",
                 overall_score=90.0,
-                dimension_scores=[],
+                dimension_scores=[
+                    DimensionScore("Constraint Satisfaction", 95.0, "OK"),
+                    DimensionScore("Planning Quality", 85.0, "OK"),
+                ],
                 passed=True,
                 agent_metadata={"audit_gate_decision": "PASS"},
             ),
@@ -176,7 +179,10 @@ class TestRegressionEngine(unittest.TestCase):
                 benchmark_id="urgent-ticket-escalation",
                 benchmark_name="Urgent Ticket Escalation",
                 overall_score=88.0,
-                dimension_scores=[],
+                dimension_scores=[
+                    DimensionScore("SLA Compliance", 90.0, "OK"),
+                    DimensionScore("Escalation Correctness", 86.0, "OK"),
+                ],
                 passed=True,
                 agent_metadata={"audit_gate_decision": "PASS"},
             ),
@@ -197,6 +203,41 @@ class TestRegressionEngine(unittest.TestCase):
         new_sc = [c for c in report.scenario_comparisons if c.scenario_id == "new-feature-scenario"][0]
         self.assertIn("NEW", new_sc.status)
         self.assertFalse(new_sc.is_regression)
+
+    def test_new_candidate_scenario_with_auditor_block_blocks_release(self):
+        baseline_data = load_baseline_manifest(self.manifest_file)
+
+        # New candidate scenario that suffers an auditor block
+        cand_results = [
+            EvaluationResult(
+                benchmark_id="brand-new-scenario",
+                benchmark_name="Brand New Scenario",
+                overall_score=95.0,
+                dimension_scores=[],
+                passed=True,
+                agent_metadata={"audit_gate_decision": "BLOCK"},
+            )
+        ]
+
+        report = compare_runs(cand_results, baseline_data)
+        self.assertTrue(report.release_blocked)
+        new_sc = [c for c in report.scenario_comparisons if c.scenario_id == "brand-new-scenario"][0]
+        self.assertEqual(new_sc.auditor_gate, "BLOCK")
+
+    def test_manifest_file_loading_does_not_scan_unrelated_parent_reports(self):
+        # Create an unrelated report in temp_dir that is NOT in manifest.json
+        unrelated_report = {
+            "benchmark_id": "unrelated-scenario-id",
+            "benchmark_name": "Unrelated Scenario",
+            "overall_score": 99.0,
+        }
+        with open(os.path.join(self.temp_dir, "unrelated_scenario_id_report.json"), "w", encoding="utf-8") as f:
+            json.dump(unrelated_report, f)
+
+        # Loading from single manifest_file path should NOT include unrelated scenario
+        baseline = load_baseline_manifest(self.manifest_file)
+        self.assertNotIn("unrelated-scenario-id", baseline["scenarios"])
+        self.assertIn("budget-constrained-itinerary", baseline["scenarios"])
 
 
 if __name__ == "__main__":

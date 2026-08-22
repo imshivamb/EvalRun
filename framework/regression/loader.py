@@ -38,7 +38,8 @@ def load_baseline_manifest(path_str: str) -> Dict[str, Any]:
     if not path.exists():
         raise FileNotFoundError(f"Baseline path '{path_str}' does not exist.")
 
-    if path.is_dir():
+    is_dedicated_dir = path.is_dir()
+    if is_dedicated_dir:
         manifest_file = path / "manifest.json"
         base_dir = path
     else:
@@ -53,7 +54,7 @@ def load_baseline_manifest(path_str: str) -> Dict[str, Any]:
 
     scenarios_by_id: Dict[str, Dict[str, Any]] = {}
 
-    # 1. First parse scenarios array if present in manifest.json
+    # 1. Parse scenarios array if present in manifest.json
     if "scenarios" in manifest_data and isinstance(manifest_data["scenarios"], list):
         for item in manifest_data["scenarios"]:
             s_id = item.get("scenario_id") or item.get("benchmark_id")
@@ -62,8 +63,24 @@ def load_baseline_manifest(path_str: str) -> Dict[str, Any]:
 
             dim_scores = item.get("dimension_scores", {})
             if isinstance(dim_scores, list):
-                # Convert list of {dimension, score} dicts to dict
                 dim_scores = {d["dimension"]: d["score"] for d in dim_scores if "dimension" in d and "score" in d}
+
+            rep_path = item.get("report_path", "")
+
+            # If report_path is specified and file exists, load detailed report file
+            if rep_path and not dim_scores:
+                full_rep = base_dir / rep_path
+                if full_rep.exists():
+                    try:
+                        with open(full_rep, "r", encoding="utf-8") as rf:
+                            rep = json.load(rf)
+                        dim_scores = {
+                            ds["dimension"]: float(ds["score"])
+                            for ds in rep.get("dimension_scores", [])
+                            if isinstance(ds, dict) and "dimension" in ds and "score" in ds
+                        }
+                    except Exception:
+                        pass
 
             scenarios_by_id[s_id] = {
                 "scenario_id": s_id,
@@ -72,27 +89,27 @@ def load_baseline_manifest(path_str: str) -> Dict[str, Any]:
                 "passed": bool(item.get("passed", False)),
                 "audit_gate_decision": item.get("audit_gate_decision") or item.get("auditor_gate") or "PASS",
                 "dimension_scores": dim_scores,
-                "report_path": item.get("report_path", ""),
+                "report_path": rep_path,
                 "itinerary_path": item.get("itinerary_path", ""),
             }
 
-    # 2. Also scan base_dir for any *_report.json files to supplement detailed dimension scores
-    if base_dir.exists() and base_dir.is_dir():
+    # 2. Only scan directory for report files if path_str was a dedicated directory
+    if is_dedicated_dir and base_dir.exists():
         for fname in os.listdir(base_dir):
-            if fname.endswith("_report.json") and fname != "manifest.json" and fname != "regression_report.json":
+            if fname.endswith("_report.json") and fname not in ("manifest.json", "regression_report.json"):
                 report_filepath = base_dir / fname
                 try:
                     with open(report_filepath, "r", encoding="utf-8") as f:
                         rep = json.load(f)
                     s_id = rep.get("benchmark_id") or rep.get("scenario_id")
-                    if not s_id:
+                    if not s_id or s_id in scenarios_by_id:
                         continue
 
-                    dim_scores = {}
-                    for ds in rep.get("dimension_scores", []):
-                        if isinstance(ds, dict) and "dimension" in ds and "score" in ds:
-                            dim_scores[ds["dimension"]] = float(ds["score"])
-
+                    dim_scores = {
+                        ds["dimension"]: float(ds["score"])
+                        for ds in rep.get("dimension_scores", [])
+                        if isinstance(ds, dict) and "dimension" in ds and "score" in ds
+                    }
                     agent_meta = rep.get("agent_metadata", {})
                     audit_gate = agent_meta.get("audit_gate_decision", "PASS")
 

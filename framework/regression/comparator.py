@@ -164,10 +164,12 @@ def compare_runs(
 
             dimension_deltas: List[DimensionDelta] = []
             dim_regressed = False
+            all_dimensions = set(base_dims.keys()).union(cand_dims.keys())
 
-            for d_name, c_dscore in cand_dims.items():
-                if d_name in base_dims:
+            for d_name in sorted(all_dimensions):
+                if d_name in base_dims and d_name in cand_dims:
                     b_dscore = base_dims[d_name]
+                    c_dscore = cand_dims[d_name]
                     ddelta = c_dscore - b_dscore
                     d_is_regressed = ddelta < (-abs(max_dim_drop))
                     if d_is_regressed:
@@ -179,6 +181,29 @@ def compare_runs(
                             candidate_score=c_dscore,
                             delta=ddelta,
                             is_regression=d_is_regressed,
+                        )
+                    )
+                elif d_name in base_dims and d_name not in cand_dims:
+                    b_dscore = base_dims[d_name]
+                    dim_regressed = True
+                    dimension_deltas.append(
+                        DimensionDelta(
+                            dimension=f"{d_name} (Missing in Candidate)",
+                            baseline_score=b_dscore,
+                            candidate_score=0.0,
+                            delta=-b_dscore,
+                            is_regression=True,
+                        )
+                    )
+                else:
+                    c_dscore = cand_dims[d_name]
+                    dimension_deltas.append(
+                        DimensionDelta(
+                            dimension=f"{d_name} (New Dimension)",
+                            baseline_score=0.0,
+                            candidate_score=c_dscore,
+                            delta=c_dscore,
+                            is_regression=False,
                         )
                     )
 
@@ -210,6 +235,9 @@ def compare_runs(
             )
         else:
             # Candidate scenario is new
+            if not eval_passed or auditor_gate != "PASS":
+                release_blocked = True
+
             status_str = "PASSED" if (eval_passed and auditor_gate == "PASS") else ("BLOCKED" if auditor_gate != "PASS" else "FAILED")
             comparisons.append(
                 ScenarioComparison(
