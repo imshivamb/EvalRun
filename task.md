@@ -97,12 +97,12 @@ not provision GPUs, host models, or become a multi-tenant SaaS product.
 
 ### Phase 6 — Trace UX and Documentation
 
-- [ ] Make failed cases easy to inspect from the local report
-- [ ] Show model output, tool calls, evaluator findings, and score reasons together
-- [ ] Show baseline versus candidate differences
-- [ ] Add architecture and data-flow diagrams
-- [ ] Rewrite the README around the regression-testing use case
-- [ ] Add limitations, judge-model caveats, and reproducibility guidance
+- [x] Make failed cases easy to inspect from the local report (`cli/html_reporter.py`)
+- [x] Show model output, tool calls, evaluator findings, and score reasons together
+- [x] Show baseline versus candidate differences
+- [x] Add architecture and data-flow diagrams (`docs/architecture.md`)
+- [x] Rewrite the README around the regression-testing use case (`README.md`)
+- [x] Add limitations, judge-model caveats, and reproducibility guidance (`README.md`)
 - [ ] Record a short project walkthrough
 
 ### Phase 7 — External Usability Validation

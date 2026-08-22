@@ -1,203 +1,101 @@
-# Agent Evaluation Platform
+# Agent Evaluation Platform (`evalrun`)
 
-An evaluation-first framework for building, benchmarking, and improving AI agents.
+> **Quality Score $\neq$ Release Decision.** An LLM evaluator can rate an itinerary 95/100 while an independent auditor blocks it for hard financial violations.
 
-The first implementation is a travel planning agent, but the goal of this project is much broader: to build a reusable evaluation platform that can benchmark AI agents across different domains, models, and architectures.
-
-> **Technical article:**  
-> **My Reflection Loop Made Things Worse. My Evaluation Framework Showed Me Why.**  
-> 🔗 https://shivambhardwaj.hashnode.dev/my-reflection-loop-made-things-worse-my-evaluation-framework-showed-me-why
+The **Agent Evaluation Platform** is a local-first, domain-neutral evaluation framework for AI agents. It features deterministic MCP constraint verification, independent budget audit gates, generic model adapters, and automated baseline regression testing.
 
 ---
 
-## Why this project?
+## 🌟 Key Capabilities
 
-Most AI agent projects focus on building the agent.
-
-I wanted to focus on evaluating it.
-
-Instead of writing the planner first and testing it afterwards, I designed the benchmark scenarios before writing the agent itself. That meant the agent had to adapt to predefined evaluation criteria instead of the evaluation adapting to whatever the agent already did well.
-
-The travel planner became the first system the platform evaluates.
-
----
-
-## Features
-
-- Multi-agent travel planning workflow
-- Planner + Reflection architecture
-- Session memory
-- Research Agent
-- Research Planner
-- Benchmark evaluation framework
-- Five benchmark scenarios
-- Multi-model evaluation
-- Reflection loop with approval threshold
-- Mid-trip replanning
-- Remote worker scheduling
-- Route optimization
-- Budget optimization
-- Information gathering
+- **3-Tier Release Gatekeeping**:
+  - **Evaluator Thresholds**: Qualitative dimension scoring (0–100) via LLM judges.
+  - **Independent Auditor Gate**: Hard financial, policy, and math validation (blocks releases on unbudgeted items or currency hallucinations).
+  - **Baseline Regression Gate**: Automatically detects score drops ($\Delta \text{score}$) against stored baselines.
+- **Local-First & Multi-Model**: Compatible with hosted APIs (OpenAI, NVIDIA NIM, Gemini) and local model servers (vLLM, Ollama, LM Studio) on `http://localhost:8000/v1`.
+- **Standalone HTML Review Reports**: Interactive local HTML report with failure quick-jump bars, auto-opened failing cards, search/filter controls, visual score progress bars, and raw model output inspection.
+- **CI Exit Code Contract**:
+  - `0`: All scenarios passed evaluator, auditor gate passed, and no regression detected.
+  - `1`: Release blocked due to evaluator threshold failure, auditor violation, or baseline score regression.
+  - `2`: Runtime error, missing file, or invalid configuration.
 
 ---
 
-## Benchmark Scenarios
+## 🚀 Quick Start
 
-The current evaluation suite includes five scenarios designed around real-world planning problems.
-
-| Scenario | Focus |
-|----------|-------|
-| Budget | Constraint satisfaction and value optimization |
-| Route Optimization | Geographic efficiency and backtracking |
-| Remote Worker | Timezone-aware scheduling |
-| Mid-trip Replanning | Localized adaptation and booking preservation |
-| Information Gathering | Missing information detection and research quality |
-
-Each benchmark includes predefined scoring criteria and pass/fail conditions.
-
----
-
-## Architecture
-
-```text
-Planner (Draft)
-      │
-      ▼
-Reflection Critique
-      │
-      ▼
-Structured Revision Summary
-      │
-      ▼
-FastMCP Validator (Deterministic Check: Locks, Schedule & Arithmetic)
-      │
-      ├─ Passed & Approved ──► Return Itinerary
-      └─ Violations / Critique ──► Grounded Revision Loop ──► Final MCP Validation
-                                                                    │
-                                                                    ▼
-                                                            Benchmark Evaluation
-```
-
-The platform combines LLM-based reflection with **deterministic MCP tools** to catch logical, temporal, and mathematical regressions that generative models struggle to evaluate purely in free text.
-
----
-
-## MCP-Backed Deterministic Constraint Validation
-
-While reflection agents catch qualitative and structural issues, LLMs frequently hallucinate arithmetic totals and subtly drop locked constraints during replanning. 
-
-To solve this, the platform integrates **Model Context Protocol (FastMCP)** tools as a deterministic verification layer:
-
-* **Locked Anchor Preservation (`validate_revision`)**: Verifies that non-refundable, immovable bookings (e.g. Kyoto Days 15–18, Narita departure Day 28) are strictly preserved without key tampering or date drift.
-* **Exact Arithmetic Calculation (`calculate_savings`)**: Mathematically totals itemized savings rules against target reductions (e.g. ₹20,000 cut) instead of relying on generative estimations.
-* **Dual Validation Checkpoints**: Runs on every initial draft and final revision to prevent unverified bypasses.
-
----
-
-## Evaluation Philosophy
-
-The central idea behind this project is simple:
-
-> **Good evaluations are more important than good prompts.**
-
-Without reliable benchmarks, it's difficult to know whether an agent is actually improving or simply generating different responses.
-
-The evaluation framework is designed to expose regressions, constraint violations, and architectural weaknesses before they become production problems.
-
----
-
-## Models Evaluated
-
-Current benchmark runs include:
-
-- GPT-5.6 Terra
-- Gemini 3.1 Pro
-- Gemini 3.5 Flash
-- Llama 3.1 8B
-
----
-
-## Quickstart & Running Benchmarks
-
-### 1. Environment Setup
+### 1. Installation
 
 ```bash
-# Clone the repository
 git clone https://github.com/imshivamb/agent-eval-platform.git
 cd agent-eval-platform
-
-# Setup virtual environment and dependencies
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+pip install -e .
 ```
 
-### 2. Configure Environment Keys
-
-Create a `.env` file in the root directory:
-
-```env
-OPENAI_API_KEY=your_openai_key
-GEMINI_API_KEY=your_gemini_key
-NVIDIA_API_KEY=your_nvidia_key
-OPENAI_MODEL=gpt-5.6-terra
-```
-
-### 3. Run Benchmark Suite
+### 2. Single Scenario Run (Hosted Model)
 
 ```bash
-# Run multi-model comparison across all 5 benchmark scenarios
-PYTHONPATH=. python3 runs/travel/compare_all.py
+export OPENAI_API_KEY="sk-proj-..."
 
-# Run controlled MCP replanning benchmark (v2 vs v2.1)
-PYTHONPATH=. python3 runs/travel/compare_mcp_replanning.py
+evalrun run \
+  --scenario evals/scenarios/travel-agent/budget-constrained-itinerary.md \
+  --agent agents.travel:TravelPlanningAgent \
+  --model gpt-4o \
+  --judge-model gpt-4o \
+  --output results/run-001
+```
 
-# Run unit test suite
-PYTHONPATH=. python3 -m unittest discover -s tests -p "test_*.py"
+### 3. Local Model Server Run (vLLM / Ollama)
+
+```bash
+# Users host their own local OpenAI-compatible server at http://localhost:8000/v1
+evalrun run \
+  --scenario evals/scenarios/travel-agent/budget-constrained-itinerary.md \
+  --agent agents.travel:TravelPlanningAgent \
+  --model qwen2.5-72b-instruct \
+  --base-url http://localhost:8000/v1 \
+  --api-key EMPTY \
+  --judge-model gpt-4o \
+  --output results/local-run
 ```
 
 ---
 
-## Roadmap
+## 📊 Baseline Regression Testing
 
-- ✅ Evaluation framework
-- ✅ Reflection agent
-- ✅ Session memory
-- ✅ Multi-model benchmarking
-- ✅ Benchmark reporting
-- ✅ FastMCP deterministic validator integration
-- 🚧 Live tool integrations
-- 🚧 Additional agent domains
-- 🚧 Interactive evaluation dashboard
+Compare a candidate prompt, model version, or code change against a prior baseline run:
 
----
+```bash
+evalrun run \
+  --scenario evals/scenarios/travel-agent/budget-constrained-itinerary.md \
+  --agent agents.travel:TravelPlanningAgent \
+  --model qwen2.5-72b-instruct \
+  --baseline results/run-001 \
+  --max-regression 5.0 \
+  --max-dimension-regression 10.0 \
+  --output results/candidate-run
+```
 
-## Tech Stack
+### Generated Artifacts
 
-- Python
-- FastMCP
-- OpenAI API
-- Gemini API
-- NVIDIA NIM (Llama 3.1 8B)
-- Langfuse Observability
-- Mermaid
-- Markdown
+- `manifest.json`: Execution metadata with redacted API credentials.
+- `regression_report.json`: Machine-readable score deltas ($\Delta \text{score}$) and gate decisions.
+- `report.html`: Standalone interactive HTML report for human inspection.
 
 ---
 
-## Documentation & Evaluation Findings
+## 🏗️ Architecture & Documentation
 
-Benchmark reports and evaluation datasets are organized by topic:
+For detailed system component diagrams, dual-pass auditor sequence flows, and release gate decision trees, see [`docs/architecture.md`](file:///Users/shivam/Projects/AI/agent-eval-platform/docs/architecture.md).
 
-- [Reflection Failure Analysis & Baseline Findings](results/reflection-analysis/evaluation-findings.md)
-- [Multi-Model Comparative Benchmarks](results/multi-model-benchmarks/comparison.md)
-- [MCP Constraint Validation Findings](results/mcp-constraint-validation/mcp-validation-findings.md)
-- [Evaluation Dashboard](dashboards/README.md)
+- Hosted Models Guide: [`docs/quickstart-hosted.md`](file:///Users/shivam/Projects/AI/agent-eval-platform/docs/quickstart-hosted.md)
+- Local Models Guide: [`docs/quickstart-local.md`](file:///Users/shivam/Projects/AI/agent-eval-platform/docs/quickstart-local.md)
+- CLI Specification: [`docs/phase4-local-cli-design.md`](file:///Users/shivam/Projects/AI/agent-eval-platform/docs/phase4-local-cli-design.md)
+- Regression Engine Design: [`docs/phase5-regression-gates-design.md`](file:///Users/shivam/Projects/AI/agent-eval-platform/docs/phase5-regression-gates-design.md)
 
 ---
 
-## Feedback
+## ⚠️ Limitations & Reproducibility Guidelines
 
-I'm building this project in public as a way to learn more about AI evaluation and agent engineering.
-
-If you have suggestions, ideas, or feedback, I'd genuinely love to hear them.
+- **Judge Variance**: LLM judge evaluations can exhibit non-zero variance. For baseline regression testing, fix model versions and set deterministic sampling parameters where available.
+- **Local Model Requirements**: Local evaluation throughput depends on server VRAM and concurrency settings. Ensure your local server handles parallel requests cleanly.
+- **Credential Security**: Credentials in `manifest.json` and `regression_report.json` are automatically redacted into `"[REDACTED]"`. Never commit unredacted API keys.

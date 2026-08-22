@@ -201,17 +201,22 @@ def generate_html_report(
             </div>
             """
 
+        is_failing_card = (card_status_tag != "passed")
+        open_attr = "open" if is_failing_card else ""
+
         raw_output_section = ""
         if raw_output:
             raw_output_section = f"""
-            <details class="raw-output-details">
-                <summary>Inspect Raw Agent Output Text</summary>
+            <details class="raw-output-details" {open_attr}>
+                <summary>Inspect Raw Agent Output Text {f'(Auto-Opened on {card_status_tag.upper()})' if is_failing_card else ''}</summary>
                 <pre class="raw-output-box">{html.escape(raw_output)}</pre>
             </details>
             """
 
+        card_id = f"scenario-{res.benchmark_id}"
+
         cards_html.append(f"""
-        <div class="scenario-card" data-status="{card_status_tag}" data-name="{html.escape(res.benchmark_name.lower())}">
+        <div class="scenario-card" id="{card_id}" data-status="{card_status_tag}" data-name="{html.escape(res.benchmark_name.lower())}">
             <div class="scenario-header">
                 <h2>{html.escape(res.benchmark_name)}</h2>
                 <div class="badges">
@@ -246,6 +251,26 @@ def generate_html_report(
             {raw_output_section}
         </div>
         """)
+
+    # Build Failure Jump Links Bar
+    jump_links = []
+    for res in sorted_results:
+        meta = getattr(res, "agent_metadata", {})
+        gate = meta.get("audit_gate_decision", "PASS")
+        is_reg = reg_by_id.get(res.benchmark_id, {}).get("is_regression", False)
+        if is_reg or gate != "PASS" or not res.passed:
+            status_lbl = "REGRESSED" if is_reg else ("BLOCKED" if gate != "PASS" else "FAILED")
+            card_id = f"scenario-{res.benchmark_id}"
+            jump_links.append(f'<a href="#{card_id}" class="jump-pill">{html.escape(res.benchmark_name)} [{status_lbl}]</a>')
+
+    jump_bar_html = ""
+    if jump_links:
+        jump_bar_html = f"""
+        <div class="jump-bar">
+            <span class="jump-title">Quick Failure Jump:</span>
+            {' '.join(jump_links)}
+        </div>
+        """
 
     regressed_btn_html = '<button class="filter-btn" onclick="setFilter(\'regressed\', this)">Regressed</button>' if regression_report else ''
 
@@ -496,6 +521,32 @@ def generate_html_report(
             max-height: 400px;
             overflow-y: auto;
         }}
+        .jump-bar {{
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }}
+        .jump-title {{
+            font-size: 13px;
+            font-weight: 700;
+            color: #ffffff;
+        }}
+        .jump-pill {{
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            color: #f8fafc;
+            text-decoration: none;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }}
+        .jump-pill:hover {{
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }}
         code {{
             background: #1e293b;
             padding: 2px 6px;
@@ -515,6 +566,7 @@ def generate_html_report(
         <div class="verdict-banner {verdict_class}">
             <h2>{verdict_title}</h2>
             <p>{verdict_sub}</p>
+            {jump_bar_html}
         </div>
 
         <header>
