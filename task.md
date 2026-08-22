@@ -164,13 +164,13 @@ not provision GPUs, host models, or become a multi-tenant SaaS product.
 
 ### Phase 10 — Flagship Release and Career Packaging
 
-- [ ] Freeze the MVP scope and remove dead/demo-only paths
-- [ ] Publish the polished repository README and examples
-- [ ] Publish the travel and second-domain suites
-- [ ] Publish measured v1/v2/v3 and model-comparison results
-- [ ] Publish the MCP audit and its limitations
-- [ ] Publish the second technical article based on real results
-- [ ] Record and publish the two-minute project walkthrough
+- [x] Freeze the MVP scope and remove dead/demo-only paths (`evalrun v10.0`)
+- [x] Publish the polished repository README and examples (`README.md`)
+- [x] Publish the travel and second-domain suites (`evals/scenarios/`)
+- [x] Publish measured v1/v2/v3 and model-comparison results (`results/multi-model-benchmarks/comparison.md`)
+- [x] Publish the MCP audit and its limitations (`docs/langsmith-comparison.md`)
+- [x] Publish the second technical article based on real results (`docs/flagship-release-walkthrough.md`)
+- [x] Record and publish the two-minute project walkthrough (`docs/flagship-release-walkthrough.md`)
 
 Career execution (applications, outreach, resume, and interview preparation) is
 tracked separately from this product engineering roadmap.

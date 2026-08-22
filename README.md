@@ -58,6 +58,44 @@ evalrun run \
   --output results/local-run
 ```
 
+### 4. Guided Local Web UI (Non-Technical Users)
+
+Launch the zero-dependency local web interface for non-technical team members:
+
+```bash
+evalrun ui --port 8501
+```
+
+Open `http://127.0.0.1:8501` in your browser to configure endpoints, select scenarios, run evaluations, view pass/fail/block verdicts, and launch interactive HTML reports.
+
+---
+
+## 🐍 Python SDK Usage
+
+Integrate `evalrun` programmatically into Python automation pipelines:
+
+```python
+from framework.sdk import evaluate, compare
+
+# 1. Execute Benchmark Evaluation
+results = evaluate(
+    scenario="evals/scenarios/travel-agent/budget-constrained-itinerary.md",
+    agent="agents.travel:TravelPlanningAgent",
+    model="qwen2.5-72b-instruct",
+    base_url="http://localhost:8000/v1",
+)
+
+# 2. Compare Candidate Results against Baseline
+report = compare(
+    candidate_results=results,
+    baseline="results/run-001",
+    max_overall_drop=5.0,
+)
+
+if report.release_blocked:
+    print(f"RELEASE BLOCKED: {report.summary['blocked_reason']}")
+```
+
 ---
 
 ## 📊 Baseline Regression Testing
