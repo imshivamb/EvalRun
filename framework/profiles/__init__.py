@@ -8,3 +8,21 @@ from framework.profiles.travel import (
     TRAVEL_INFORMATION_GATHERING_UNCERTAINTY_PROFILE,
     PROFILE_REGISTRY,
 )
+from framework.profiles.support import SUPPORT_TRIAGE_PROFILE
+
+# Keep one lookup used by BenchmarkRunner while allowing each domain to own
+# its profile definition.
+PROFILE_REGISTRY = {
+    **PROFILE_REGISTRY,
+    SUPPORT_TRIAGE_PROFILE.name: SUPPORT_TRIAGE_PROFILE,
+}
+
+__all__ = [
+    "TRAVEL_PROFILE",
+    "TRAVEL_ROUTE_OPTIMIZATION_PROFILE",
+    "TRAVEL_REMOTE_WORKER_TIMEZONES_PROFILE",
+    "TRAVEL_MID_TRIP_REPLANNING_PROFILE",
+    "TRAVEL_INFORMATION_GATHERING_UNCERTAINTY_PROFILE",
+    "SUPPORT_TRIAGE_PROFILE",
+    "PROFILE_REGISTRY",
+]
