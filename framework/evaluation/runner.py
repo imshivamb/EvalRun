@@ -101,62 +101,89 @@ class BenchmarkRunner:
             run_kwargs["planning_mode"] = "closed_world_evaluation"
         if "validation_scenario_id" in run_parameters:
             run_kwargs["validation_scenario_id"] = benchmark.benchmark_id
-        
+
+        agent_output = None
         status = "success"
         err_msg = None
+
         try:
             agent_output = self.agent.run(benchmark.prompt, **run_kwargs)
-        except Exception as e:
-            status = "error"
-            err_msg = str(e)
-            raise
 
-        # 4. Optional v3 Independent Budget Auditor Gate Pass
-        if self.auditor is not None:
-            audit_report = self.auditor.audit(
-                scenario_prompt=benchmark.prompt,
-                itinerary_content=agent_output.content,
+            # 4. Optional v3 Independent Budget Auditor Gate Pass
+            if self.auditor is not None:
+                audit_report = self.auditor.audit(
+                    scenario_prompt=benchmark.prompt,
+                    itinerary_content=agent_output.content,
+                )
+                agent_output.metadata["audit_report"] = audit_report.to_dict()
+                agent_output.metadata["audit_gate_decision"] = audit_report.status
+
+            # 5. Evaluate using the engine
+            result = self.engine.evaluate(benchmark, agent_output, profile)
+
+            latency = time.time() - t0
+            finished_time = datetime.now(timezone.utc)
+
+            # 6. Record RunTrace metadata
+            llm_obj = getattr(self.agent, "llm", None)
+            raw_usage = getattr(llm_obj, "last_token_usage", None) if llm_obj else None
+            token_usage = raw_usage if isinstance(raw_usage, dict) else None
+
+            trace = RunTrace(
+                trace_id=f"tr-{uuid.uuid4().hex[:8]}",
+                scenario_id=benchmark.benchmark_id,
+                agent_id=getattr(self.agent, "agent_name", self.agent.__class__.__name__),
+                model_name=getattr(llm_obj, "model_name", "unknown") if llm_obj else "unknown",
+                started_at_utc=start_time.isoformat(),
+                finished_at_utc=finished_time.isoformat(),
+                latency_seconds=round(latency, 2),
+                status="success",
+                error=None,
+                token_usage=token_usage,
+                metadata=agent_output.metadata,
             )
-            agent_output.metadata["audit_report"] = audit_report.to_dict()
-            agent_output.metadata["audit_gate_decision"] = audit_report.status
+            agent_output.metadata["run_trace"] = {
+                "trace_id": trace.trace_id,
+                "started_at_utc": trace.started_at_utc,
+                "finished_at_utc": trace.finished_at_utc,
+                "latency_seconds": trace.latency_seconds,
+                "status": trace.status,
+                "token_usage": trace.token_usage,
+            }
 
-        latency = time.time() - t0
-        finished_time = datetime.now(timezone.utc)
+            # 7. Save reports and outputs
+            self._save_execution_files(benchmark, agent_output, result, profile)
+            return result
 
-        # 5. Record RunTrace metadata
-        llm_obj = getattr(self.agent, "llm", None)
-        raw_usage = getattr(llm_obj, "last_token_usage", None) if llm_obj else None
-        token_usage = raw_usage if isinstance(raw_usage, dict) else None
+        except Exception as e:
+            latency = time.time() - t0
+            finished_time = datetime.now(timezone.utc)
+            status = "timeout" if isinstance(e, (TimeoutError, TimeoutError)) or "timeout" in str(e).lower() else "error"
+            err_msg = str(e)
 
-        trace = RunTrace(
-            trace_id=f"tr-{uuid.uuid4().hex[:8]}",
-            scenario_id=benchmark.benchmark_id,
-            agent_id=getattr(self.agent, "agent_name", self.agent.__class__.__name__),
-            model_name=getattr(llm_obj, "model_name", "unknown") if llm_obj else "unknown",
-            started_at_utc=start_time.isoformat(),
-            finished_at_utc=finished_time.isoformat(),
-            latency_seconds=round(latency, 2),
-            status=status,
-            error=err_msg,
-            token_usage=token_usage,
-            metadata=agent_output.metadata,
-        )
-        agent_output.metadata["run_trace"] = {
-            "trace_id": trace.trace_id,
-            "started_at_utc": trace.started_at_utc,
-            "finished_at_utc": trace.finished_at_utc,
-            "latency_seconds": trace.latency_seconds,
-            "status": trace.status,
-            "token_usage": trace.token_usage,
-        }
+            llm_obj = getattr(self.agent, "llm", None)
+            raw_usage = getattr(llm_obj, "last_token_usage", None) if llm_obj else None
+            token_usage = raw_usage if isinstance(raw_usage, dict) else None
 
-        # 6. Evaluate using the engine
-        result = self.engine.evaluate(benchmark, agent_output, profile)
+            agent_name = getattr(self.agent, "agent_name", None) or self.agent.__class__.__name__
+            model_name = getattr(llm_obj, "model_name", "unknown") if llm_obj and hasattr(llm_obj, "model_name") else "unknown"
 
-        # 7. Save reports and outputs
-        self._save_execution_files(benchmark, agent_output, result, profile)
+            trace = RunTrace(
+                trace_id=f"tr-{uuid.uuid4().hex[:8]}",
+                scenario_id=benchmark.benchmark_id,
+                agent_id=str(agent_name),
+                model_name=str(model_name),
+                started_at_utc=start_time.isoformat(),
+                finished_at_utc=finished_time.isoformat(),
+                latency_seconds=round(latency, 2),
+                status=status,
+                error=err_msg,
+                token_usage=token_usage,
+            )
 
-        return result
+            # Persist error trace metadata file
+            self._save_error_trace_file(benchmark, trace)
+            raise
 
     def run_directory(self, dirpath: str) -> Dict[str, EvaluationResult]:
         """Runs evaluations for all benchmark files in the specified directory.
@@ -265,3 +292,23 @@ class BenchmarkRunner:
             for ds in result.dimension_scores:
                 f.write(f"### {ds.dimension} (Score: {ds.score:.1f})\n\n")
                 f.write(f"{ds.reason}\n\n")
+
+    def _save_error_trace_file(self, benchmark: Benchmark, trace: RunTrace) -> None:
+        """Persists an error/timeout trace JSON record when an evaluation fails."""
+        os.makedirs(self.output_dir, exist_ok=True)
+        model_name = trace.model_name.replace("/", "_").replace(".", "_")
+        json_path = os.path.join(self.output_dir, f"{model_name}_{benchmark.benchmark_id}_error_trace.json")
+        trace_data = {
+            "trace_id": trace.trace_id,
+            "scenario_id": trace.scenario_id,
+            "agent_id": trace.agent_id,
+            "model_name": trace.model_name,
+            "started_at_utc": trace.started_at_utc,
+            "finished_at_utc": trace.finished_at_utc,
+            "latency_seconds": trace.latency_seconds,
+            "status": trace.status,
+            "error": trace.error,
+            "token_usage": trace.token_usage,
+        }
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump(trace_data, f, indent=2)

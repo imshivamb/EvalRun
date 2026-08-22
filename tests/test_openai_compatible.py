@@ -71,6 +71,33 @@ class TestOpenAICompatibleLLM(unittest.TestCase):
         self.assertEqual(resp.text, "Response from hosted NVIDIA NIM.")
         self.assertIsNone(llm.last_token_usage)
 
+    @patch("framework.llms.openai_compatible.OpenAI")
+    def test_empty_choices_response_handling(self, mock_openai_class):
+        mock_client = MagicMock()
+        mock_openai_class.return_value = mock_client
+
+        mock_response = MagicMock()
+        mock_response.choices = []  # Empty choices list
+        mock_client.chat.completions.create.return_value = mock_response
+
+        llm = OpenAICompatibleLLM(model_name="test-model")
+        resp = llm.generate([Message(role="user", content="Hello")])
+
+        self.assertEqual(resp.text, "")
+        self.assertIn("Empty choices array", resp.metadata.get("error", ""))
+
+    @patch("framework.llms.openai_compatible.OpenAI")
+    def test_last_error_captured_on_exception(self, mock_openai_class):
+        mock_client = MagicMock()
+        mock_openai_class.return_value = mock_client
+        mock_client.chat.completions.create.side_effect = RuntimeError("API connection failure")
+
+        llm = OpenAICompatibleLLM(model_name="test-model")
+        with self.assertRaises(RuntimeError):
+            llm.generate([Message(role="user", content="Hello")])
+
+        self.assertEqual(llm.last_error, "API connection failure")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,8 +1,8 @@
 """Base interfaces and data classes for LLM clients."""
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import List
+from dataclasses import dataclass, field
+from typing import Any, Dict, List
 
 
 @dataclass
@@ -18,6 +18,7 @@ class LLMResponse:
     """Represents a structured response from an LLM."""
 
     text: str
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 class BaseLLM(ABC):

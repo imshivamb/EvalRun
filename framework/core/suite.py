@@ -26,11 +26,19 @@ class EvaluationSuite:
         return None
 
     def get_profile(self, profile_name: Optional[str] = None) -> EvaluationProfile:
-        """Resolves an evaluation profile by name, falling back to 'default' or first registered profile."""
-        if profile_name and profile_name in self.profiles:
-            return self.profiles[profile_name]
+        """Resolves an evaluation profile by name or default key."""
+        if profile_name:
+            if profile_name in self.profiles:
+                return self.profiles[profile_name]
+            available = list(self.profiles.keys())
+            raise ValueError(
+                f"Profile '{profile_name}' not found in suite '{self.suite_id}'. "
+                f"Available profiles: {available}"
+            )
         if "default" in self.profiles:
             return self.profiles["default"]
-        if self.profiles:
-            return next(iter(self.profiles.values()))
-        raise ValueError(f"No profile registered for suite '{self.suite_id}' matching '{profile_name}'.")
+        available = list(self.profiles.keys())
+        raise ValueError(
+            f"No profile specified and no 'default' profile registered for suite '{self.suite_id}'. "
+            f"Available profiles: {available}"
+        )

@@ -54,8 +54,12 @@ class HttpAgentAdapter(AgentAdapter):
             "prompt": scenario.prompt,
             "constraints": scenario.constraints,
         }
-        resp = requests.post(self.endpoint_url, json=payload, headers=self.headers, timeout=self.timeout)
-        resp.raise_for_status()
+        try:
+            resp = requests.post(self.endpoint_url, json=payload, headers=self.headers, timeout=self.timeout)
+            resp.raise_for_status()
+        except requests.exceptions.Timeout as e:
+            raise TimeoutError(f"HTTP Agent endpoint timed out after {self.timeout}s: {e}") from e
+
         data = resp.json()
         content = data.get("content") or data.get("output") or resp.text
         metadata = data.get("metadata", {})
@@ -71,13 +75,17 @@ class CliAgentAdapter(AgentAdapter):
         self.timeout = timeout
 
     def run(self, scenario: Scenario, **kwargs) -> AgentOutput:
-        proc = subprocess.run(
-            self.command_args,
-            input=scenario.prompt,
-            text=True,
-            capture_output=True,
-            timeout=self.timeout,
-        )
+        try:
+            proc = subprocess.run(
+                self.command_args,
+                input=scenario.prompt,
+                text=True,
+                capture_output=True,
+                timeout=self.timeout,
+            )
+        except subprocess.TimeoutExpired as e:
+            raise TimeoutError(f"CLI Agent command timed out after {self.timeout}s: {e}") from e
+
         if proc.returncode != 0:
             raise RuntimeError(f"CLI Agent command failed (code {proc.returncode}): {proc.stderr}")
         return AgentOutput(content=proc.stdout.strip(), metadata={"adapter": "CliAgentAdapter"})

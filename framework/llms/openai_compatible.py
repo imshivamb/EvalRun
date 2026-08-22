@@ -48,6 +48,8 @@ class OpenAICompatibleLLM(BaseLLM):
         )
 
         self.request_count: int = 0
+        self.retries_attempted: int = 0
+        self.last_error: Optional[str] = None
         self.last_token_usage: Optional[Dict[str, int]] = None
 
     def generate(self, messages: List[Message]) -> LLMResponse:
@@ -57,16 +59,21 @@ class OpenAICompatibleLLM(BaseLLM):
             messages: List of Message instances.
 
         Returns:
-            An LLMResponse containing the text output.
+            An LLMResponse containing the text output and execution metadata.
         """
         formatted_messages = [{"role": msg.role, "content": msg.content} for msg in messages]
 
-        response = self.client.chat.completions.create(
-            model=self.model_name,
-            messages=formatted_messages,
-        )
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model_name,
+                messages=formatted_messages,
+            )
+        except Exception as e:
+            self.last_error = str(e)
+            raise
 
         self.request_count += 1
+        self.last_error = None
 
         if hasattr(response, "usage") and response.usage:
             self.last_token_usage = {
@@ -77,5 +84,22 @@ class OpenAICompatibleLLM(BaseLLM):
         else:
             self.last_token_usage = None
 
+        if not getattr(response, "choices", None):
+            return LLMResponse(
+                text="",
+                metadata={
+                    "error": "Empty choices array in model response",
+                    "provider": self.provider,
+                    "model_name": self.model_name,
+                },
+            )
+
         content = response.choices[0].message.content or ""
-        return LLMResponse(text=content)
+        return LLMResponse(
+            text=content,
+            metadata={
+                "provider": self.provider,
+                "model_name": self.model_name,
+                "token_usage": self.last_token_usage,
+            },
+        )

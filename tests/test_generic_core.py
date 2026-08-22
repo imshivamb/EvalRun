@@ -1,5 +1,6 @@
 """Unit tests for Phase 3 generic core evaluation abstractions and adapters."""
 
+import os
 import unittest
 from unittest.mock import MagicMock, patch
 
@@ -107,6 +108,47 @@ class TestGenericCoreContracts(unittest.TestCase):
         resolved = suite.get_profile("support-profile")
         self.assertEqual(resolved.name, "support-profile")
         self.assertIn("SLA Compliance", resolved.weights)
+
+        # Strict error when requesting non-existent profile
+        with self.assertRaises(ValueError):
+            suite.get_profile("non-existent-profile")
+
+    @patch("requests.post")
+    def test_http_agent_adapter_timeout_raises_timeout_error(self, mock_post):
+        import requests
+        mock_post.side_effect = requests.exceptions.Timeout("Connection timed out")
+
+        adapter = HttpAgentAdapter("http://localhost:8080/agent", timeout=1.0)
+        with self.assertRaises(TimeoutError):
+            adapter.run(self.scenario)
+
+    def test_benchmark_runner_persists_error_trace_on_exception(self):
+        import tempfile
+        import shutil
+        from framework.evaluation.runner import BenchmarkRunner
+
+        temp_dir = tempfile.mkdtemp()
+        try:
+            failing_agent = MagicMock()
+            failing_agent.run.side_effect = TimeoutError("Agent timed out after 30s")
+            judge_llm = MagicMock()
+
+            runner = BenchmarkRunner(agent=failing_agent, judge_llm=judge_llm, output_dir=temp_dir)
+            scenario_path = "evals/scenarios/travel-agent/budget-constrained-itinerary.md"
+
+            with self.assertRaises(TimeoutError):
+                runner.run(scenario_path)
+
+            json_files = [f for f in os.listdir(temp_dir) if f.endswith("_error_trace.json")]
+            self.assertTrue(len(json_files) > 0)
+
+            import json
+            with open(os.path.join(temp_dir, json_files[0]), "r") as f:
+                data = json.load(f)
+            self.assertEqual(data["status"], "timeout")
+            self.assertIn("timed out", data["error"])
+        finally:
+            shutil.rmtree(temp_dir)
 
 
 if __name__ == "__main__":
