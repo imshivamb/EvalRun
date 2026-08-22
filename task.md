@@ -80,10 +80,10 @@ not provision GPUs, host models, or become a multi-tenant SaaS product.
 - [x] Separate target agent endpoint and judge endpoint configurations (`--judge-model`, `--judge-base-url`, `--judge-api-key`)
 - [x] Save raw outputs, traces, scores, failures, and redacted configuration metadata (`manifest.json`)
 - [x] Implement explicit CLI exit codes (`0` = all passed, `1` = eval/gate failed, `2` = runtime error)
-- [ ] Generate local HTML reports
-- [ ] Add a quick-start example for a hosted model
-- [ ] Add a quick-start example for a local OpenAI-compatible model
-- [ ] Add a clean-checkout smoke test for the CLI
+- [x] Generate local HTML reports (`cli/html_reporter.py`)
+- [x] Add a quick-start example for a hosted model (`docs/quickstart-hosted.md`)
+- [x] Add a quick-start example for a local OpenAI-compatible model (`docs/quickstart-local.md`)
+- [x] Add a clean-checkout smoke test for the CLI (`tests/test_smoke_cli.py`)
 
 ### Phase 5 — Regression, Reproducibility, and Release Gates
 
