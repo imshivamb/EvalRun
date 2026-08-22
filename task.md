@@ -48,6 +48,22 @@ toolkit for tool-using agents and the models that power them. Hosted APIs and
 user-managed local models must use the same adapter contract. The toolkit does
 not provision GPUs, host models, or become a multi-tenant SaaS product.
 
+### Product Positioning and Non-Goals
+
+- [x] Keep LangSmith as the capability benchmark, not a product to copy feature-for-feature
+- [x] Position the project as a portfolio-grade, local-first evaluation toolkit for Applied AI and AI Evaluation engineering roles
+- [x] Make the core differentiator explicit: independent audit gates plus regression detection for tool-using agents
+- [x] Support user-provided hosted APIs and user-managed local models without supplying or paying for model access
+- [x] Keep the core usable offline after dependencies are installed, except for user-selected model endpoints
+- [x] Require no account, hosted workspace, billing system, GPU provisioning, or multi-tenant infrastructure
+- [x] Keep all user prompts, outputs, traces, API keys, and reports local by default
+- [x] Support both model evaluation and full-agent/workflow evaluation
+- [x] Preserve deterministic checks (MCP and custom rule evaluators) alongside LLM-as-judge scores
+- [x] Produce portable JSON/HTML artifacts that can be inspected, archived, or attached to CI runs
+- [x] Keep the public CLI and Python SDK small enough for a technical user to understand quickly
+- [x] Use travel and support as example suites, not as limits on the framework
+- [x] Treat the project’s primary success metric as demonstrated engineering capability and external usability, not revenue
+
 ### Phase 2 — Independent Auditor and Generalization
 
 - [x] Define the auditor hypothesis and measurable success criteria (in `docs/phase2-independent-auditor-design.md`)
@@ -105,18 +121,48 @@ not provision GPUs, host models, or become a multi-tenant SaaS product.
 - [x] Add limitations, judge-model caveats, and reproducibility guidance (`README.md`)
 - [ ] Record a short project walkthrough
 
-### Phase 7 — External Usability Validation
+### Phase 7 — Technical CLI/SDK Product Completion
+
+- [x] Expose a small stable Python SDK API (`evaluate`, `compare`) for programmatic use (`framework/sdk.py`)
+- [x] Add a documented `Scenario`/suite template for user-created evaluations (`templates/`)
+- [x] Support custom evaluation profiles without editing framework internals (`framework/profiles/registry.py`)
+- [x] Support custom evaluator plugins through a documented interface (`framework/evaluation/engine.py`)
+- [x] Expose Python, HTTP, and CLI agent adapters through the public API and CLI configuration (`framework/core/adapters.py`)
+- [x] Add a configuration-file workflow so users can avoid long CLI commands (`evalrun --config`)
+- [x] Add package installation verification (`pip install -e .` and clean-wheel install)
+- [x] Add hosted-model, local-model, custom-scenario, and baseline-regression examples (`examples/`)
+- [x] Add a LangSmith capability comparison document covering datasets, experiments, traces, evaluators, regression gates, and local/offline behavior (`docs/langsmith-comparison.md`)
+- [x] Document where this toolkit intentionally remains narrower than LangSmith (`docs/langsmith-comparison.md`)
+- [x] Demonstrate the independent-auditor workflow as the flagship differentiator in the README and walkthrough (`README.md`)
+- [x] Freeze the technical MVP command and artifact schemas
+
+### Phase 8 — External Technical Usability Validation
 
 - [ ] Give the toolkit to at least two engineers or technically capable users
 - [ ] Test connecting a Python agent
+- [ ] Test connecting an HTTP agent
+- [ ] Test connecting a CLI agent
 - [ ] Test connecting a hosted model endpoint
 - [ ] Test connecting a user-managed local endpoint
 - [ ] Test creating a scenario and interpreting a failure report
+- [ ] Test defining a custom evaluation profile and evaluator plugin
 - [ ] Record setup failures and confusing concepts
 - [ ] Fix only the highest-impact usability issues
 - [ ] Re-run the clean-checkout smoke test
 
-### Phase 8 — Flagship Release and Career Packaging
+### Phase 9 — Guided Local UI (Non-Technical User Path)
+
+- [ ] Define the minimal local UI scope; do not add accounts, billing, hosting, or model provisioning
+- [ ] Add a local “Run Evaluation” screen
+- [ ] Add provider/model/base-URL/API-key configuration with in-memory-only secrets
+- [ ] Add scenario and suite selection or file upload
+- [ ] Add run progress and clear runtime errors
+- [ ] Show simple Passed, Failed, Blocked, and Regressed results
+- [ ] Link to the detailed standalone HTML report
+- [ ] Test the UI with at least two non-technical users
+- [ ] Fix only the highest-impact usability issues
+
+### Phase 10 — Flagship Release and Career Packaging
 
 - [ ] Freeze the MVP scope and remove dead/demo-only paths
 - [ ] Publish the polished repository README and examples
@@ -124,7 +170,7 @@ not provision GPUs, host models, or become a multi-tenant SaaS product.
 - [ ] Publish measured v1/v2/v3 and model-comparison results
 - [ ] Publish the MCP audit and its limitations
 - [ ] Publish the second technical article based on real results
-- [ ] Prepare the two-minute project walkthrough
-- [ ] Prepare five interview stories from measured failures and fixes
-- [ ] Update resume and portfolio positioning around agent reliability/evals
-- [ ] Continue targeted applications and outreach
+- [ ] Record and publish the two-minute project walkthrough
+
+Career execution (applications, outreach, resume, and interview preparation) is
+tracked separately from this product engineering roadmap.

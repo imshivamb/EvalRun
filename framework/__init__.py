@@ -55,3 +55,16 @@ from .verification import (
     VerificationPipeline,
 )
 from .memory import BaseSessionMemory
+from .sdk import evaluate, compare
+
+__all__ = [
+    "evaluate",
+    "compare",
+    "Benchmark",
+    "AgentOutput",
+    "DimensionScore",
+    "EvaluationResult",
+    "EvaluationProfile",
+    "BenchmarkRunner",
+    "BaseSessionMemory",
+]

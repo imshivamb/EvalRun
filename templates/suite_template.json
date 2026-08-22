@@ -1,0 +1,10 @@
+{
+  "suite_id": "custom-agent-eval-suite",
+  "name": "Custom Agent Benchmark Suite",
+  "domain": "custom",
+  "version": "1.0.0",
+  "scenarios": [
+    "evals/scenarios/travel-agent/budget-constrained-itinerary.md",
+    "evals/scenarios/support-triage/urgent-ticket-escalation.md"
+  ]
+}

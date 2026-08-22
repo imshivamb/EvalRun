@@ -26,8 +26,17 @@ def create_parser() -> argparse.ArgumentParser:
 
     run_parser = subparsers.add_parser("run", help="Run evaluation on a scenario or suite")
 
+    # Configuration file flag
+    run_parser.add_argument(
+        "--config",
+        "-c",
+        type=str,
+        default=None,
+        help="Path to a JSON or TOML run configuration file",
+    )
+
     # Mutually exclusive input selection
-    input_group = run_parser.add_mutually_exclusive_group(required=True)
+    input_group = run_parser.add_mutually_exclusive_group(required=False)
     input_group.add_argument(
         "--scenario",
         "-s",
@@ -45,7 +54,7 @@ def create_parser() -> argparse.ArgumentParser:
         "--agent",
         "-a",
         type=str,
-        required=True,
+        default=None,
         help="Python agent import specifier (e.g. 'agents.travel:TravelPlanningAgent')",
     )
 
@@ -54,7 +63,7 @@ def create_parser() -> argparse.ArgumentParser:
         "--model",
         "-m",
         type=str,
-        required=True,
+        default=None,
         help="Target agent model identifier (e.g. 'qwen2.5-72b-instruct', 'gpt-4o')",
     )
     run_parser.add_argument(
@@ -100,26 +109,26 @@ def create_parser() -> argparse.ArgumentParser:
     run_parser.add_argument(
         "--max-regression",
         type=float,
-        default=5.0,
+        default=None,
         help="Maximum allowed overall score drop before release is blocked (default: 5.0)",
     )
     run_parser.add_argument(
         "--max-dimension-regression",
         type=float,
-        default=10.0,
+        default=None,
         help="Maximum allowed per-dimension score drop before release is blocked (default: 10.0)",
     )
     run_parser.add_argument(
         "--ground-truth",
         type=str,
-        default="ground_truth/japan_demo.json",
+        default=None,
         help="Path to domain knowledge base JSON for factual claim verification",
     )
     run_parser.add_argument(
         "--output",
         "-o",
         type=str,
-        default="./eval_results",
+        default=None,
         help="Output directory path for reports, traces, and manifest",
     )
 
@@ -128,6 +137,54 @@ def create_parser() -> argparse.ArgumentParser:
 
 def run_command(args: argparse.Namespace) -> int:
     """Executes the 'run' command. Returns CLI exit code (0 = all passed, 1 = eval failure, 2 = runtime error)."""
+    # Load config file if provided
+    if getattr(args, "config", None):
+        cfg_path = Path(args.config)
+        if not cfg_path.exists():
+            print(f"Error: Configuration file '{args.config}' not found.", file=sys.stderr)
+            return 2
+        try:
+            if cfg_path.suffix == ".json":
+                with open(cfg_path, "r", encoding="utf-8") as f:
+                    cfg_data = json.load(f)
+            elif cfg_path.suffix == ".toml":
+                if sys.version_info >= (3, 11):
+                    import tomllib
+                    with open(cfg_path, "rb") as f:
+                        cfg_data = tomllib.load(f)
+                else:
+                    import toml
+                    with open(cfg_path, "r", encoding="utf-8") as f:
+                        cfg_data = toml.load(f)
+            else:
+                print(f"Error: Unsupported config format '{cfg_path.suffix}'. Use .json or .toml", file=sys.stderr)
+                return 2
+
+            for k, v in cfg_data.items():
+                if getattr(args, k, None) is None:
+                    setattr(args, k, v)
+        except Exception as e:
+            print(f"Error loading configuration file '{args.config}': {e}", file=sys.stderr)
+            return 2
+
+    # Set fallback defaults for optional flags if still None
+    args.base_url = args.base_url or "https://api.openai.com/v1"
+    args.ground_truth = args.ground_truth or "ground_truth/japan_demo.json"
+    args.output = args.output or "./eval_results"
+    args.max_regression = 5.0 if args.max_regression is None else args.max_regression
+    args.max_dimension_regression = 10.0 if args.max_dimension_regression is None else args.max_dimension_regression
+
+    if not getattr(args, "scenario", None) and not getattr(args, "suite", None):
+        print("Error: Either --scenario or --suite or a valid config file specifying input is required.", file=sys.stderr)
+        return 2
+
+    if not getattr(args, "agent", None):
+        print("Error: --agent specifier is required.", file=sys.stderr)
+        return 2
+
+    if not getattr(args, "model", None):
+        print("Error: --model identifier is required.", file=sys.stderr)
+        return 2
     output_dir = Path(args.output)
     output_dir.mkdir(parents=True, exist_ok=True)
 
