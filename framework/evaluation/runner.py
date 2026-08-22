@@ -41,6 +41,7 @@ class BenchmarkRunner:
         judge_llm,
         local_verifier_path: str = "ground_truth/japan_demo.json",
         output_dir: str = "scratch",
+        auditor: Any = None,
     ):
         """Initializes the BenchmarkRunner.
 
@@ -49,11 +50,13 @@ class BenchmarkRunner:
             judge_llm: The reference judge LLM client.
             local_verifier_path: Path to the local database file for factual verification.
             output_dir: Folder to store reports and itineraries.
+            auditor: Optional IndependentBudgetAuditor instance for v3 read-only gate checks.
         """
         self.agent = agent
         self.judge_llm = judge_llm
         self.local_verifier_path = local_verifier_path
         self.output_dir = output_dir
+        self.auditor = auditor
 
         # Initialize the verification pipeline
         self.verifier = LocalKnowledgeBaseVerifier(local_verifier_path)
@@ -86,22 +89,28 @@ class BenchmarkRunner:
         profile = PROFILE_REGISTRY.get(benchmark.profile, TRAVEL_PROFILE)
 
         # 3. Execute agent. Pass benchmark context to agents that opt into
-        # evaluation-specific controls. This keeps the runner compatible with
-        # simple agents while activating MCP validation for TravelPlanningAgent.
+        # evaluation-specific controls.
         run_kwargs = {}
         run_parameters = inspect.signature(self.agent.run).parameters
         if "planning_mode" in run_parameters:
-            # Both comparison arms receive the same closed-world instruction;
-            # MCP remains the only additional intervention for v2.1.
             run_kwargs["planning_mode"] = "closed_world_evaluation"
         if "validation_scenario_id" in run_parameters:
             run_kwargs["validation_scenario_id"] = benchmark.benchmark_id
         agent_output = self.agent.run(benchmark.prompt, **run_kwargs)
 
-        # 4. Evaluate using the engine
+        # 4. Optional v3 Independent Budget Auditor Gate Pass
+        if self.auditor is not None:
+            audit_report = self.auditor.audit(
+                scenario_prompt=benchmark.prompt,
+                itinerary_content=agent_output.content,
+            )
+            agent_output.metadata["audit_report"] = audit_report.to_dict()
+            agent_output.metadata["audit_gate_decision"] = audit_report.status
+
+        # 5. Evaluate using the engine
         result = self.engine.evaluate(benchmark, agent_output, profile)
 
-        # 5. Save reports and outputs
+        # 6. Save reports and outputs
         self._save_execution_files(benchmark, agent_output, result, profile)
 
         return result
@@ -178,10 +187,31 @@ class BenchmarkRunner:
             f.write(f"- **Benchmark**: {result.benchmark_name} (`{result.benchmark_id}`)\n")
             f.write(f"- **Agent Model**: {report_data['model_name']}\n")
             f.write(f"- **Evaluation Profile**: `{profile.name}`\n")
-            f.write(f"- **Status**: {'🔴 FAIL' if not result.passed else '🟢 PASS'}\n")
-            f.write(f"- **Overall Score**: **{result.overall_score:.2f}** (Threshold: {profile.pass_threshold:.1f})\n\n")
-            if agent_output.metadata and agent_output.metadata.get("mcp_validation"):
-                f.write(f"## MCP Validation Trace\n\n```json\n{json.dumps(agent_output.metadata['mcp_validation'], indent=2)}\n```\n\n")
+            f.write(f"- **Overall Score**: **{result.overall_score:.2f} / 100**\n")
+            f.write(f"- **Outcome**: {'✅ PASSED' if result.passed else '❌ FAILED'}\n\n")
+
+            # Render Auditor Gate metadata section if present
+            if "audit_report" in agent_output.metadata:
+                audit = agent_output.metadata["audit_report"]
+                f.write(f"## Independent Auditor Gate Report\n\n")
+                f.write(f"- **Gate Decision**: `{'PASS' if audit.get('passed') else 'BLOCK'}`\n")
+                f.write(f"- **Audit Score**: {audit.get('audit_score', 0.0):.2f} / 100\n")
+                f.write(f"- **Audit Confidence**: {audit.get('audit_confidence', 0.0):.2f}\n")
+                f.write(f"- **Reasoning Summary**: {audit.get('reasoning_summary', 'N/A')}\n\n")
+                if audit.get("violations"):
+                    f.write("### Detected Budget Violations\n\n")
+                    for v in audit["violations"]:
+                        f.write(f"- **{v['violation_type']}**: {v['description']} (Est. Discrepancy: ₹{v.get('estimated_discrepancy_inr', 0.0):,.2f})\n")
+                    f.write("\n")
+
+            # Render MCP metadata trace section if present
+            if "mcp_validation" in agent_output.metadata:
+                mcp = agent_output.metadata["mcp_validation"]
+                f.write(f"## MCP Validation Trace\n\n")
+                f.write(f"- **Status**: `{mcp.get('status', 'unknown')}`\n")
+                f.write(f"- **Locked-Booking Check**: `{'valid' if mcp.get('locked_valid') else 'invalid'}`\n")
+                f.write(f"- **Savings Check**: ₹{mcp.get('savings_realized_inr', 0):,} verified (target: ₹{mcp.get('target_savings_inr', 0):,})\n\n")
+
             f.write(f"## Dimension Breakdown\n\n")
             f.write(f"| Dimension | Score | Weight |\n")
             f.write(f"| :--- | :---: | :---: |\n")
