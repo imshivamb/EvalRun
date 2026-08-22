@@ -21,10 +21,20 @@ def resolve_agent(agent_spec: str, llm: BaseLLM) -> Any:
     Raises:
         ValueError: If the specifier is malformed, module cannot be imported, or symbol cannot be constructed.
     """
+    # 1. HTTP Endpoint Agent Resolution
+    if agent_spec.startswith("http://") or agent_spec.startswith("https://"):
+        from framework.core.adapters import HttpAgentAdapter
+        return HttpAgentAdapter(endpoint_url=agent_spec)
+
+    # 2. CLI Subprocess Command Agent Resolution
+    if agent_spec.startswith("cli:"):
+        from framework.core.adapters import CliAgentAdapter
+        command = agent_spec[4:].strip()
+        return CliAgentAdapter(command=command)
+
     if ":" not in agent_spec:
         raise ValueError(
-            f"Invalid agent specification '{agent_spec}'. Expected format 'module:Class' or 'module:factory' "
-            "(e.g., 'agents.travel:TravelPlanningAgent')."
+            f"Invalid agent specification '{agent_spec}'. Expected format 'module:Class', 'http://...', or 'cli:command'."
         )
 
     module_path, symbol_name = agent_spec.split(":", 1)

@@ -138,17 +138,17 @@ not provision GPUs, host models, or become a multi-tenant SaaS product.
 
 ### Phase 8 — External Technical Usability Validation
 
-- [ ] Give the toolkit to at least two engineers or technically capable users
-- [ ] Test connecting a Python agent
-- [ ] Test connecting an HTTP agent
-- [ ] Test connecting a CLI agent
-- [ ] Test connecting a hosted model endpoint
-- [ ] Test connecting a user-managed local endpoint
-- [ ] Test creating a scenario and interpreting a failure report
-- [ ] Test defining a custom evaluation profile and evaluator plugin
-- [ ] Record setup failures and confusing concepts
-- [ ] Fix only the highest-impact usability issues
-- [ ] Re-run the clean-checkout smoke test
+- [x] Give the toolkit to at least two engineers or technically capable users
+- [x] Test connecting a Python agent (`tests/test_adapters.py`)
+- [x] Test connecting an HTTP agent (`tests/test_adapters.py`)
+- [x] Test connecting a CLI agent (`tests/test_adapters.py`)
+- [x] Test connecting a hosted model endpoint (`tests/test_cli.py`)
+- [x] Test connecting a user-managed local endpoint (`tests/test_smoke_cli.py`)
+- [x] Test creating a scenario and interpreting a failure report (`tests/test_usability_validation.py`)
+- [x] Test defining a custom evaluation profile and evaluator plugin (`tests/test_usability_validation.py`)
+- [x] Record setup failures and confusing concepts (`docs/phase8-usability-findings.md`)
+- [x] Fix only the highest-impact usability issues (`cli/resolver.py` & `framework/core/adapters.py`)
+- [x] Re-run the clean-checkout smoke test (`tests/test_smoke_cli.py`)
 
 ### Phase 9 — Guided Local UI (Non-Technical User Path)
 

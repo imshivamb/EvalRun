@@ -23,18 +23,14 @@ def get_custom_profile(name: str) -> Optional[EvaluationProfile]:
 
 
 def register_evaluator_plugin(dimension_name: str, evaluator: BaseEvaluator) -> None:
-    """Registers a custom evaluator plugin for a dimension name.
-
-    Args:
-        dimension_name: Name of the evaluation dimension (e.g. 'Custom Safety').
-        evaluator: BaseEvaluator instance.
-    """
+    """Registers a custom evaluator plugin for a dimension name."""
+    _DYNAMIC_EVALUATOR_REGISTRY[dimension_name] = evaluator
     _DYNAMIC_EVALUATOR_REGISTRY[dimension_name.lower()] = evaluator
 
 
 def get_evaluator_plugin(dimension_name: str) -> Optional[BaseEvaluator]:
     """Retrieves a registered custom evaluator plugin by dimension name."""
-    return _DYNAMIC_EVALUATOR_REGISTRY.get(dimension_name.lower())
+    return _DYNAMIC_EVALUATOR_REGISTRY.get(dimension_name) or _DYNAMIC_EVALUATOR_REGISTRY.get(dimension_name.lower())
 
 
 def load_evaluator_plugin_from_spec(spec: str, judge_llm: Any = None) -> BaseEvaluator:

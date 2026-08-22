@@ -14,8 +14,8 @@ class AgentAdapter(ABC):
     """Abstract adapter interface decoupling agent evaluation from specific implementations."""
 
     @abstractmethod
-    def run(self, scenario: Scenario, **kwargs) -> AgentOutput:
-        """Executes the wrapped agent on a scenario and returns standardized AgentOutput."""
+    def run(self, scenario: Any, **kwargs) -> AgentOutput:
+        """Executes the wrapped agent on a scenario or prompt string and returns standardized AgentOutput."""
         pass
 
 
@@ -26,10 +26,11 @@ class PythonAgentAdapter(AgentAdapter):
         self.agent = agent
         self.agent_id = agent_id or getattr(agent, "agent_name", agent.__class__.__name__)
 
-    def run(self, scenario: Scenario, **kwargs) -> AgentOutput:
+    def run(self, scenario: Any, **kwargs) -> AgentOutput:
         """Invokes the underlying Python agent instance."""
+        prompt_text = scenario if isinstance(scenario, str) else getattr(scenario, "prompt", str(scenario))
         if hasattr(self.agent, "run"):
-            result = self.agent.run(scenario.prompt, **kwargs)
+            result = self.agent.run(prompt_text, **kwargs)
             if isinstance(result, AgentOutput):
                 return result
             elif isinstance(result, str):
@@ -48,11 +49,20 @@ class HttpAgentAdapter(AgentAdapter):
         self.headers = headers or {"Content-Type": "application/json"}
         self.timeout = timeout
 
-    def run(self, scenario: Scenario, **kwargs) -> AgentOutput:
+    def run(self, scenario: Any, **kwargs) -> AgentOutput:
+        if isinstance(scenario, str):
+            prompt_text = scenario
+            scenario_id = "scenario-001"
+            constraints = {}
+        else:
+            prompt_text = getattr(scenario, "prompt", str(scenario))
+            scenario_id = getattr(scenario, "id", "scenario-001")
+            constraints = getattr(scenario, "constraints", {})
+
         payload = {
-            "scenario_id": scenario.id,
-            "prompt": scenario.prompt,
-            "constraints": scenario.constraints,
+            "scenario_id": scenario_id,
+            "prompt": prompt_text,
+            "constraints": constraints,
         }
         try:
             resp = requests.post(self.endpoint_url, json=payload, headers=self.headers, timeout=self.timeout)
@@ -70,15 +80,20 @@ class HttpAgentAdapter(AgentAdapter):
 class CliAgentAdapter(AgentAdapter):
     """Adapter wrapping a CLI command-line binary agent."""
 
-    def __init__(self, command_args: list, timeout: float = 120.0):
-        self.command_args = command_args
+    def __init__(self, command: Any, timeout: float = 120.0):
+        if isinstance(command, str):
+            import shlex
+            self.command_args = shlex.split(command)
+        else:
+            self.command_args = command
         self.timeout = timeout
 
-    def run(self, scenario: Scenario, **kwargs) -> AgentOutput:
+    def run(self, scenario: Any, **kwargs) -> AgentOutput:
+        prompt_text = scenario if isinstance(scenario, str) else getattr(scenario, "prompt", str(scenario))
         try:
             proc = subprocess.run(
                 self.command_args,
-                input=scenario.prompt,
+                input=prompt_text,
                 text=True,
                 capture_output=True,
                 timeout=self.timeout,
@@ -88,4 +103,16 @@ class CliAgentAdapter(AgentAdapter):
 
         if proc.returncode != 0:
             raise RuntimeError(f"CLI Agent command failed (code {proc.returncode}): {proc.stderr}")
-        return AgentOutput(content=proc.stdout.strip(), metadata={"adapter": "CliAgentAdapter"})
+
+        stdout_text = proc.stdout.strip()
+        try:
+            parsed = json.loads(stdout_text)
+            if isinstance(parsed, dict) and "content" in parsed:
+                content = parsed["content"]
+                metadata = parsed.get("metadata", {})
+                metadata["adapter"] = "CliAgentAdapter"
+                return AgentOutput(content=content, metadata=metadata)
+        except Exception:
+            pass
+
+        return AgentOutput(content=stdout_text, metadata={"adapter": "CliAgentAdapter"})
