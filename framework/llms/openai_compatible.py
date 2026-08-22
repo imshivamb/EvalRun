@@ -27,7 +27,7 @@ class OpenAICompatibleLLM(BaseLLM):
         """Initializes the OpenAICompatibleLLM client.
 
         Args:
-            model_name: Model identifier (e.g. 'gpt-4o', 'qwen2.5-72b-instruct', 'llama-3.3-70b').
+            model_name: Model identifier (e.g. 'gpt-5.6-terra', 'qwen2.5-72b-instruct', 'llama-3.3-70b').
             api_key: API key. Defaults to OPENAI_API_KEY environment variable or 'EMPTY' for local endpoints.
             base_url: Base endpoint URL (e.g. 'http://localhost:8000/v1', 'https://integrate.api.nvidia.com/v1').
             timeout: Request timeout in seconds.

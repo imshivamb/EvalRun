@@ -4,7 +4,7 @@
   "model": "qwen2.5-72b-instruct",
   "base_url": "http://localhost:8000/v1",
   "api_key": "EMPTY",
-  "judge_model": "gpt-4o",
+  "judge_model": "gpt-5.6-terra",
   "judge_base_url": "https://api.openai.com/v1",
   "max_regression": 5.0,
   "max_dimension_regression": 10.0,

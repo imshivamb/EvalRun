@@ -13,7 +13,7 @@ def run_sdk_demo():
         model="qwen2.5-72b-instruct",
         base_url="http://localhost:8000/v1",
         api_key="EMPTY",
-        judge_model="gpt-4o",
+        judge_model="gpt-5.6-terra",
         output_dir="./eval_results/sdk_demo_run",
     )
 

@@ -20,17 +20,17 @@ export NVIDIA_API_KEY="nvapi-..."
 
 ---
 
-## 2. Running Evaluation Against OpenAI GPT-4o
+## 2. Running Evaluation Against OpenAI GPT-5.6 Terra
 
-Run evaluation on a benchmark scenario using GPT-4o as both target model and judge model:
+Run evaluation on a benchmark scenario using GPT-5.6 Terra as both target model and judge model:
 
 ```bash
 evalrun run \
   --scenario evals/scenarios/travel-agent/budget-constrained-itinerary.md \
   --agent agents.travel:TravelPlanningAgent \
-  --model gpt-4o \
-  --judge-model gpt-4o \
-  --output results/hosted-gpt4o-run
+  --model gpt-5.6-terra \
+  --judge-model gpt-5.6-terra \
+  --output results/hosted-gpt-5-6-terra-run
 ```
 
 ---
@@ -46,7 +46,7 @@ evalrun run \
   --model meta/llama-3.3-70b-instruct \
   --base-url https://integrate.api.nvidia.com/v1 \
   --api-key $NVIDIA_API_KEY \
-  --judge-model gpt-4o \
+  --judge-model gpt-5.6-terra \
   --judge-base-url https://api.openai.com/v1 \
   --judge-api-key $OPENAI_API_KEY \
   --output results/hosted-nim-run

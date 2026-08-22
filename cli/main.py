@@ -64,7 +64,7 @@ def create_parser() -> argparse.ArgumentParser:
         "-m",
         type=str,
         default=None,
-        help="Target agent model identifier (e.g. 'qwen2.5-72b-instruct', 'gpt-4o')",
+        help="Target agent model identifier (e.g. 'qwen2.5-72b-instruct', 'gpt-5.6-terra')",
     )
     run_parser.add_argument(
         "--base-url",

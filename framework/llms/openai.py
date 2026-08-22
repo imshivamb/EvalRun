@@ -9,7 +9,7 @@ class OpenAILLM(BaseLLM):
 
     def __init__(
         self,
-        model_name: str = "gpt-4o",
+        model_name: str = "gpt-5.6-terra",
         api_key: Optional[str] = None,
         base_url: str = "https://api.openai.com/v1",
         timeout: float = 60.0,
