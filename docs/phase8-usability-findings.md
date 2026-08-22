@@ -43,6 +43,6 @@ Phase 8 validated the `evalrun` evaluation platform across:
 
 ## 3. Clean-Checkout Verification Summary
 
-- Total Unit Test Suite: **97 tests passing**.
+- Total Unit Test Suite: **101 tests passing**.
 - Command-line entry point: `evalrun run --help` and `evalrun run --config` verified.
 - Repository status: Clean working tree.
