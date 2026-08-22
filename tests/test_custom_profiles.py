@@ -7,7 +7,7 @@ import tempfile
 import unittest
 
 from framework.profiles.registry import register_profile, get_custom_profile, load_profile_from_file
-from framework.models import EvaluationProfile
+from framework.models import EvaluationProfile, EvaluationResult
 
 
 class TestCustomProfilesRegistry(unittest.TestCase):
@@ -63,6 +63,65 @@ class TestCustomProfilesRegistry(unittest.TestCase):
 
         retrieved = get_evaluator_plugin("Custom Safety")
         self.assertEqual(retrieved, evaluator)
+
+    def test_runner_resolves_custom_profile_and_errors_on_unknown(self):
+        from unittest.mock import MagicMock
+        from framework.evaluation.runner import BenchmarkRunner
+        from framework.models import Benchmark
+
+        agent_mock = MagicMock()
+        judge_mock = MagicMock()
+        judge_mock.model_name = "test-judge-model"
+        runner = BenchmarkRunner(agent_mock, judge_mock)
+
+        # Register custom profile
+        custom_prof = EvaluationProfile(name="My Custom Profile", weights={"Constraint Satisfaction": 1.0}, pass_threshold=80.0)
+        register_profile("my-custom-profile", custom_prof)
+
+        # Test dynamic profile resolution via parse_benchmark mock
+        with unittest.mock.patch("framework.evaluation.runner.parse_benchmark") as mock_parse:
+            real_bm = Benchmark(
+                benchmark_id="test-custom-bm",
+                name="Test Custom Benchmark",
+                description="Desc",
+                prompt="Prompt",
+                constraints={},
+                expected_behavior=[],
+                evaluation_criteria={"Constraint Satisfaction": ["Pass constraint"]},
+                pass_criteria=[],
+                failure_conditions=[],
+                notes=[],
+                profile="my-custom-profile",
+            )
+            mock_parse.return_value = real_bm
+
+            from framework.models import AgentOutput
+            agent_mock.run.return_value = AgentOutput(content="Output", metadata={})
+            real_result = EvaluationResult(
+                benchmark_id="test-custom-bm",
+                benchmark_name="Test Custom Benchmark",
+                overall_score=90.0,
+                dimension_scores=[],
+                passed=True,
+            )
+            runner.engine = MagicMock()
+            runner.engine.evaluate.return_value = real_result
+
+            with unittest.mock.patch.object(runner, "_save_execution_files"):
+                res = runner.run("dummy_path.md")
+                runner.engine.evaluate.assert_called_once()
+                resolved_prof = runner.engine.evaluate.call_args[0][2]
+                self.assertEqual(resolved_prof.name, "My Custom Profile")
+
+        # Test unknown profile raises ValueError
+        with unittest.mock.patch("framework.evaluation.runner.parse_benchmark") as mock_parse:
+            mock_bm = MagicMock()
+            mock_bm.profile = "unknown-nonexistent-profile"
+            mock_parse.return_value = mock_bm
+
+            with self.assertRaises(ValueError) as ctx:
+                runner.run("dummy_path.md")
+            self.assertIn("unknown-nonexistent-profile", str(ctx.exception))
 
 
 if __name__ == "__main__":

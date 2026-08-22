@@ -98,8 +98,22 @@ class BenchmarkRunner:
         # 1. Parse scenario file
         benchmark = parse_benchmark(filepath)
 
-        # 2. Resolve evaluation profile
-        profile = PROFILE_REGISTRY.get(benchmark.profile, TRAVEL_PROFILE)
+        # 2. Resolve evaluation profile (Static -> Dynamic -> Fallback/Error)
+        prof_name = benchmark.profile
+        profile = PROFILE_REGISTRY.get(prof_name)
+        if not profile:
+            try:
+                from framework.profiles.registry import get_custom_profile
+                profile = get_custom_profile(prof_name)
+            except Exception:
+                pass
+        if not profile:
+            if prof_name in ("travel-agent", "travel", "default"):
+                profile = TRAVEL_PROFILE
+            else:
+                raise ValueError(
+                    f"Evaluation profile '{prof_name}' not found in static or dynamic profile registries."
+                )
 
         # 3. Execute agent with RunTrace instrumentation
         t0 = time.time()
