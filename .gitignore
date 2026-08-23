@@ -19,6 +19,8 @@ scratch/
 
 # Test Execution Outputs & Raw Result JSONs
 eval_results/
+results/
+*.egg-info/
 results/**/*.json
 traces/*.json
 *.log

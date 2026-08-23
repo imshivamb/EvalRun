@@ -63,6 +63,34 @@ evalrun run \
   --output results/run-001
 ```
 
+### Choosing a model endpoint
+
+EvalRun does not lock you to one model provider. The `--base-url` value is the address where the model accepts OpenAI-compatible requests:
+
+| Provider | Base URL example |
+| --- | --- |
+| OpenAI-compatible hosted service | `https://api.openai.com/v1` |
+| Gemini | `https://generativelanguage.googleapis.com/v1beta/openai/` |
+| OpenRouter | `https://openrouter.ai/api/v1` |
+| Local vLLM, Ollama, or LM Studio | `http://localhost:8000/v1` |
+
+The judge normally uses the same endpoint and API key as the target model. You only need `--judge-base-url` or `--judge-api-key` when the judge is hosted somewhere different. The endpoint URL is not a credential; it simply tells EvalRun where to send the request.
+
+For example, a Gemini run can be written as:
+
+```bash
+export GEMINI_API_KEY="your-key"
+
+evalrun run \
+  --scenario evals/scenarios/travel-agent/budget-constrained-itinerary.md \
+  --agent agents.travel:TravelPlanningAgent \
+  --model gemini-3.7-flash \
+  --base-url https://generativelanguage.googleapis.com/v1beta/openai/ \
+  --api-key "$GEMINI_API_KEY" \
+  --judge-model gemini-3.7-flash \
+  --output results/gemini-run
+```
+
 ### 4. Local Model Server Run (vLLM / Ollama)
 
 ```bash
@@ -178,6 +206,33 @@ Return PASS or BLOCK
 ```
 
 The command line is useful for repeatable runs, the Python SDK is useful inside scripts and pipelines, and the local browser interface is useful when you prefer a form. All three use the same evaluation engine.
+
+## Add your own evaluation scenario
+
+Scenarios are ordinary Markdown files. Copy [`templates/scenario_template.md`](templates/scenario_template.md), edit the prompt and criteria, and save the file under a folder such as `evals/scenarios/my-domain/my-scenario.md`.
+
+Each scenario defines:
+
+- the request sent to the agent;
+- hard constraints that must not be violated;
+- the expected behavior;
+- the dimensions to score;
+- what counts as a pass or failure.
+
+Run one custom scenario with `--scenario`:
+
+```bash
+evalrun run \
+  --scenario evals/scenarios/my-domain/my-scenario.md \
+  --agent my_agent:MyAgent \
+  --model gemini-3.7-flash \
+  --base-url https://generativelanguage.googleapis.com/v1beta/openai/ \
+  --api-key "$GEMINI_API_KEY" \
+  --judge-model gemini-3.7-flash \
+  --output results/my-scenario
+```
+
+Or place multiple `.md` files in a folder and use `--suite path/to/folder`.
 
 ## 🏗️ Architecture & Documentation
 

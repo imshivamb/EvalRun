@@ -28,7 +28,7 @@ def generate_html_report(
     output_path = Path(output_dir) / "report.html"
 
     total_runs = len(results)
-    passed_count = sum(1 for r in results if r.passed and getattr(r, "agent_metadata", {}).get("audit_gate_decision", "PASS") == "PASS")
+    passed_count = sum(1 for r in results if r.passed and getattr(r, "agent_metadata", {}).get("audit_gate_decision", "N/A") in ("PASS", "N/A"))
     blocked_count = sum(1 for r in results if getattr(r, "agent_metadata", {}).get("audit_gate_decision") == "BLOCK")
     failed_count = total_runs - passed_count
 
@@ -56,7 +56,7 @@ def generate_html_report(
 
     # Sort results fail/blocked first for human review
     def result_sort_key(res: EvaluationResult) -> int:
-        gate = getattr(res, "agent_metadata", {}).get("audit_gate_decision", "PASS")
+        gate = getattr(res, "agent_metadata", {}).get("audit_gate_decision", "N/A")
         is_reg = reg_by_id.get(res.benchmark_id, {}).get("is_regression", False)
         if is_reg or gate != "PASS" or not res.passed:
             return 0
@@ -67,7 +67,7 @@ def generate_html_report(
     cards_html = []
     for res in sorted_results:
         meta = getattr(res, "agent_metadata", {})
-        gate = meta.get("audit_gate_decision", "PASS")
+        gate = meta.get("audit_gate_decision", "N/A")
         trace = meta.get("run_trace", {})
         audit = meta.get("audit_report", {})
         raw_output = meta.get("raw_content") or ""
@@ -256,7 +256,7 @@ def generate_html_report(
     jump_links = []
     for res in sorted_results:
         meta = getattr(res, "agent_metadata", {})
-        gate = meta.get("audit_gate_decision", "PASS")
+        gate = meta.get("audit_gate_decision", "N/A")
         is_reg = reg_by_id.get(res.benchmark_id, {}).get("is_regression", False)
         if is_reg or gate != "PASS" or not res.passed:
             status_lbl = "REGRESSED" if is_reg else ("BLOCKED" if gate != "PASS" else "FAILED")

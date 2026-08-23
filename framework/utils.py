@@ -1,6 +1,7 @@
 """Shared helper utility functions for the framework."""
 
 import json
+import re
 from typing import Any
 
 
@@ -25,7 +26,16 @@ def parse_json_markdown(text: str) -> Any:
         cleaned = cleaned[3:]
     if cleaned.endswith("```"):
         cleaned = cleaned[:-3]
+    normalized = cleaned.strip()
     try:
-        return json.loads(cleaned.strip(), strict=False)
-    except json.JSONDecodeError as e:
-        raise ValueError(f"Invalid JSON string: {e}") from e
+        return json.loads(normalized, strict=False)
+    except json.JSONDecodeError as first_error:
+        # LLM judges occasionally emit a trailing comma before `}` or `]`.
+        # Repair only that conservative, unambiguous formatting issue.
+        repaired = re.sub(r",(\s*[}\]])", r"\1", normalized)
+        if repaired == normalized:
+            raise ValueError(f"Invalid JSON string: {first_error}") from first_error
+        try:
+            return json.loads(repaired, strict=False)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON string: {e}") from e

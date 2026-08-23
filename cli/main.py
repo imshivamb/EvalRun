@@ -14,6 +14,7 @@ from cli.resolver import resolve_agent
 from framework.evaluation.runner import BenchmarkRunner
 from framework.llms.openai_compatible import OpenAICompatibleLLM
 from framework.models import EvaluationResult
+from cli.progress import run_with_progress
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -252,8 +253,13 @@ def run_command(args: argparse.Namespace) -> int:
     results: List[EvaluationResult] = []
     for s_file in scenario_files:
         try:
-            res = runner.run(str(s_file))
+            print(f"[evalrun] Running scenario: {s_file.name} (model calls and evaluation in progress...)", flush=True)
+            res = run_with_progress(
+                s_file.name,
+                lambda: runner.run(str(s_file)),
+            )
             results.append(res)
+            print(f"[evalrun] Finished {s_file.name}: score {res.overall_score:.2f} ({'PASS' if res.passed else 'FAIL'})", flush=True)
         except Exception as e:
             print(f"Error executing evaluation for scenario '{s_file}': {e}", file=sys.stderr)
             return 2
@@ -289,7 +295,7 @@ def run_command(args: argparse.Namespace) -> int:
 
     # Verify Independent Auditor Gate Decisions
     for r in results:
-        gate_decision = getattr(r, "agent_metadata", {}).get("audit_gate_decision", "PASS")
+        gate_decision = getattr(r, "agent_metadata", {}).get("audit_gate_decision", "N/A")
         if gate_decision == "BLOCK":
             evaluation_passed = False
 
@@ -301,7 +307,7 @@ def run_command(args: argparse.Namespace) -> int:
             "scenario_name": r.benchmark_name,
             "overall_score": r.overall_score,
             "passed": r.passed,
-            "audit_gate_decision": getattr(r, "agent_metadata", {}).get("audit_gate_decision", "PASS"),
+            "audit_gate_decision": getattr(r, "agent_metadata", {}).get("audit_gate_decision", "N/A"),
             "report_path": f"{getattr(runner.agent, 'llm', runner.agent).__class__.__name__.lower()}_{r.benchmark_id}_report.json",
         })
 
