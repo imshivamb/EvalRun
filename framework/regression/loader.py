@@ -70,6 +70,13 @@ def load_baseline_manifest(path_str: str) -> Dict[str, Any]:
             # If report_path is specified and file exists, load detailed report file
             if rep_path and not dim_scores:
                 full_rep = base_dir / rep_path
+                # Older manifests used the adapter class name in report_path.
+                # Fall back to the actual scenario-id filename so those
+                # baselines remain usable after report naming was corrected.
+                if not full_rep.exists() and base_dir.exists():
+                    matches = sorted(base_dir.glob(f"*_{s_id}_report.json"))
+                    if matches:
+                        full_rep = matches[0]
                 if full_rep.exists():
                     try:
                         with open(full_rep, "r", encoding="utf-8") as rf:

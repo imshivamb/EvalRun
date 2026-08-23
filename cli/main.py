@@ -332,6 +332,7 @@ def run_command(args: argparse.Namespace) -> int:
             evaluation_passed = False
 
     # Save Run Manifest
+    model_slug = str(args.model).replace("/", "_").replace(".", "_")
     scenarios_summary = []
     for r in results:
         scenarios_summary.append({
@@ -340,7 +341,7 @@ def run_command(args: argparse.Namespace) -> int:
             "overall_score": r.overall_score,
             "passed": r.passed,
             "audit_gate_decision": getattr(r, "agent_metadata", {}).get("audit_gate_decision", "N/A"),
-            "report_path": f"{getattr(runner.agent, 'llm', runner.agent).__class__.__name__.lower()}_{r.benchmark_id}_report.json",
+            "report_path": f"{model_slug}_{r.benchmark_id}_report.json",
         })
 
     manifest = {
