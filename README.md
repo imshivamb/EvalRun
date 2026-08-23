@@ -33,7 +33,24 @@ cd agent-eval-platform
 pip install -e .
 ```
 
-### 2. Single Scenario Run (Hosted Model)
+If your shell says `evalrun: command not found`, activate the virtual environment and install the repository first:
+
+```bash
+source .venv/bin/activate
+python -m pip install -e .
+rehash  # zsh only, refreshes the command cache
+```
+
+### 2. Zero-Cost Offline Demo
+
+Try EvalRun without an API key or network request:
+
+```bash
+evalrun demo
+open results/demo/report.html  # macOS
+```
+
+### 3. Single Scenario Run (Hosted Model)
 
 ```bash
 export OPENAI_API_KEY="sk-proj-..."
@@ -46,7 +63,7 @@ evalrun run \
   --output results/run-001
 ```
 
-### 3. Local Model Server Run (vLLM / Ollama)
+### 4. Local Model Server Run (vLLM / Ollama)
 
 ```bash
 # Users host their own local OpenAI-compatible server at http://localhost:8000/v1
@@ -60,7 +77,7 @@ evalrun run \
   --output results/local-run
 ```
 
-### 4. Guided Local Web UI
+### 5. Guided Local Web UI
 
 Launch the zero-dependency local web interface:
 
@@ -137,6 +154,10 @@ There is no central service to deploy for the current product. The recommended p
 6. Users provide their own hosted-model API keys or run their own local model server.
 
 The local UI is intended for local use, not public internet deployment. A shared hosted deployment would be a separate project requiring authentication, secret management, isolation, and hosted execution.
+
+### Credential promise
+
+EvalRun does not provide, collect, or store model credentials. A key is read by the local process and passed to the selected model endpoint for that run. Keys are never written to `manifest.json`, `report.html`, or `regression_report.json`; reports contain only `[REDACTED]`. Prefer environment variables such as `OPENAI_API_KEY`, `GEMINI_API_KEY`, or `OPENROUTER_API_KEY`. Avoid putting real keys directly in shell commands because your terminal may save command history.
 
 ## How a run works
 

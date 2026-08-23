@@ -136,6 +136,9 @@ def create_parser() -> argparse.ArgumentParser:
     ui_parser.add_argument("--host", type=str, default="127.0.0.1", help="Host address for local UI server (default: 127.0.0.1)")
     ui_parser.add_argument("--port", type=int, default=8501, help="Port number for local UI server (default: 8501)")
 
+    demo_parser = subparsers.add_parser("demo", help="Run an offline demo without an API key")
+    demo_parser.add_argument("--output", type=str, default="results/demo", help="Directory for demo artifacts")
+
     return parser
 
 
@@ -309,12 +312,12 @@ def run_command(args: argparse.Namespace) -> int:
         "target_model": {
             "model_name": args.model,
             "base_url": args.base_url,
-            "api_key": args.api_key or "EMPTY",
+            "api_key": "[REDACTED]" if args.api_key else "ENVIRONMENT_OR_EMPTY",
         },
         "judge_model": {
             "model_name": judge_model_name,
             "base_url": judge_base_url,
-            "api_key": judge_api_key or "EMPTY",
+            "api_key": "[REDACTED]" if judge_api_key else "ENVIRONMENT_OR_EMPTY",
         },
         "baseline_path": args.baseline,
         "ground_truth_path": args.ground_truth,
@@ -359,6 +362,9 @@ def main(argv: Optional[List[str]] = None) -> None:
             print("\nShutting down local UI server.")
             server.server_close()
             sys.exit(0)
+    elif args.command == "demo":
+        from cli.demo import run_demo
+        sys.exit(run_demo(output_dir=args.output))
     else:
         parser.print_help()
         sys.exit(2)

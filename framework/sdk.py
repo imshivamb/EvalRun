@@ -103,8 +103,10 @@ def evaluate(
             "run_id": run_id,
             "timestamp_utc": datetime.now(timezone.utc).isoformat(),
             "target_agent_spec": agent,
-            "target_model": {"model_name": model, "base_url": base_url, "api_key": target_api_key},
-            "judge_model": {"model_name": judge_model_name, "base_url": j_base_url, "api_key": j_api_key},
+            # Never place the actual credential in the artifact structure.
+            # The key is used only by the in-process model client.
+            "target_model": {"model_name": model, "base_url": base_url, "api_key": "[REDACTED]"},
+            "judge_model": {"model_name": judge_model_name, "base_url": j_base_url, "api_key": "[REDACTED]"},
             "ground_truth_path": ground_truth,
             "output_dir": str(out_path),
             "total_scenarios": len(results),
