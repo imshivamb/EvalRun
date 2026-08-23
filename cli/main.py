@@ -15,6 +15,7 @@ from framework.evaluation.runner import BenchmarkRunner
 from framework.llms.openai_compatible import OpenAICompatibleLLM
 from framework.models import EvaluationResult
 from cli.progress import run_with_progress
+from agents.auditor import IndependentBudgetAuditor
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -98,6 +99,26 @@ def create_parser() -> argparse.ArgumentParser:
         type=str,
         default=None,
         help="Judge API key (defaults to target --api-key if unspecified)",
+    )
+
+    # Optional independent auditor endpoint flags
+    run_parser.add_argument(
+        "--auditor-model",
+        type=str,
+        default=None,
+        help="Independent auditor model; omitted to disable the auditor gate",
+    )
+    run_parser.add_argument(
+        "--auditor-base-url",
+        type=str,
+        default=None,
+        help="Auditor OpenAI-compatible endpoint (defaults to judge endpoint)",
+    )
+    run_parser.add_argument(
+        "--auditor-api-key",
+        type=str,
+        default=None,
+        help="Auditor API key (defaults to judge API key)",
     )
 
     # Output, Baseline & Verification flags
@@ -199,6 +220,8 @@ def run_command(args: argparse.Namespace) -> int:
     judge_model_name = args.judge_model or args.model
     judge_base_url = args.judge_base_url or args.base_url
     judge_api_key = args.judge_api_key or args.api_key
+    auditor_base_url = args.auditor_base_url or judge_base_url
+    auditor_api_key = args.auditor_api_key or judge_api_key
 
     # Instantiate Model Endpoints
     try:
@@ -212,6 +235,13 @@ def run_command(args: argparse.Namespace) -> int:
             base_url=judge_base_url,
             api_key=judge_api_key,
         )
+        auditor_llm = None
+        if args.auditor_model:
+            auditor_llm = OpenAICompatibleLLM(
+                model_name=args.auditor_model,
+                base_url=auditor_base_url,
+                api_key=auditor_api_key,
+            )
     except Exception as e:
         print(f"Error initializing model endpoint client: {e}", file=sys.stderr)
         return 2
@@ -224,11 +254,13 @@ def run_command(args: argparse.Namespace) -> int:
         return 2
 
     # Instantiate BenchmarkRunner
+    auditor = IndependentBudgetAuditor(auditor_llm) if auditor_llm is not None else None
     runner = BenchmarkRunner(
         agent=agent_instance,
         judge_llm=judge_llm,
         local_verifier_path=args.ground_truth,
         output_dir=str(output_dir),
+        auditor=auditor,
     )
 
     # Gather Scenario Files
@@ -325,6 +357,11 @@ def run_command(args: argparse.Namespace) -> int:
             "base_url": judge_base_url,
             "api_key": "[REDACTED]" if judge_api_key else "ENVIRONMENT_OR_EMPTY",
         },
+        "auditor_model": ({
+            "model_name": args.auditor_model,
+            "base_url": auditor_base_url,
+            "api_key": "[REDACTED]" if auditor_api_key else "ENVIRONMENT_OR_EMPTY",
+        } if args.auditor_model else None),
         "baseline_path": args.baseline,
         "ground_truth_path": args.ground_truth,
         "output_dir": str(output_dir),
