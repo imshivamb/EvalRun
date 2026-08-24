@@ -27,6 +27,12 @@ from framework.evaluation.evaluators import (
     PersonalizationEvaluator,
     AdaptabilityEvaluator,
 )
+from framework.evaluation.evaluators.support import (
+    SupportAdaptabilityEvaluator,
+    SupportInformationAccuracyEvaluator,
+    SupportPersonalizationEvaluator,
+    SupportPlanningEvaluator,
+)
 from framework.verification.extractor import ClaimExtractor
 from framework.verification.local import LocalKnowledgeBaseVerifier
 from framework.verification.pipeline import VerificationPipeline
@@ -86,6 +92,21 @@ class BenchmarkRunner:
 
         self.engine = EvaluationEngine(evaluators=evaluators)
 
+    def _configure_profile_evaluators(self, profile) -> None:
+        """Apply domain-specific rubrics after the scenario profile is known."""
+        if getattr(profile, "name", "").lower() != "support-triage":
+            return
+        self.engine.evaluators.update(
+            {
+                PLANNING_QUALITY: SupportPlanningEvaluator(self.judge_llm),
+                INFORMATION_ACCURACY: SupportInformationAccuracyEvaluator(
+                    self.judge_llm, self.pipeline
+                ),
+                PERSONALIZATION: SupportPersonalizationEvaluator(self.judge_llm),
+                ADAPTABILITY: SupportAdaptabilityEvaluator(self.judge_llm),
+            }
+        )
+
     def run(self, filepath: str) -> EvaluationResult:
         """Runs the complete evaluation pipeline for a single benchmark file.
 
@@ -114,6 +135,10 @@ class BenchmarkRunner:
                 raise ValueError(
                     f"Evaluation profile '{prof_name}' not found in static or dynamic profile registries."
                 )
+
+        # Dimension names are shared across domains, but their rubrics are not.
+        # Configure support prompts only after this scenario's profile resolves.
+        self._configure_profile_evaluators(profile)
 
         # 3. Execute agent with RunTrace instrumentation
         t0 = time.time()

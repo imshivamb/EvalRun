@@ -128,6 +128,20 @@ class TestUIServer(unittest.TestCase):
         except urllib.error.HTTPError as e:
             self.assertIn(e.code, (403, 404))
 
+    def test_custom_scenario_path_stays_inside_workspace(self):
+        if not self.server:
+            self.skipTest("Server unavailable")
+        url = f"http://127.0.0.1:{self.port}/api/run"
+        payload = {"scenario": "../../etc/passwd"}
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+        )
+        with self.assertRaises(urllib.error.HTTPError) as ctx:
+            urllib.request.urlopen(req)
+        self.assertEqual(ctx.exception.code, 403)
+
 
 if __name__ == "__main__":
     unittest.main()

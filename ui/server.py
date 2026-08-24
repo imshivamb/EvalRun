@@ -4,6 +4,7 @@ import json
 import os
 import sys
 import urllib.parse
+from datetime import datetime, timezone
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
 from typing import Any, Dict, List
@@ -72,6 +73,12 @@ class UIRequestHandler(SimpleHTTPRequestHandler):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(STATIC_DIR), **kwargs)
+
+    def end_headers(self):
+        # The UI is a local development surface; always serve the latest
+        # source files after a restart instead of allowing stale browser cache.
+        self.send_header("Cache-Control", "no-store")
+        super().end_headers()
 
     def send_json_response(self, code: int, data: Dict[str, Any]):
         body = json.dumps(data).encode("utf-8")
@@ -144,10 +151,32 @@ class UIRequestHandler(SimpleHTTPRequestHandler):
             api_key = payload.get("api_key")
             judge_model = payload.get("judge_model")
             baseline = payload.get("baseline")
-            output_dir = payload.get("output_dir", "./eval_results/ui_run")
+            output_dir = payload.get("output_dir")
+            if not output_dir:
+                run_stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+                output_dir = f"./eval_results/ui-run-{run_stamp}"
 
             if not scenario:
                 self.send_json_response(400, {"error": "Missing required field 'scenario'."})
+                return
+
+            # UI users may provide a custom scenario path, but it must remain
+            # inside the local workspace. Never allow the UI to read arbitrary
+            # files from the host machine.
+            try:
+                workspace_root = Path.cwd().resolve()
+                scenario_path = (workspace_root / str(scenario)).resolve()
+                if not scenario_path.is_relative_to(workspace_root):
+                    self.send_json_response(
+                        403,
+                        {"error": "Scenario path must remain inside the EvalRun workspace."},
+                    )
+                    return
+                if not scenario_path.exists():
+                    self.send_json_response(400, {"error": f"Scenario path does not exist: {scenario}"})
+                    return
+            except Exception as e:
+                self.send_json_response(400, {"error": f"Invalid scenario path: {e}"})
                 return
 
             try:

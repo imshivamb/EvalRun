@@ -21,6 +21,8 @@ scratch/
 eval_results/
 results/
 *.egg-info/
+build/
+dist/
 results/**/*.json
 traces/*.json
 *.log

@@ -2,12 +2,17 @@
 
 import argparse
 import json
+import logging
 import os
 import sys
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional
+
+# Suppress unconfigured Langfuse initialization warning logs
+if not os.environ.get("LANGFUSE_PUBLIC_KEY"):
+    logging.getLogger("langfuse").setLevel(logging.ERROR)
 
 from cli.formatter import format_terminal_summary, redact_credentials
 from cli.resolver import resolve_agent

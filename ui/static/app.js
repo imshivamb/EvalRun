@@ -5,6 +5,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const runBtn = document.getElementById('run-btn');
     const btnText = document.getElementById('btn-text');
     const btnSpinner = document.getElementById('btn-spinner');
+    const customScenarioGroup = document.getElementById('custom-scenario-group');
+    const customScenarioInput = document.getElementById('custom-scenario-path');
+    const builtinScenarioGroup = document.getElementById('builtin-scenario-group');
+    const scenarioModeInputs = document.querySelectorAll('input[name="scenario-mode"]');
 
     const resultsCard = document.getElementById('results-card');
     const verdictBanner = document.getElementById('verdict-banner');
@@ -12,6 +16,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const verdictSub = document.getElementById('verdict-sub');
     const openReportBtn = document.getElementById('open-report-btn');
     const tableBody = document.getElementById('results-table-body');
+
+    scenarioModeInputs.forEach(input => {
+        input.addEventListener('change', () => {
+            const isCustom = input.value === 'custom' && input.checked;
+            customScenarioGroup.classList.toggle('hidden', !isCustom);
+            builtinScenarioGroup.classList.toggle('hidden', isCustom);
+            customScenarioInput.disabled = !isCustom;
+            scenarioSelect.disabled = isCustom;
+            scenarioSelect.required = !isCustom;
+            customScenarioInput.required = isCustom;
+        });
+    });
 
     // 1. Fetch available scenarios
     fetch('/api/scenarios')
@@ -55,14 +71,16 @@ document.addEventListener('DOMContentLoaded', () => {
     evalForm.addEventListener('submit', (e) => {
         e.preventDefault();
 
-        const scenario = scenarioSelect.value;
+        const isCustom = document.querySelector('input[name="scenario-mode"]:checked').value === 'custom';
+        const scenario = isCustom ? customScenarioInput.value.trim() : scenarioSelect.value;
+        const customScenarioPath = document.getElementById('custom-scenario-path').value.trim();
         const agent = document.getElementById('agent-spec').value.trim();
         const model = document.getElementById('target-model').value.trim();
         const base_url = document.getElementById('base-url').value.trim();
         const api_key = document.getElementById('api-key').value.trim();
         const baseline = baselineSelect.value;
 
-        if (!scenario || !agent || !model) {
+        if ((!scenario && !customScenarioPath) || !agent || !model) {
             alert('Please fill in all required fields.');
             return;
         }
@@ -74,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsCard.classList.add('hidden');
 
         const payload = {
-            scenario,
+            scenario: customScenarioPath || scenario,
             agent,
             model,
             base_url,

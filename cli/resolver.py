@@ -2,6 +2,8 @@
 
 import importlib
 import inspect
+import sys
+from pathlib import Path
 from typing import Any
 from framework.llms.base import BaseLLM
 
@@ -21,6 +23,19 @@ def resolve_agent(agent_spec: str, llm: BaseLLM) -> Any:
     Raises:
         ValueError: If the specifier is malformed, module cannot be imported, or symbol cannot be constructed.
     """
+    # Terminals sometimes receive escaped underscores when a command is copied
+    # from rendered Markdown (``custom\_agent``).  They are not meaningful in a
+    # Python import path, so normalize them at the CLI boundary.
+    agent_spec = agent_spec.replace("\\_", "_").strip()
+
+    # A console-script entry point has the virtualenv's ``bin`` directory at
+    # sys.path[0], not the user's working directory.  Add the current project
+    # directory so ``evalrun --agent my_agent:Agent`` works without requiring
+    # users to set PYTHONPATH manually.
+    cwd = str(Path.cwd())
+    if cwd not in sys.path:
+        sys.path.insert(0, cwd)
+
     # 1. HTTP Endpoint Agent Resolution
     if agent_spec.startswith("http://") or agent_spec.startswith("https://"):
         from framework.core.adapters import HttpAgentAdapter

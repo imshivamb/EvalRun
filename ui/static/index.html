@@ -29,10 +29,22 @@
                 <form id="eval-form">
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="scenario-select">Select Benchmark Scenario / Suite *</label>
-                            <select id="scenario-select" required>
-                                <option value="">Loading scenarios...</option>
-                            </select>
+                            <label>Scenario Source *</label>
+                            <div class="scenario-mode" role="group" aria-label="Scenario source">
+                                <label><input type="radio" name="scenario-mode" value="builtin" checked> Built-in scenario</label>
+                                <label><input type="radio" name="scenario-mode" value="custom"> Custom Markdown path</label>
+                            </div>
+                            <div id="builtin-scenario-group">
+                                <select id="scenario-select" required>
+                                    <option value="">Loading scenarios...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group hidden" id="custom-scenario-group">
+                            <label for="custom-scenario-path">Custom Scenario Path (Optional)</label>
+                            <input type="text" id="custom-scenario-path" placeholder="scratch/custom-validation/my-scenario.md" disabled>
+                            <small class="security-hint">Local workspace files only; paths outside the project are rejected.</small>
                         </div>
 
                         <div class="form-group">
