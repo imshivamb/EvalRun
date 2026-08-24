@@ -27,6 +27,17 @@ The toolkit works with hosted APIs and models running on your own computer. It d
 
 ### 1. Installation
 
+Install the released package from PyPI:
+
+```bash
+python -m pip install evalrun
+```
+
+The package installs the `evalrun` command and all runtime dependencies. You do
+not need to clone this repository to use the toolkit. To contribute or run the
+latest unreleased source instead, clone the repository and use an editable
+install:
+
 ```bash
 git clone https://github.com/imshivamb/agent-eval-platform.git
 cd agent-eval-platform
@@ -122,7 +133,7 @@ Open `http://127.0.0.1:8501` in your browser to configure endpoints, select scen
 Integrate `evalrun` programmatically into Python automation pipelines:
 
 ```python
-from framework.sdk import evaluate, compare
+from framework import evaluate, compare
 
 # 1. Execute Benchmark Evaluation
 results = evaluate(
@@ -176,12 +187,25 @@ There is no central service to deploy for the current product. The recommended p
 
 1. Publish the repository on GitHub.
 2. Add tagged releases and a clear quick-start guide.
-3. Users install it locally with `pip install -e .` from a clone.
-4. Later publish the package to PyPI so users can run `pip install evalrun`.
+3. Users install the released package with `pip install evalrun`.
+4. Contributors install the repository with `pip install -e .` when working on source changes.
 5. Host documentation on GitHub Pages if useful; the evaluation engine itself remains local.
 6. Users provide their own hosted-model API keys or run their own local model server.
 
 The local UI is intended for local use, not public internet deployment. A shared hosted deployment would be a separate project requiring authentication, secret management, isolation, and hosted execution.
+
+### TestPyPI (maintainers only)
+
+Before a release, maintainers may validate a candidate package from TestPyPI:
+
+```bash
+python -m pip install \
+  --index-url https://test.pypi.org/simple/ \
+  --extra-index-url https://pypi.org/simple/ \
+  evalrun
+```
+
+End users should use the normal PyPI install shown above.
 
 ### Credential promise
 
