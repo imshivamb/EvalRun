@@ -256,6 +256,12 @@ def create_parser() -> argparse.ArgumentParser:
         help="Path to scenario benchmark markdown file (.md)",
     )
 
+    doctor_parser = subparsers.add_parser(
+        "doctor",
+        help="Check environment diagnostics, API keys, endpoint reachability, and permissions",
+        description="Run system diagnostic checks for Python, EvalRun, API keys, endpoints, and write access.",
+    )
+
     return parser
 
 
@@ -641,6 +647,16 @@ def validate_command(args: argparse.Namespace) -> int:
         return 2
 
 
+def doctor_command(args: argparse.Namespace) -> int:
+    """Executes the 'doctor' command. Runs environment, endpoint, and key diagnostic checks."""
+    from cli.doctor import run_doctor_checks
+
+    all_ok, lines = run_doctor_checks()
+    for line in lines:
+        print(line)
+    return 0 if all_ok else 2
+
+
 def main(argv: Optional[List[str]] = None) -> None:
     parser = create_parser()
     args = parser.parse_args(argv)
@@ -653,6 +669,9 @@ def main(argv: Optional[List[str]] = None) -> None:
         sys.exit(exit_code)
     elif args.command == "validate":
         exit_code = validate_command(args)
+        sys.exit(exit_code)
+    elif args.command == "doctor":
+        exit_code = doctor_command(args)
         sys.exit(exit_code)
     elif args.command == "ui":
         from ui.server import run_ui_server
