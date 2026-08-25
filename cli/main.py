@@ -245,6 +245,17 @@ def create_parser() -> argparse.ArgumentParser:
         help="Directory name to create (default: 'my-evaluation')",
     )
 
+    validate_parser = subparsers.add_parser(
+        "validate",
+        help="Validate a benchmark scenario markdown file",
+        description="Validate scenario frontmatter, required section headers, evaluation profile, and dimensions.",
+    )
+    validate_parser.add_argument(
+        "scenario",
+        type=str,
+        help="Path to scenario benchmark markdown file (.md)",
+    )
+
     return parser
 
 
@@ -610,6 +621,26 @@ evalrun run --config evalrun.json
         return 2
 
 
+def validate_command(args: argparse.Namespace) -> int:
+    """Executes the 'validate' command. Validates scenario frontmatter, required sections, and evaluation criteria."""
+    from cli.validator import validate_scenario
+
+    is_valid, errors, details = validate_scenario(args.scenario)
+    if is_valid:
+        print(f"[evalrun] Scenario '{args.scenario}' is valid.")
+        print(f"  - ID:         {details.get('benchmark_id')}")
+        print(f"  - Name:       {details.get('name')}")
+        print(f"  - Profile:    {details.get('profile')} (Threshold: {details.get('pass_threshold', 75.0)})")
+        if details.get("dimensions"):
+            print(f"  - Dimensions: {', '.join(details['dimensions'])}")
+        return 0
+    else:
+        print(f"[evalrun] Scenario validation failed for '{args.scenario}':\n", file=sys.stderr)
+        for idx, err in enumerate(errors, 1):
+            print(f"[{idx}] {err}\n", file=sys.stderr)
+        return 2
+
+
 def main(argv: Optional[List[str]] = None) -> None:
     parser = create_parser()
     args = parser.parse_args(argv)
@@ -619,6 +650,9 @@ def main(argv: Optional[List[str]] = None) -> None:
         sys.exit(exit_code)
     elif args.command == "init":
         exit_code = init_command(args)
+        sys.exit(exit_code)
+    elif args.command == "validate":
+        exit_code = validate_command(args)
         sys.exit(exit_code)
     elif args.command == "ui":
         from ui.server import run_ui_server
