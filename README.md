@@ -61,7 +61,38 @@ evalrun demo
 open results/demo/report.html  # macOS
 ```
 
-### 3. Single Scenario Run (Hosted Model)
+The offline demo is the safest way to confirm that installation works. It makes
+no model requests, needs no API key, and executes only EvalRun's built-in demo
+agent.
+
+### 3. Create and check your own evaluation workspace
+
+Create starter files in a new folder:
+
+```bash
+evalrun init my-evaluation
+cd my-evaluation
+evalrun validate scenario.md
+```
+
+Edit `scenario.md` to describe the user request, hard constraints, expected
+behavior, scoring dimensions, pass criteria, and failure conditions. The
+scenario is ordinary Markdown; you do not need to change EvalRun's source code.
+Use `evalrun validate` before spending money on a model run. It reports the
+exact missing heading or unsupported dimension and returns exit code `2` when
+the file needs fixing.
+
+Run environment diagnostics at any time with:
+
+```bash
+evalrun doctor
+```
+
+`doctor` does not require an API key. Missing keys and unavailable model servers
+are reported as information, while invalid Python or unwritable output paths are
+reported as failures.
+
+### 4. Single Scenario Run (Hosted Model)
 
 ```bash
 export OPENAI_API_KEY="sk-proj-..."
@@ -87,6 +118,21 @@ EvalRun does not lock you to one model provider. The `--base-url` value is the a
 
 The judge normally uses the same endpoint and API key as the target model. You only need `--judge-base-url` or `--judge-api-key` when the judge is hosted somewhere different. The endpoint URL is not a credential; it simply tells EvalRun where to send the request.
 
+For a target and judge at different providers, configure both explicitly:
+
+```bash
+evalrun run \
+  --scenario path/to/scenario.md \
+  --agent my_agent:MyAgent \
+  --model gemini-3.7-flash \
+  --base-url https://generativelanguage.googleapis.com/v1beta/openai/ \
+  --api-key "$GEMINI_API_KEY" \
+  --judge-model stealth/ox-alpha \
+  --judge-base-url https://openrouter.ai/api/v1 \
+  --judge-api-key "$OPENROUTER_API_KEY" \
+  --output results/mixed-provider-run
+```
+
 For example, a Gemini run can be written as:
 
 ```bash
@@ -102,7 +148,7 @@ evalrun run \
   --output results/gemini-run
 ```
 
-### 4. Local Model Server Run (vLLM / Ollama)
+### 5. Local Model Server Run (vLLM / Ollama)
 
 ```bash
 # Users host their own local OpenAI-compatible server at http://localhost:8000/v1
@@ -116,7 +162,7 @@ evalrun run \
   --output results/local-run
 ```
 
-### 5. Guided Local Web UI
+### 6. Guided Local Web UI
 
 Launch the zero-dependency local web interface:
 
@@ -125,6 +171,13 @@ evalrun ui --port 8501
 ```
 
 Open `http://127.0.0.1:8501` in your browser to configure endpoints, select scenarios, run evaluations, view pass/fail/block verdicts, and launch interactive HTML reports.
+
+The UI is a local convenience layer. It supports built-in agents and workspace
+scenario paths. API keys are held in browser memory for the current request and
+are not saved by EvalRun. Do not expose this server to the public internet and
+do not paste untrusted Python code into an agent field. Complex or third-party
+agents should be run through the CLI or SDK in the environment where their code
+and dependencies are installed.
 
 ---
 
@@ -148,7 +201,7 @@ results = evaluate(
 report = compare(
     candidate_results=results,
     baseline="results/run-001",
-    max_overall_drop=5.0,
+    max_regression=5.0,
 )
 
 if report.release_blocked:
@@ -257,6 +310,48 @@ evalrun run \
 ```
 
 Or place multiple `.md` files in a folder and use `--suite path/to/folder`.
+
+Validate a suite before running it:
+
+```bash
+for scenario in evals/scenarios/my-domain/*.md; do
+  evalrun validate "$scenario" || exit 2
+done
+```
+
+## Connect your own agent
+
+EvalRun does not require agents to use a particular framework. The `--agent`
+value selects one of three adapters:
+
+| Agent form | Example | When to use |
+| --- | --- | --- |
+| Python import | `my_agent:MyAgent` | Your agent is installed/importable in the current environment. |
+| HTTP endpoint | `http://127.0.0.1:8080/predict` | Your agent is running as a local service. |
+| CLI process | `cli:python my_agent.py` | Your agent reads the scenario request from stdin and writes its answer to stdout. |
+
+Python agents receive the target model adapter from EvalRun. HTTP and CLI agents
+must expose the adapter contract described in
+[`docs/architecture.md`](docs/architecture.md). Run `evalrun --help` for the
+complete syntax and examples.
+
+For repeatable runs, put the same values in a JSON or TOML configuration file:
+
+```bash
+evalrun run --config evalrun.json
+```
+
+Command-line flags override values from the configuration file. Keep API keys
+in environment variables and reference them from your shell; never commit them
+to the config file.
+
+## Troubleshooting
+
+- `evalrun: command not found`: activate the virtual environment and run `python -m pip install evalrun` (or `pip install -e .` from a checkout), then run `rehash` in zsh.
+- `Missing required section`: run `evalrun validate path/to/scenario.md` and add the named Markdown heading.
+- Model authentication or endpoint errors: run `evalrun doctor`, confirm the provider's base URL, and check the matching environment variable.
+- A high evaluator score with `BLOCK`: inspect the independent-auditor findings in `report.html`; a quality score is not a release decision.
+- `report.html` is not created after an error: inspect the terminal error and `manifest.json`; failed executions are recorded as failed results rather than silently treated as a passing empty suite.
 
 ## 🏗️ Architecture & Documentation
 
