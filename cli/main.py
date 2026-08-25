@@ -232,6 +232,19 @@ def create_parser() -> argparse.ArgumentParser:
     demo_parser = subparsers.add_parser("demo", help="Run an offline demo without an API key")
     demo_parser.add_argument("--output", type=str, default="results/demo", help="Directory for demo artifacts")
 
+    init_parser = subparsers.add_parser(
+        "init",
+        help="Initialize a new evaluation workspace directory",
+        description="Scaffold a new evaluation directory containing scenario.md, evalrun.json, and README.md.",
+    )
+    init_parser.add_argument(
+        "name",
+        type=str,
+        nargs="?",
+        default="my-evaluation",
+        help="Directory name to create (default: 'my-evaluation')",
+    )
+
     return parser
 
 
@@ -263,6 +276,21 @@ def run_command(args: argparse.Namespace) -> int:
             for k, v in cfg_data.items():
                 if getattr(args, k, None) is None:
                     setattr(args, k, v)
+
+            # Paths in a config file are resolved relative to that config,
+            # not relative to whichever directory happened to launch evalrun.
+            config_root = cfg_path.parent.resolve()
+            for path_key in ("scenario", "suite", "ground_truth", "output", "baseline"):
+                path_value = getattr(args, path_key, None)
+                if path_key in cfg_data and path_value and not Path(path_value).is_absolute():
+                    config_relative = config_root / path_value
+                    # Existing scenario/ground-truth paths may intentionally be
+                    # relative to the launch directory (for example a config
+                    # stored in /tmp that points at a repository scenario).
+                    # Prefer the config directory only when that path exists;
+                    # output directories are safe to create relative to config.
+                    if path_key == "output" or config_relative.exists():
+                        setattr(args, path_key, str(config_relative))
         except Exception as e:
             print(f"Error loading configuration file '{args.config}': {e}", file=sys.stderr)
             return 2
@@ -461,12 +489,136 @@ def run_command(args: argparse.Namespace) -> int:
     return 0 if evaluation_passed else 1
 
 
+def init_command(args: argparse.Namespace) -> int:
+    """Executes the 'init' command. Initializes a new evaluation workspace directory with template files."""
+    target_dir = Path(args.name if args.name else "my-evaluation")
+    try:
+        target_dir.mkdir(parents=True, exist_ok=True)
+    except Exception as e:
+        print(f"Error: Could not create directory '{target_dir}': {e}", file=sys.stderr)
+        return 2
+
+    scenario_file = target_dir / "scenario.md"
+    config_file = target_dir / "evalrun.json"
+    readme_file = target_dir / "README.md"
+
+    scenario_content = """---
+benchmark_id: custom-evaluation-scenario
+name: Custom Evaluation Scenario
+profile: travel-agent
+version: 1.0
+difficulty: intermediate
+---
+
+# Description
+
+This benchmark scenario evaluates whether the agent can satisfy key constraints, planning requirements, and factual correctness for custom user prompts.
+
+# User Prompt
+
+I am planning a trip to Japan in October with a total budget of $2500. I want an efficient, low-accommodation-change itinerary.
+
+# Extracted Constraints
+
+- Total budget limit: $2500
+- Efficient travel itinerary with minimal accommodation moves
+
+# Expected Behaviour
+
+The agent should output a structured itinerary that strictly respects the budget limit and minimizes unnecessary hotel changes.
+
+# Evaluation Criteria
+
+### Constraint Satisfaction
+- Verify all cost items sum to less than or equal to $2500.
+
+### Planning Quality
+- Ensure logical daily flow and minimal hotel changes.
+
+### Information Accuracy
+- Do not invent unsupported prices, opening hours, or transport claims.
+
+### Personalization
+- Reflect the user's budget, October timing, and preference for minimal accommodation changes.
+
+### Adaptability
+- Explain how the plan would respond to a budget, timing, or availability change.
+
+# Pass Criteria
+
+- Score >= 75.0
+
+# Failure Conditions
+
+- Exceeding total budget of $2500 or excessive hotel changes.
+"""
+
+    config_content = json.dumps({
+        "scenario": "scenario.md",
+        "agent": "agents.travel:TravelPlanningAgent",
+        "model": "qwen2.5-72b-instruct",
+        "base_url": "http://localhost:8000/v1",
+        "api_key": "EMPTY",
+        "output": "./eval_results"
+    }, indent=2) + "\n"
+
+    readme_content = f"""# Evaluation Workspace: {target_dir.name}
+
+This directory was created by `evalrun init`.
+
+## Files Included
+
+- `scenario.md`: Benchmark scenario specification in Markdown format.
+- `evalrun.json`: Run configuration file specifying the agent and model settings.
+- `README.md`: Workspace quickstart guide.
+
+## Quick Start
+
+1. Edit `scenario.md` to define your user prompt, constraints, and evaluation criteria.
+2. Edit `evalrun.json` to specify your target agent (`--agent`) and model endpoint (`--base-url`).
+3. Execute evaluation:
+
+```bash
+evalrun run --config {target_dir / 'evalrun.json'}
+```
+
+Or from within this directory:
+
+```bash
+cd {target_dir}
+evalrun run --config evalrun.json
+```
+"""
+
+    try:
+        with open(scenario_file, "w", encoding="utf-8") as f:
+            f.write(scenario_content)
+        with open(config_file, "w", encoding="utf-8") as f:
+            f.write(config_content)
+        with open(readme_file, "w", encoding="utf-8") as f:
+            f.write(readme_content)
+
+        print(f"Initialized new evaluation workspace in '{target_dir}':")
+        print(f"  - {scenario_file}")
+        print(f"  - {config_file}")
+        print(f"  - {readme_file}")
+        print(f"\nTo run your evaluation:")
+        print(f"  evalrun run --config {config_file}")
+        return 0
+    except Exception as e:
+        print(f"Error initializing workspace in '{target_dir}': {e}", file=sys.stderr)
+        return 2
+
+
 def main(argv: Optional[List[str]] = None) -> None:
     parser = create_parser()
     args = parser.parse_args(argv)
 
     if args.command == "run":
         exit_code = run_command(args)
+        sys.exit(exit_code)
+    elif args.command == "init":
+        exit_code = init_command(args)
         sys.exit(exit_code)
     elif args.command == "ui":
         from ui.server import run_ui_server

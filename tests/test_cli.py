@@ -246,6 +246,42 @@ class TestCLIFunctionality(unittest.TestCase):
         self.assertIn("Target Model vs. Judge Model:", run_help)
         self.assertIn("Examples:", run_help)
 
+    def test_init_command_creates_valid_workspace(self):
+        from cli.main import init_command
+        from framework.parser import parse_benchmark
+
+        target_dir = os.path.join(self.temp_dir, "my-evaluation")
+        parser = create_parser()
+        args = parser.parse_args(["init", target_dir])
+
+        exit_code = init_command(args)
+        self.assertEqual(exit_code, 0)
+
+        scenario_path = os.path.join(target_dir, "scenario.md")
+        config_path = os.path.join(target_dir, "evalrun.json")
+        readme_path = os.path.join(target_dir, "README.md")
+
+        self.assertTrue(os.path.exists(scenario_path))
+        self.assertTrue(os.path.exists(config_path))
+        self.assertTrue(os.path.exists(readme_path))
+
+        # Verify generated scenario file is valid and parseable
+        benchmark = parse_benchmark(scenario_path)
+        self.assertEqual(benchmark.benchmark_id, "custom-evaluation-scenario")
+        self.assertEqual(benchmark.name, "Custom Evaluation Scenario")
+
+        # Verify generated evalrun.json is valid JSON
+        with open(config_path, "r", encoding="utf-8") as f:
+            cfg = json.load(f)
+        self.assertEqual(cfg["scenario"], "scenario.md")
+        self.assertEqual(cfg["agent"], "agents.travel:TravelPlanningAgent")
+
+        # The scaffold must define every dimension required by travel-agent.
+        with open(scenario_path, "r", encoding="utf-8") as f:
+            scenario_text = f.read()
+        for section in ("Information Accuracy", "Personalization", "Adaptability"):
+            self.assertIn(f"### {section}", scenario_text)
+
 
 if __name__ == "__main__":
     unittest.main()
