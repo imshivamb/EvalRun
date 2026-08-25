@@ -2,7 +2,6 @@
 
 import html
 import json
-import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from framework.models import EvaluationResult
@@ -28,37 +27,63 @@ def generate_html_report(
     output_path = Path(output_dir) / "report.html"
 
     total_runs = len(results)
-    passed_count = sum(1 for r in results if r.passed and getattr(r, "agent_metadata", {}).get("audit_gate_decision", "N/A") in ("PASS", "N/A"))
+    exec_error_count = sum(1 for r in results if getattr(r, "agent_metadata", {}).get("execution_error") is not None)
     blocked_count = sum(1 for r in results if getattr(r, "agent_metadata", {}).get("audit_gate_decision") == "BLOCK")
-    failed_count = total_runs - passed_count
+    passed_count = sum(
+        1 for r in results
+        if r.passed
+        and getattr(r, "agent_metadata", {}).get("audit_gate_decision", "N/A") in ("PASS", "N/A")
+        and not getattr(r, "agent_metadata", {}).get("execution_error")
+    )
+    failed_count = sum(
+        1 for r in results
+        if not r.passed
+        and not getattr(r, "agent_metadata", {}).get("execution_error")
+    )
 
-    reg_detected = regression_report.get("regression_detected", False) if regression_report else False
-    is_blocked = (regression_report.get("release_blocked", False) if regression_report else False) or (failed_count > 0) or (blocked_count > 0)
+    reg_by_id = {}
+    reg_detected = False
+    reg_count = 0
+    if regression_report:
+        reg_detected = regression_report.get("regression_detected", False)
+        for s in regression_report.get("scenarios", []):
+            reg_by_id[s["scenario_id"]] = s
+            if s.get("is_regression"):
+                reg_count += 1
 
+    is_blocked = (total_runs == 0) or (failed_count > 0) or (blocked_count > 0) or (exec_error_count > 0) or (reg_detected)
     avg_score = sum(r.overall_score for r in results) / total_runs if total_runs > 0 else 0.0
 
-    # Top level verdict banner
-    if is_blocked:
+    # Top-level verdict banner
+    if total_runs == 0:
+        verdict_class = "verdict-blocked"
+        verdict_title = "RELEASE BLOCKED — ZERO SCENARIOS EXECUTED"
+        verdict_sub = "The evaluation suite contains no valid scenarios or all executions failed before running."
+    elif is_blocked:
         verdict_class = "verdict-blocked"
         verdict_title = "RELEASE BLOCKED"
-        verdict_sub = f"{failed_count} evaluator failure(s), {blocked_count} auditor block(s)"
-        if reg_detected:
-            verdict_sub += ", score regression detected against baseline"
+        reasons = []
+        if exec_error_count > 0:
+            reasons.append(f"{exec_error_count} execution error(s)")
+        if failed_count > 0:
+            reasons.append(f"{failed_count} evaluator failure(s)")
+        if blocked_count > 0:
+            reasons.append(f"{blocked_count} auditor block(s)")
+        if reg_detected or reg_count > 0:
+            reasons.append(f"{reg_count or 1} baseline score regression(s)")
+        verdict_sub = ", ".join(reasons)
     else:
         verdict_class = "verdict-approved"
         verdict_title = "RELEASE APPROVED"
         verdict_sub = "All evaluation thresholds, auditor gates, and baseline regression checks passed cleanly."
 
-    reg_by_id = {}
-    if regression_report:
-        for s in regression_report.get("scenarios", []):
-            reg_by_id[s["scenario_id"]] = s
-
-    # Sort results fail/blocked first for human review
+    # Sort results so failed/blocked/errors appear first
     def result_sort_key(res: EvaluationResult) -> int:
-        gate = getattr(res, "agent_metadata", {}).get("audit_gate_decision", "N/A")
+        meta = getattr(res, "agent_metadata", {})
+        gate = meta.get("audit_gate_decision", "N/A")
         is_reg = reg_by_id.get(res.benchmark_id, {}).get("is_regression", False)
-        if is_reg or gate != "PASS" or not res.passed:
+        has_error = meta.get("execution_error") is not None
+        if has_error or is_reg or gate == "BLOCK" or not res.passed:
             return 0
         return 1
 
@@ -71,43 +96,67 @@ def generate_html_report(
         trace = meta.get("run_trace", {})
         audit = meta.get("audit_report", {})
         raw_output = meta.get("raw_content") or ""
+        exec_error = meta.get("execution_error")
 
         reg_info = reg_by_id.get(res.benchmark_id, {})
         is_reg = reg_info.get("is_regression", False)
 
-        eval_badge_class = "badge-pass" if res.passed else "badge-fail"
-        eval_status_str = "PASS" if res.passed else "FAIL"
-
-        gate_badge_class = "badge-pass" if gate == "PASS" else "badge-block"
-        gate_status_str = gate
-
-        card_status_tag = "passed"
-        if not res.passed:
+        # Determine card status tag
+        if exec_error:
+            card_status_tag = "error"
+        elif not res.passed:
             card_status_tag = "failed"
-        elif gate != "PASS":
+        elif gate == "BLOCK":
             card_status_tag = "blocked"
         elif is_reg:
             card_status_tag = "regressed"
+        else:
+            card_status_tag = "passed"
+
+        # Status Badges
+        eval_badge_class = "badge-pass" if res.passed else "badge-fail"
+        eval_status_str = "PASS" if res.passed else ("ERROR" if exec_error else "FAIL")
+
+        gate_badge_class = "badge-pass" if gate in ("PASS", "N/A") else "badge-block"
+        gate_status_str = gate
+
+        badges_html = [
+            f'<span class="badge {eval_badge_class}">Evaluator: {eval_status_str}</span>',
+            f'<span class="badge {gate_badge_class}">Auditor: {gate_status_str}</span>',
+        ]
+        if is_reg:
+            badges_html.append('<span class="badge badge-regressed">REGRESSED</span>')
+        if exec_error:
+            badges_html.append('<span class="badge badge-fail">EXECUTION ERROR</span>')
+
+        # Execution Error Box
+        exec_error_html = ""
+        if exec_error:
+            exec_error_html = f"""
+            <div class="error-card">
+                <h4>Execution Failure Details</h4>
+                <pre class="error-msg">{html.escape(str(exec_error))}</pre>
+            </div>
+            """
 
         # Lowest scoring dimension
         lowest_dim = min(res.dimension_scores, key=lambda d: d.score) if res.dimension_scores else None
         lowest_dim_html = ""
-        if lowest_dim:
+        if lowest_dim and not exec_error:
             lowest_score_class = "score-high" if lowest_dim.score >= 80 else ("score-med" if lowest_dim.score >= 60 else "score-low")
             lowest_dim_html = f"""
             <div class="highlight-card">
                 <strong>Lowest Dimension:</strong> {html.escape(lowest_dim.dimension)} 
-                (<span class="{lowest_score_class}">{lowest_dim.score:.1f}/100</span>) — {html.escape(lowest_dim.reason[:120])}...
+                (<span class="{lowest_score_class}">{lowest_dim.score:.1f}/100</span>) — {html.escape(lowest_dim.reason[:140])}...
             </div>
             """
 
-        # Baseline delta section
+        # Baseline comparison deltas
         baseline_delta_html = ""
         if reg_info:
             b_score = reg_info.get("baseline_score")
             c_score = reg_info.get("candidate_score")
             delta_val = reg_info.get("overall_delta")
-
             delta_class = "score-high" if (delta_val or 0) >= 0 else ("score-med" if (delta_val or 0) >= -5.0 else "score-low")
             delta_str = f"{delta_val:+.2f}" if delta_val is not None else "N/A"
 
@@ -136,6 +185,7 @@ def generate_html_report(
             </div>
             """
 
+        # Dimension score rows
         dimension_rows = []
         for ds in res.dimension_scores:
             score_class = "score-high" if ds.score >= 80 else ("score-med" if ds.score >= 60 else "score-low")
@@ -153,6 +203,7 @@ def generate_html_report(
             </tr>
             """)
 
+        # Auditor section
         auditor_section = ""
         if audit:
             violations_html = ""
@@ -163,7 +214,7 @@ def generate_html_report(
                     <li>
                         <strong>[{html.escape(str(v.get('violation_type')))}]</strong>
                         {html.escape(str(v.get('description')))}
-                        <span class="disc-amt">(Discrepancy: &#8377;{v.get('estimated_discrepancy_inr', 0):,.2f})</span>
+                        {f'<span class="disc-amt">(Discrepancy: &#8377;{v.get("estimated_discrepancy_inr", 0):,.2f})</span>' if v.get("estimated_discrepancy_inr") else ''}
                     </li>
                     """)
                 violations_html = f"""
@@ -186,18 +237,39 @@ def generate_html_report(
             </div>
             """
 
-        trace_section = ""
-        if trace:
-            trace_section = f"""
-            <div class="section-card trace-card">
-                <h3>Execution Run Trace</h3>
-                <table class="trace-table">
-                    <tr><th>Trace ID</th><td><code>{html.escape(str(trace.get('trace_id', 'N/A')))}</code></td></tr>
-                    <tr><th>Started (UTC)</th><td>{html.escape(str(trace.get('started_at_utc', 'N/A')))}</td></tr>
-                    <tr><th>Finished (UTC)</th><td>{html.escape(str(trace.get('finished_at_utc', 'N/A')))}</td></tr>
-                    <tr><th>Latency</th><td>{trace.get('latency_seconds', 0.0):.2f}s</td></tr>
-                    <tr><th>Status</th><td><code>{html.escape(str(trace.get('status', 'N/A')))}</code></td></tr>
-                </table>
+        # Latency & Token Usage Info
+        latency_str = f"{trace.get('latency_seconds', 0.0):.2f}s" if trace.get('latency_seconds') else "N/A"
+        tokens = meta.get("token_usage") or trace.get("tokens") or {}
+        p_tokens = tokens.get("prompt_tokens", "N/A")
+        c_tokens = tokens.get("completion_tokens", "N/A")
+
+        trace_section = f"""
+        <div class="section-card trace-card">
+            <h3>Execution & Performance Metrics</h3>
+            <table class="trace-table">
+                <tr><th>Trace ID</th><td><code>{html.escape(str(trace.get('trace_id', 'N/A')))}</code></td></tr>
+                <tr><th>Latency</th><td><strong>{latency_str}</strong></td></tr>
+                <tr><th>Token Usage</th><td>Prompt: <code>{p_tokens}</code> | Completion: <code>{c_tokens}</code></td></tr>
+                <tr><th>Started (UTC)</th><td>{html.escape(str(trace.get('started_at_utc', 'N/A')))}</td></tr>
+            </table>
+        </div>
+        """
+
+        # Copyable Remediation Command for failing cards
+        remediation_html = ""
+        if card_status_tag != "passed":
+            scen_path = meta.get("scenario_path") or f"evals/scenarios/{res.benchmark_id}.md"
+            agent_spec = manifest.get("target_agent_spec", "agents.travel:TravelPlanningAgent")
+            target_model = manifest.get("target_model", {}).get("model_name", "qwen2.5-72b-instruct")
+            cmd_str = f"evalrun run --scenario {scen_path} --agent {agent_spec} --model {target_model}"
+
+            remediation_html = f"""
+            <div class="remediation-box">
+                <div class="remediation-header">
+                    <span>Remediation CLI Command:</span>
+                    <button class="copy-btn" onclick="copyText('{html.escape(cmd_str)}')">Copy Command</button>
+                </div>
+                <code class="cmd-code">{html.escape(cmd_str)}</code>
             </div>
             """
 
@@ -220,19 +292,19 @@ def generate_html_report(
             <div class="scenario-header">
                 <h2>{html.escape(res.benchmark_name)}</h2>
                 <div class="badges">
-                    <span class="badge {eval_badge_class}">Evaluator: {eval_status_str}</span>
-                    <span class="badge {gate_badge_class}">Auditor: {gate_status_str}</span>
-                    {f'<span class="badge badge-regressed">REGRESSED</span>' if is_reg else ''}
+                    {' '.join(badges_html)}
                     <span class="overall-score-pill">Score: {res.overall_score:.2f} / 100</span>
                 </div>
             </div>
 
+            {exec_error_html}
             {lowest_dim_html}
+            {remediation_html}
             {baseline_delta_html}
             {auditor_section}
             {trace_section}
 
-            <div class="section-card">
+            {f'''<div class="section-card">
                 <h3>Dimension Breakdown</h3>
                 <table class="data-table">
                     <thead>
@@ -246,22 +318,23 @@ def generate_html_report(
                         {''.join(dimension_rows)}
                     </tbody>
                 </table>
-            </div>
+            </div>''' if dimension_rows else ''}
 
             {raw_output_section}
         </div>
         """)
 
-    # Build Failure Jump Links Bar
+    # Build Failure Jump Bar
     jump_links = []
     for res in sorted_results:
         meta = getattr(res, "agent_metadata", {})
         gate = meta.get("audit_gate_decision", "N/A")
         is_reg = reg_by_id.get(res.benchmark_id, {}).get("is_regression", False)
-        if is_reg or gate != "PASS" or not res.passed:
-            status_lbl = "REGRESSED" if is_reg else ("BLOCKED" if gate != "PASS" else "FAILED")
+        has_err = meta.get("execution_error") is not None
+        if has_err or is_reg or gate == "BLOCK" or not res.passed:
+            lbl = "ERROR" if has_err else ("REGRESSED" if is_reg else ("BLOCKED" if gate == "BLOCK" else "FAILED"))
             card_id = f"scenario-{res.benchmark_id}"
-            jump_links.append(f'<a href="#{card_id}" class="jump-pill">{html.escape(res.benchmark_name)} [{status_lbl}]</a>')
+            jump_links.append(f'<a href="#{card_id}" class="jump-pill">{html.escape(res.benchmark_name)} [{lbl}]</a>')
 
     jump_bar_html = ""
     if jump_links:
@@ -272,14 +345,15 @@ def generate_html_report(
         </div>
         """
 
-    regressed_btn_html = '<button class="filter-btn" onclick="setFilter(\'regressed\', this)">Regressed</button>' if regression_report else ''
+    regressed_btn_html = f'<button class="filter-btn" onclick="setFilter(\'regressed\', this)">Regressed ({reg_count})</button>' if regression_report else ''
+    error_btn_html = f'<button class="filter-btn" onclick="setFilter(\'error\', this)">Errors ({exec_error_count})</button>' if exec_error_count > 0 else ''
 
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>evalrun Evaluation Report — {html.escape(manifest.get('run_id', 'N/A'))}</title>
+    <title>EvalRun Evaluation Report — {html.escape(manifest.get('run_id', 'N/A'))}</title>
     <style>
         :root {{
             --bg-color: #0f172a;
@@ -336,7 +410,7 @@ def generate_html_report(
         }}
         .controls-bar {{
             display: flex;
-            gap: 16px;
+            gap: 12px;
             align-items: center;
             margin-bottom: 24px;
             flex-wrap: wrap;
@@ -367,7 +441,7 @@ def generate_html_report(
         }}
         .meta-grid {{
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 16px;
             margin-top: 16px;
         }}
@@ -384,7 +458,7 @@ def generate_html_report(
             letter-spacing: 0.5px;
         }}
         .meta-val {{
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             margin-top: 4px;
             word-break: break-all;
@@ -412,6 +486,7 @@ def generate_html_report(
             display: flex;
             gap: 8px;
             align-items: center;
+            flex-wrap: wrap;
         }}
         .badge {{
             padding: 4px 12px;
@@ -431,6 +506,21 @@ def generate_html_report(
             font-size: 13px;
             font-weight: 600;
         }}
+        .error-card {{
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--fail-color);
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin-bottom: 16px;
+        }}
+        .error-card h4 {{ margin: 0 0 8px 0; color: var(--fail-color); }}
+        .error-msg {{
+            margin: 0;
+            font-family: monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            color: #fca5a5;
+        }}
         .highlight-card {{
             background: rgba(245, 158, 11, 0.1);
             border: 1px solid var(--block-color);
@@ -438,6 +528,41 @@ def generate_html_report(
             padding: 10px 14px;
             font-size: 13px;
             margin-bottom: 16px;
+        }}
+        .remediation-box {{
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+        }}
+        .remediation-header {{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }}
+        .copy-btn {{
+            background: var(--accent-blue);
+            color: #fff;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+        }}
+        .cmd-code {{
+            display: block;
+            background: #1e293b;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 13px;
+            color: #60a5fa;
+            word-break: break-all;
         }}
         .section-card {{
             background: #0f172a;
@@ -577,6 +702,10 @@ def generate_html_report(
                     <div class="meta-val">{html.escape(manifest.get('run_id', 'N/A'))}</div>
                 </div>
                 <div class="meta-item">
+                    <div class="meta-label">Target Agent</div>
+                    <div class="meta-val">{html.escape(manifest.get('target_agent_spec', 'N/A'))}</div>
+                </div>
+                <div class="meta-item">
                     <div class="meta-label">Target Model</div>
                     <div class="meta-val">{html.escape(manifest.get('target_model', {}).get('model_name', 'N/A'))}</div>
                 </div>
@@ -589,8 +718,8 @@ def generate_html_report(
                     <div class="meta-val">{avg_score:.2f} / 100</div>
                 </div>
                 <div class="meta-item">
-                    <div class="meta-label">Pass / Fail / Block</div>
-                    <div class="meta-val">{passed_count} / {failed_count} / {blocked_count}</div>
+                    <div class="meta-label">Pass / Fail / Block / Error</div>
+                    <div class="meta-val">{passed_count} / {failed_count} / {blocked_count} / {exec_error_count}</div>
                 </div>
             </div>
         </header>
@@ -602,6 +731,7 @@ def generate_html_report(
             <button class="filter-btn" onclick="setFilter('failed', this)">Failed ({failed_count})</button>
             <button class="filter-btn" onclick="setFilter('blocked', this)">Blocked ({blocked_count})</button>
             {regressed_btn_html}
+            {error_btn_html}
         </div>
 
         <div id="cardsContainer">
@@ -609,7 +739,7 @@ def generate_html_report(
         </div>
 
         <footer>
-            Generated by evalrun Agent Evaluation Platform &bull; {html.escape(manifest.get('timestamp_utc', ''))}
+            Generated by EvalRun Agent Evaluation Platform &bull; {html.escape(manifest.get('timestamp_utc', ''))}
         </footer>
     </div>
 
@@ -634,6 +764,13 @@ def generate_html_report(
                 }} else {{
                     card.style.display = 'none';
                 }}
+            }});
+        }}
+        function copyText(text) {{
+            navigator.clipboard.writeText(text).then(() => {{
+                alert('Copied remediation command to clipboard!');
+            }}).catch(err => {{
+                console.error('Copy failed:', err);
             }});
         }}
     </script>
