@@ -67,6 +67,20 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Failed to load baselines', err);
         });
 
+    const agentPresetSelect = document.getElementById('agent-preset');
+    const customAgentGroup = document.getElementById('custom-agent-group');
+    const agentSpecInput = document.getElementById('agent-spec');
+
+    if (agentPresetSelect) {
+        agentPresetSelect.addEventListener('change', () => {
+            const isCustom = agentPresetSelect.value === 'custom';
+            customAgentGroup.classList.toggle('hidden', !isCustom);
+            if (!isCustom) {
+                agentSpecInput.value = agentPresetSelect.value;
+            }
+        });
+    }
+
     // 3. Handle Form Submission
     evalForm.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -74,9 +88,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const isCustom = document.querySelector('input[name="scenario-mode"]:checked').value === 'custom';
         const scenario = isCustom ? customScenarioInput.value.trim() : scenarioSelect.value;
         const customScenarioPath = document.getElementById('custom-scenario-path').value.trim();
-        const agent = document.getElementById('agent-spec').value.trim();
+        const isCustomAgent = agentPresetSelect ? agentPresetSelect.value === 'custom' : true;
+        const agent = isCustomAgent ? agentSpecInput.value.trim() : agentPresetSelect.value;
         const model = document.getElementById('target-model').value.trim();
         const base_url = document.getElementById('base-url').value.trim();
+        const judge_model = document.getElementById('judge-model') ? document.getElementById('judge-model').value.trim() : '';
         const api_key = document.getElementById('api-key').value.trim();
         const baseline = baselineSelect.value;
 
@@ -96,6 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
             agent,
             model,
             base_url,
+            judge_model: judge_model || undefined,
             api_key: api_key || undefined,
             baseline: baseline || undefined,
         };

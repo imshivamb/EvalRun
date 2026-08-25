@@ -48,8 +48,26 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="agent-spec">Agent Specifier *</label>
-                            <input type="text" id="agent-spec" value="agents.travel:TravelPlanningAgent" placeholder="agents.travel:TravelPlanningAgent, http://..., cli:..." required>
+                            <label for="agent-preset">Select Target Agent *</label>
+                            <select id="agent-preset">
+                                <option value="agents.travel:TravelPlanningAgent">Built-in Travel Planning Agent (agents.travel:TravelPlanningAgent)</option>
+                                <option value="agents.support:SupportTriageAgent">Built-in Customer Support Triage Agent (agents.support:SupportTriageAgent)</option>
+                                <option value="custom">Custom Agent Specifier...</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group hidden" id="custom-agent-group">
+                            <label for="agent-spec">Custom Agent Specifier *</label>
+                            <input type="text" id="agent-spec" value="agents.travel:TravelPlanningAgent" placeholder="my_package.agent:MyAgent, http://localhost:8080/predict, cli:python agent.py">
+                        </div>
+
+                        <div class="form-group full-width adapter-guide-box">
+                            <div class="guide-title">💡 Agent Protocol Adapter Guide</div>
+                            <div class="guide-grid">
+                                <div><strong>Python Class:</strong> <code>module:Class</code> — Direct in-process import</div>
+                                <div><strong>HTTP REST:</strong> <code>http://localhost:8080/predict</code> — Sends JSON payload</div>
+                                <div><strong>CLI Binary:</strong> <code>cli:python my_script.py</code> — Invokes shell executable</div>
+                            </div>
                         </div>
 
                         <div class="form-group">
@@ -58,14 +76,19 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="base-url">OpenAI-Compatible Base URL *</label>
+                            <label for="base-url">Target OpenAI-Compatible Base URL *</label>
                             <input type="text" id="base-url" value="http://localhost:8000/v1" placeholder="http://localhost:8000/v1 or https://api.openai.com/v1" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="judge-model">Judge Model (Optional Override)</label>
+                            <input type="text" id="judge-model" placeholder="Defaults to target model if unspecified">
                         </div>
 
                         <div class="form-group">
                             <label for="api-key">API Key (In-Memory Only)</label>
                             <input type="password" id="api-key" placeholder="EMPTY or sk-proj-..." autocomplete="off">
-                            <small class="security-hint">🔒 In-memory only. Secrets are sanitized and never saved to disk.</small>
+                            <small class="security-hint">🔒 Local in-memory execution. Secrets are sanitized and never written to disk reports.</small>
                         </div>
 
                         <div class="form-group">
