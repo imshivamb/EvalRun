@@ -114,6 +114,55 @@ class TestPythonSDK(unittest.TestCase):
         self.assertEqual(len(manifest["execution_errors"]), 1)
         self.assertFalse(manifest["overall_passed"])
 
+    @patch("framework.sdk.BenchmarkRunner")
+    @patch("framework.sdk.OpenAICompatibleLLM")
+    def test_single_scenario_execution_failure(self, mock_llm_class, mock_runner_class):
+        scenario_path = os.path.join(self.temp_dir, "single_broken.md")
+        with open(scenario_path, "w", encoding="utf-8") as f:
+            f.write("invalid scenario content")
+
+        mock_runner = MagicMock()
+        mock_runner_class.return_value = mock_runner
+        mock_runner.run.side_effect = RuntimeError("single scenario failure")
+
+        results = evaluate(
+            scenario=scenario_path,
+            agent="tests.test_cli:DummyAgentClass",
+            model="test-model",
+            output_dir=self.temp_dir,
+        )
+
+        self.assertEqual(len(results), 1)
+        self.assertFalse(results[0].passed)
+        self.assertEqual(results[0].agent_metadata["execution_error"], "single scenario failure")
+
+        with open(os.path.join(self.temp_dir, "manifest.json"), encoding="utf-8") as f:
+            manifest = json.load(f)
+        self.assertEqual(manifest["total_scenarios"], 1)
+        self.assertEqual(manifest["successful_scenarios"], 0)
+        self.assertEqual(len(manifest["execution_errors"]), 1)
+        self.assertFalse(manifest["overall_passed"])
+
+    @patch("framework.sdk.BenchmarkRunner")
+    @patch("framework.sdk.OpenAICompatibleLLM")
+    def test_empty_suite_directory(self, mock_llm_class, mock_runner_class):
+        empty_dir = os.path.join(self.temp_dir, "empty_suite")
+        os.makedirs(empty_dir, exist_ok=True)
+
+        results = evaluate(
+            scenario=empty_dir,
+            agent="tests.test_cli:DummyAgentClass",
+            model="test-model",
+            output_dir=self.temp_dir,
+        )
+
+        self.assertEqual(len(results), 0)
+        with open(os.path.join(self.temp_dir, "manifest.json"), encoding="utf-8") as f:
+            manifest = json.load(f)
+        self.assertEqual(manifest["total_scenarios"], 0)
+        self.assertEqual(manifest["successful_scenarios"], 0)
+        self.assertFalse(manifest["overall_passed"])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -224,6 +224,28 @@ class TestCLIFunctionality(unittest.TestCase):
         exit_code = run_command(args)
         self.assertEqual(exit_code, 2)
 
+    def test_cli_help_discovery_examples(self):
+        parser = create_parser()
+        main_help = parser.format_help()
+
+        self.assertIn("EvalRun: Local evaluation & regression testing toolkit", main_help)
+        self.assertIn("Quick Start Commands:", main_help)
+        self.assertIn("evalrun demo", main_help)
+        self.assertIn("evalrun ui", main_help)
+        self.assertIn("Exit Codes:", main_help)
+
+        subparsers_action = [action for action in parser._actions if action.dest == "command"][0]
+        run_parser = subparsers_action.choices["run"]
+        run_help = run_parser.format_help()
+
+        self.assertIn("Agent Specifiers (--agent / -a):", run_help)
+        self.assertIn("agents.travel:TravelPlanningAgent", run_help)
+        self.assertIn("my_module.agent:MyAgent", run_help)
+        self.assertIn("http://localhost:8080/predict", run_help)
+        self.assertIn("cli:python my_agent_script.py", run_help)
+        self.assertIn("Target Model vs. Judge Model:", run_help)
+        self.assertIn("Examples:", run_help)
+
 
 if __name__ == "__main__":
     unittest.main()

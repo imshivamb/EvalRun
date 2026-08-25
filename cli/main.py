@@ -25,13 +25,79 @@ from agents.auditor import IndependentBudgetAuditor
 
 def create_parser() -> argparse.ArgumentParser:
     """Creates the argparse parser for evalrun CLI."""
+    main_description = (
+        "EvalRun: Local evaluation & regression testing toolkit for tool-using AI agents.\n\n"
+        "Quick Start Commands:\n"
+        "  evalrun demo                     Run an offline evaluation demo with zero API keys required\n"
+        "  evalrun ui                       Launch the local guided browser UI\n"
+        "  evalrun run -s scenario.md -a agents.travel:TravelPlanningAgent -m gpt-5.6-terra\n"
+    )
+
+    main_epilog = (
+        "Exit Codes:\n"
+        "  0  Success          All scenarios passed quality thresholds, auditor gate, and baseline checks.\n"
+        "  1  Release Blocked  Evaluation failed, auditor gate blocked, or baseline score regressed.\n"
+        "  2  Runtime Error    Invalid configuration, missing scenario file, or broken agent import.\n\n"
+        "For detailed usage on any command, run: evalrun <command> --help\n"
+    )
+
     parser = argparse.ArgumentParser(
         prog="evalrun",
-        description="Local evaluation & regression testing toolkit for tool-using AI agents.",
+        description=main_description,
+        epilog=main_epilog,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     subparsers = parser.add_subparsers(dest="command", help="Command to execute")
 
-    run_parser = subparsers.add_parser("run", help="Run evaluation on a scenario or suite")
+    run_description = (
+        "Run evaluation & regression testing on a benchmark scenario file (.md) or suite directory.\n\n"
+        "Agent Specifiers (--agent / -a):\n"
+        "  Built-in agent:       agents.travel:TravelPlanningAgent\n"
+        "  Custom Python agent:  my_module.agent:MyAgent (must implement run(prompt) -> AgentOutput or str)\n"
+        "  HTTP REST endpoint:   http://localhost:8080/predict\n"
+        "  CLI Binary command:   cli:python my_agent_script.py\n\n"
+        "Model Endpoint Options:\n"
+        "  Hosted OpenAI model:  --model gpt-5.6-terra --base-url https://api.openai.com/v1\n"
+        "  Local model server:   --model qwen2.5-72b-instruct --base-url http://localhost:8000/v1 --api-key EMPTY\n\n"
+        "Target Model vs. Judge Model:\n"
+        "  Target Model (--model):       The LLM powering the agent under evaluation.\n"
+        "  Judge Model (--judge-model):   The LLM evaluating output quality against rubrics (defaults to target model).\n"
+    )
+
+    run_epilog = (
+        "Examples:\n"
+        "  # 1. Run built-in agent with hosted model:\n"
+        "  evalrun run --scenario evals/scenarios/travel-agent/budget-constrained-itinerary.md \\\n"
+        "              --agent agents.travel:TravelPlanningAgent \\\n"
+        "              --model gpt-5.6-terra\n\n"
+        "  # 2. Run custom Python agent with local model server:\n"
+        "  evalrun run --scenario evals/scenarios/travel-agent/budget-constrained-itinerary.md \\\n"
+        "              --agent my_package.my_agent:MyAgent \\\n"
+        "              --model qwen2.5-72b-instruct \\\n"
+        "              --base-url http://localhost:8000/v1 \\\n"
+        "              --api-key EMPTY\n\n"
+        "  # 3. Run HTTP agent endpoint:\n"
+        "  evalrun run --scenario evals/scenarios/travel-agent/budget-constrained-itinerary.md \\\n"
+        "              --agent http://localhost:8080/predict \\\n"
+        "              --model gpt-5.6-terra\n\n"
+        "  # 4. Run CLI agent command:\n"
+        "  evalrun run --scenario evals/scenarios/travel-agent/budget-constrained-itinerary.md \\\n"
+        "              --agent 'cli:python my_agent_script.py' \\\n"
+        "              --model gpt-5.6-terra\n\n"
+        "  # 5. Run evaluation with baseline regression check:\n"
+        "  evalrun run --scenario evals/scenarios/travel-agent/budget-constrained-itinerary.md \\\n"
+        "              --agent agents.travel:TravelPlanningAgent \\\n"
+        "              --model gpt-5.6-terra \\\n"
+        "              --baseline eval_results/prior_run\n"
+    )
+
+    run_parser = subparsers.add_parser(
+        "run",
+        help="Run evaluation on a scenario or suite",
+        description=run_description,
+        epilog=run_epilog,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
 
     # Configuration file flag
     run_parser.add_argument(

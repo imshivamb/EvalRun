@@ -110,8 +110,26 @@ def evaluate(
                     )
     else:
         attempted_scenarios = 1
-        res = runner.run(str(scenario_path))
-        results.append(res)
+        try:
+            res = runner.run(str(scenario_path))
+            results.append(res)
+        except Exception as e:
+            error = str(e)
+            execution_errors.append({"scenario": str(scenario_path), "error": error})
+            print(f"Warning: Failed to evaluate scenario '{scenario_path}': {error}")
+            results.append(
+                EvaluationResult(
+                    benchmark_id=f"execution-error:{scenario_path.stem}",
+                    benchmark_name=scenario_path.stem,
+                    overall_score=0.0,
+                    dimension_scores=[],
+                    passed=False,
+                    agent_metadata={
+                        "execution_error": error,
+                        "scenario_path": str(scenario_path),
+                    },
+                )
+            )
 
     # Write SDK evaluation artifacts
     try:
