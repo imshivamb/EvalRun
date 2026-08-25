@@ -77,17 +77,39 @@ def evaluate(
 
     scenario_path = Path(scenario)
     results: List[EvaluationResult] = []
+    execution_errors: List[Dict[str, str]] = []
+    attempted_scenarios = 0
 
     if scenario_path.is_dir():
         for fname in os.listdir(scenario_path):
             if fname.endswith(".md") or fname.endswith(".json"):
                 s_file = scenario_path / fname
+                attempted_scenarios += 1
                 try:
                     res = runner.run(str(s_file))
                     results.append(res)
                 except Exception as e:
-                    print(f"Warning: Failed to evaluate scenario '{s_file}': {e}")
+                    error = str(e)
+                    execution_errors.append({"scenario": str(s_file), "error": error})
+                    print(f"Warning: Failed to evaluate scenario '{s_file}': {error}")
+                    # Preserve the failed scenario in the public result set so
+                    # callers and reports cannot mistake a skipped execution
+                    # for a successful suite.
+                    results.append(
+                        EvaluationResult(
+                            benchmark_id=f"execution-error:{s_file.stem}",
+                            benchmark_name=s_file.stem,
+                            overall_score=0.0,
+                            dimension_scores=[],
+                            passed=False,
+                            agent_metadata={
+                                "execution_error": error,
+                                "scenario_path": str(s_file),
+                            },
+                        )
+                    )
     else:
+        attempted_scenarios = 1
         res = runner.run(str(scenario_path))
         results.append(res)
 
@@ -109,8 +131,11 @@ def evaluate(
             "judge_model": {"model_name": judge_model_name, "base_url": j_base_url, "api_key": "[REDACTED]"},
             "ground_truth_path": ground_truth,
             "output_dir": str(out_path),
-            "total_scenarios": len(results),
-            "overall_passed": all(r.passed for r in results),
+            "total_scenarios": attempted_scenarios,
+            "successful_scenarios": len(results) - len(execution_errors),
+            "execution_errors": execution_errors,
+            # Empty and partially failed suites are never successful.
+            "overall_passed": bool(results) and not execution_errors and all(r.passed for r in results),
         }
         with open(out_path / "manifest.json", "w", encoding="utf-8") as f:
             json.dump(redact_credentials(manifest), f, indent=2)

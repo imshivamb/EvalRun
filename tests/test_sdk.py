@@ -83,6 +83,37 @@ class TestPythonSDK(unittest.TestCase):
         self.assertFalse(report.regression_detected)
         self.assertFalse(report.release_blocked)
 
+    @patch("framework.sdk.BenchmarkRunner")
+    @patch("framework.sdk.OpenAICompatibleLLM")
+    def test_suite_execution_failure_is_not_reported_as_pass(self, mock_llm_class, mock_runner_class):
+        suite_dir = os.path.join(self.temp_dir, "suite")
+        os.makedirs(suite_dir, exist_ok=True)
+        scenario_path = os.path.join(suite_dir, "broken.md")
+        with open(scenario_path, "w", encoding="utf-8") as f:
+            f.write("placeholder")
+
+        mock_runner = MagicMock()
+        mock_runner_class.return_value = mock_runner
+        mock_runner.run.side_effect = RuntimeError("model endpoint unavailable")
+
+        results = evaluate(
+            scenario=suite_dir,
+            agent="tests.test_cli:DummyAgentClass",
+            model="test-model",
+            output_dir=self.temp_dir,
+        )
+
+        self.assertEqual(len(results), 1)
+        self.assertFalse(results[0].passed)
+        self.assertEqual(results[0].agent_metadata["execution_error"], "model endpoint unavailable")
+
+        with open(os.path.join(self.temp_dir, "manifest.json"), encoding="utf-8") as f:
+            manifest = json.load(f)
+        self.assertEqual(manifest["total_scenarios"], 1)
+        self.assertEqual(manifest["successful_scenarios"], 0)
+        self.assertEqual(len(manifest["execution_errors"]), 1)
+        self.assertFalse(manifest["overall_passed"])
+
 
 if __name__ == "__main__":
     unittest.main()

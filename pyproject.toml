@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "evalrun"
-version = "0.4.0"
+version = "0.4.1"
 description = "Provider-agnostic evaluation and regression-testing toolkit for tool-using AI agents."
 readme = "README.md"
 requires-python = ">=3.10"
