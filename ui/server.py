@@ -2,6 +2,7 @@
 
 import json
 import os
+import secrets
 import sys
 import urllib.parse
 from datetime import datetime, timezone
@@ -10,6 +11,31 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 STATIC_DIR = Path(__file__).parent / "static"
+WORKSPACE_ROOT = Path.cwd().resolve()
+UI_TOKEN = secrets.token_urlsafe(32)
+UI_ALLOWED_AGENTS = {"agents.travel:TravelPlanningAgent"}
+UI_RESULT_ROOTS = (
+    WORKSPACE_ROOT / "eval_results",
+    WORKSPACE_ROOT / "results",
+)
+
+
+def _resolve_workspace_path(value: str, *, allowed_roots: tuple[Path, ...]) -> Path:
+    """Resolve a user-provided path and require it under an approved root."""
+    resolved = (WORKSPACE_ROOT / value).resolve()
+    if not any(resolved == root or root in resolved.parents for root in allowed_roots):
+        raise ValueError("Path must remain inside an approved EvalRun output directory.")
+    return resolved
+
+
+def _request_is_local(request_handler: SimpleHTTPRequestHandler) -> bool:
+    """Reject browser requests that do not target the local UI server."""
+    host = request_handler.headers.get("Host", "").split(":", 1)[0]
+    origin = request_handler.headers.get("Origin")
+    origin_host = urllib.parse.urlparse(origin).hostname if origin else None
+    return host in {"127.0.0.1", "localhost"} and (
+        origin_host is None or origin_host in {"127.0.0.1", "localhost"}
+    )
 
 
 def list_available_scenarios(base_dir: str = "evals/scenarios") -> List[Dict[str, str]]:
@@ -100,14 +126,15 @@ class UIRequestHandler(SimpleHTTPRequestHandler):
             baselines = list_available_baselines()
             self.send_json_response(200, {"baselines": baselines})
             return
+        elif path == "/api/session":
+            self.send_json_response(200, {"token": UI_TOKEN})
+            return
         elif path.startswith("/eval_results/") or path.startswith("/results/"):
-            # Enforce strict path traversal protection: ensure file remains within workspace root
             try:
-                requested_path = (Path.cwd() / path.lstrip("/")).resolve()
-                workspace_root = Path.cwd().resolve()
-                if not requested_path.is_relative_to(workspace_root):
-                    self.send_json_response(403, {"error": "Access denied: Path traversal outside workspace is forbidden."})
-                    return
+                requested_path = _resolve_workspace_path(
+                    path.lstrip("/"),
+                    allowed_roots=UI_RESULT_ROOTS,
+                )
 
                 if requested_path.exists() and requested_path.is_file():
                     content_type = "text/html" if requested_path.suffix == ".html" else "application/json"
@@ -122,8 +149,8 @@ class UIRequestHandler(SimpleHTTPRequestHandler):
                 else:
                     self.send_json_response(404, {"error": "File not found."})
                     return
-            except Exception as e:
-                self.send_json_response(500, {"error": str(e)})
+            except ValueError as e:
+                self.send_json_response(403, {"error": str(e)})
                 return
 
         # Serve static UI files
@@ -136,6 +163,12 @@ class UIRequestHandler(SimpleHTTPRequestHandler):
         path = parsed.path
 
         if path == "/api/run":
+            if not _request_is_local(self):
+                self.send_json_response(403, {"error": "UI requests must originate from localhost."})
+                return
+            if self.headers.get("X-EvalRun-UI-Token") != UI_TOKEN:
+                self.send_json_response(403, {"error": "Missing or invalid UI session token."})
+                return
             length = int(self.headers.get("Content-Length", 0))
             body = self.rfile.read(length).decode("utf-8")
             try:
@@ -159,24 +192,36 @@ class UIRequestHandler(SimpleHTTPRequestHandler):
             if not scenario:
                 self.send_json_response(400, {"error": "Missing required field 'scenario'."})
                 return
+            if agent not in UI_ALLOWED_AGENTS:
+                self.send_json_response(
+                    403,
+                    {"error": "The local UI only permits registered built-in agents."},
+                )
+                return
 
-            # UI users may provide a custom scenario path, but it must remain
-            # inside the local workspace. Never allow the UI to read arbitrary
-            # files from the host machine.
             try:
-                workspace_root = Path.cwd().resolve()
-                scenario_path = (workspace_root / str(scenario)).resolve()
-                if not scenario_path.is_relative_to(workspace_root):
-                    self.send_json_response(
-                        403,
-                        {"error": "Scenario path must remain inside the EvalRun workspace."},
-                    )
-                    return
-                if not scenario_path.exists():
+                scenario_path = (WORKSPACE_ROOT / str(scenario)).resolve()
+                if (
+                    not scenario_path.is_relative_to(WORKSPACE_ROOT)
+                    or scenario_path.suffix.lower() != ".md"
+                    or not scenario_path.is_file()
+                ):
                     self.send_json_response(400, {"error": f"Scenario path does not exist: {scenario}"})
                     return
+                if output_dir:
+                    output_dir_path = _resolve_workspace_path(
+                        str(output_dir),
+                        allowed_roots=UI_RESULT_ROOTS,
+                    )
+                    output_dir = str(output_dir_path)
+                if baseline:
+                    baseline_path = _resolve_workspace_path(
+                        str(baseline),
+                        allowed_roots=UI_RESULT_ROOTS,
+                    )
+                    baseline = str(baseline_path)
             except Exception as e:
-                self.send_json_response(400, {"error": f"Invalid scenario path: {e}"})
+                self.send_json_response(403, {"error": f"Invalid UI path: {e}"})
                 return
 
             try:

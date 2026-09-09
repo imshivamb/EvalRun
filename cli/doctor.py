@@ -82,39 +82,46 @@ def run_doctor_checks() -> Tuple[bool, List[str]]:
         lines.append("[WARN] Built-in Agent Import: agents.travel not found in python path")
 
     # 5. Endpoint Reachability (OpenAI API)
+    skip_network = os.getenv("EVALRUN_SKIP_NETWORK_CHECKS") == "1"
     openai_reach = False
-    try:
-        req = urllib.request.Request("https://api.openai.com/v1/models", headers={"User-Agent": "evalrun-doctor"})
-        with urllib.request.urlopen(req, timeout=3) as resp:
-            openai_reach = resp.status in (200, 401)
-    except urllib.error.HTTPError as e:
-        openai_reach = e.code in (401, 403, 200)
-    except Exception:
-        openai_reach = False
+    if not skip_network:
+        try:
+            req = urllib.request.Request("https://api.openai.com/v1/models", headers={"User-Agent": "evalrun-doctor"})
+            with urllib.request.urlopen(req, timeout=3) as resp:
+                openai_reach = resp.status in (200, 401)
+        except urllib.error.HTTPError as e:
+            openai_reach = e.code in (401, 403, 200)
+        except Exception:
+            openai_reach = False
 
     if openai_reach:
         lines.append("[PASS] Hosted Endpoint Reachability: https://api.openai.com/v1")
+    elif skip_network:
+        lines.append("[INFO] Hosted Endpoint Reachability: skipped (EVALRUN_SKIP_NETWORK_CHECKS=1)")
     else:
         lines.append("[INFO] Hosted Endpoint Reachability: https://api.openai.com/v1 (Offline or unreachable)")
 
     # 6. Local Model Server Availability
     local_reach = False
-    for local_url in ["http://localhost:8000/v1/models", "http://localhost:11434/api/tags"]:
-        try:
-            req = urllib.request.Request(local_url)
-            with urllib.request.urlopen(req, timeout=2) as resp:
-                if resp.status in (200, 401, 403):
+    if not skip_network:
+        for local_url in ["http://localhost:8000/v1/models", "http://localhost:11434/api/tags"]:
+            try:
+                req = urllib.request.Request(local_url)
+                with urllib.request.urlopen(req, timeout=2) as resp:
+                    if resp.status in (200, 401, 403):
+                        local_reach = True
+                        break
+            except urllib.error.HTTPError as e:
+                if e.code in (200, 401, 403):
                     local_reach = True
                     break
-        except urllib.error.HTTPError as e:
-            if e.code in (200, 401, 403):
-                local_reach = True
-                break
-        except Exception:
-            pass
+            except Exception:
+                pass
 
     if local_reach:
         lines.append("[PASS] Local Model Server: Active local LLM server detected")
+    elif skip_network:
+        lines.append("[INFO] Local Model Server: skipped (EVALRUN_SKIP_NETWORK_CHECKS=1)")
     else:
         lines.append("[INFO] Local Model Server: No active local LLM server detected on 8000/11434")
 

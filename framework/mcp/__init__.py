@@ -7,14 +7,13 @@ from framework.mcp.constraints import (
 )
 from framework.mcp.client import TravelValidationMCPClient
 
+from .revision_summary import RevisionSummary, parse_revision_summary
+
 __all__ = [
     "calculate_savings",
     "get_locked_constraints",
     "validate_revision",
     "TravelValidationMCPClient",
+    "RevisionSummary",
+    "parse_revision_summary",
 ]
-"""MCP-backed deterministic validation components."""
-
-from .revision_summary import RevisionSummary, parse_revision_summary
-
-__all__ = ["RevisionSummary", "parse_revision_summary"]

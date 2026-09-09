@@ -1,7 +1,6 @@
-from langfuse import observe
-
 from typing import Dict
 from framework.exceptions import EvaluationError
+from framework.observability import observe
 from framework.models import (
     AgentOutput,
     Benchmark,

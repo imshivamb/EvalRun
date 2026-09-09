@@ -2,8 +2,7 @@
 
 from framework.llms import BaseLLM, Message
 from framework.utils import parse_json_markdown
-
-from langfuse import observe
+from framework.observability import observe
 
 
 class ResearchPlanner:

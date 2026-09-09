@@ -43,6 +43,10 @@ def build_llm_judge_prompt(
     user_prompt = (
         f"Benchmark Name: {benchmark.name}\n"
         f"Benchmark Description: {benchmark.description}\n\n"
+        f"### User Request:\n{benchmark.prompt}\n\n"
+        f"### Scenario Constraints:\n{benchmark.constraints}\n\n"
+        f"### Pass Criteria:\n{benchmark.pass_criteria}\n\n"
+        f"### Failure Conditions:\n{benchmark.failure_conditions}\n\n"
         f"### Agent Output To Evaluate:\n{output.content}\n"
     )
 

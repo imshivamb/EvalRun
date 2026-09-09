@@ -1,0 +1,214 @@
+{
+  "schema_version": "1.1",
+  "notes": "Secret-free public evidence extracted from retained local result JSON. Full itinerary text and judge reasons are omitted. Missing five-scenario runs are marked instead of treated as successful zeros. Llama five-scenario rows were not retained and are not published here.",
+  "five_scenario_regression": {
+    "source": "results/multi-model-benchmarks/results.json",
+    "framework_version": "v2.1-mcp",
+    "planner": "TravelPlanningAgent",
+    "scenarios": [
+      "Budget",
+      "Route Optimization",
+      "Remote Worker",
+      "Replanning",
+      "Information Gathering"
+    ],
+    "models": {
+      "Gemini 3.1 Pro": {
+        "provider": "gemini",
+        "model_id": "models/gemini-3.1-pro-preview",
+        "scores": {
+          "Budget": {
+            "v1": 84.0,
+            "v2": 81.5
+          },
+          "Route Optimization": {
+            "v1": 89.4,
+            "v2": 86.1
+          },
+          "Remote Worker": {
+            "v1": 94.0,
+            "v2": 93.1
+          },
+          "Replanning": {
+            "v1": 99.25,
+            "v2": 96.45
+          },
+          "Information Gathering": {
+            "v1": 35.0,
+            "v2": 14.75
+          }
+        }
+      },
+      "Gemini 3.5 Flash": {
+        "provider": "gemini",
+        "model_id": "models/gemini-3.5-flash",
+        "scores": {
+          "Budget": {
+            "v1": 84.6,
+            "v2": 72.85
+          },
+          "Route Optimization": {
+            "v1": 90.5,
+            "v2": 87.9
+          },
+          "Remote Worker": {
+            "v1": 93.1,
+            "v2": 94.6
+          },
+          "Replanning": {
+            "v1": 0.0,
+            "v2": 0.0,
+            "status": "missing_or_failed_run"
+          },
+          "Information Gathering": {
+            "v1": 0.0,
+            "v2": 0.0,
+            "status": "missing_or_failed_run"
+          }
+        }
+      }
+    }
+  },
+  "mcp_replanning_audits": {
+    "source_dir": "results/mcp-constraint-validation/",
+    "experiment": "mcp-replanning-v2-vs-v2.1",
+    "benchmark": "travel-mid-trip-replanning",
+    "runs": [
+      {
+        "model": "GPT-5.6 Terra",
+        "planner_model": "gpt-5.6-terra",
+        "judge_model": "gpt-5.6-terra",
+        "model_id": "gpt-5.6-terra",
+        "source": "results/mcp-constraint-validation/mcp-replanning-gpt-5-6-terra.json",
+        "timestamp_utc": "2026-07-28T17:14:46.254552+00:00",
+        "benchmark": "travel-mid-trip-replanning",
+        "v2_overall": 86.4,
+        "v21_overall": 87.3,
+        "delta_overall": 0.9,
+        "v2_dimensions": {
+          "Adaptability": 88.0,
+          "Constraint Satisfaction": 94.0,
+          "Planning Quality": 88.0,
+          "Information Accuracy": 42.0,
+          "Personalization": 78.0
+        },
+        "v21_dimensions": {
+          "Adaptability": 92.0,
+          "Constraint Satisfaction": 90.0,
+          "Planning Quality": 88.0,
+          "Information Accuracy": 42.0,
+          "Personalization": 68.0
+        },
+        "revision_triggered_v2": true,
+        "revision_triggered_v21": true,
+        "mcp_initial_status": "completed",
+        "mcp_final_status": "completed"
+      },
+      {
+        "model": "Gemini 3.1 Pro",
+        "planner_model": "models/gemini-3.1-pro-preview",
+        "judge_model": "models/gemini-3.1-pro-preview",
+        "model_id": "models/gemini-3.1-pro-preview",
+        "source": "results/mcp-constraint-validation/mcp-replanning-gemini-3-1-pro.json",
+        "timestamp_utc": "2026-08-15T12:01:52.262344+00:00",
+        "benchmark": "travel-mid-trip-replanning",
+        "v2_overall": 99.25,
+        "v21_overall": 99.0,
+        "delta_overall": -0.25,
+        "v2_dimensions": {
+          "Adaptability": 100.0,
+          "Constraint Satisfaction": 100.0,
+          "Planning Quality": 95.0,
+          "Information Accuracy": 100.0,
+          "Personalization": 100.0
+        },
+        "v21_dimensions": {
+          "Adaptability": 100.0,
+          "Constraint Satisfaction": 100.0,
+          "Planning Quality": 95.0,
+          "Information Accuracy": 95.0,
+          "Personalization": 100.0
+        },
+        "revision_triggered_v2": false,
+        "revision_triggered_v21": false,
+        "mcp_initial_status": "completed",
+        "mcp_final_status": null
+      },
+      {
+        "model": "Gemini 3.5 Flash",
+        "planner_model": "models/gemini-3.5-flash",
+        "judge_model": "models/gemini-3.1-pro-preview",
+        "model_id": "models/gemini-3.5-flash",
+        "source": "results/mcp-constraint-validation/mcp-replanning-gemini-3-5-flash.json",
+        "timestamp_utc": "2026-08-18T17:14:53.123797+00:00",
+        "benchmark": "travel-mid-trip-replanning",
+        "v2_overall": 98.5,
+        "v21_overall": 99.25,
+        "delta_overall": 0.75,
+        "v2_dimensions": {
+          "Adaptability": 100.0,
+          "Constraint Satisfaction": 100.0,
+          "Planning Quality": 95.0,
+          "Information Accuracy": 85.0,
+          "Personalization": 100.0
+        },
+        "v21_dimensions": {
+          "Adaptability": 100.0,
+          "Constraint Satisfaction": 100.0,
+          "Planning Quality": 95.0,
+          "Information Accuracy": 100.0,
+          "Personalization": 100.0
+        },
+        "revision_triggered_v2": false,
+        "revision_triggered_v21": false,
+        "mcp_initial_status": "completed",
+        "mcp_final_status": null
+      }
+    ]
+  },
+  "auditor_v3_comparison": {
+    "source": "results/multi-model-benchmarks/v3_auditor_comparison.json",
+    "timestamp_utc": "2026-08-22T11:41:26.911915+00:00",
+    "planner_model": "models/gemini-3.1-pro-preview",
+    "judge_model": "models/gemini-3.1-pro-preview",
+    "scenarios": [
+      {
+        "scenario": "budget-constrained-itinerary.md",
+        "v1_overall": 84.6,
+        "v2_overall": 85.0,
+        "v3_evaluator_score": 85.0,
+        "auditor_gate_decision": "BLOCK",
+        "auditor_latency_seconds": 229.91,
+        "auditor_violation_types": [
+          "MATH_HALLUCINATION",
+          "HIDDEN_OVERHEAD"
+        ]
+      },
+      {
+        "scenario": "mid-trip-replanning.md",
+        "v1_overall": 98.75,
+        "v2_overall": 99.25,
+        "v3_evaluator_score": 94.75,
+        "auditor_gate_decision": "BLOCK",
+        "auditor_latency_seconds": 365.67,
+        "auditor_violation_types": [
+          "MATH_HALLUCINATION"
+        ]
+      }
+    ]
+  },
+  "auditor_sensitivity": {
+    "source": "results/multi-model-benchmarks/synthetic_auditor_results.json",
+    "auditor_model": "models/gemini-3.1-pro-preview",
+    "total_cases": 20,
+    "true_positive": 18,
+    "false_positive": 2,
+    "true_negative": 0,
+    "false_negative": 0,
+    "recall_pct": 100.0,
+    "specificity_pct": 0.0,
+    "precision_pct": 90.0,
+    "accuracy_pct": 90.0,
+    "fp_rate_pct": 100.0
+  }
+}

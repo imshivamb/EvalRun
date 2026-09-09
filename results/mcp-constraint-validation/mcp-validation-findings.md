@@ -2,7 +2,10 @@
 
 ## Executive Summary
 
-This study evaluates **`v2.1` (Planner + Reflection + MCP Validation)** against the **`v2` Baseline (Planner + Reflection)** on mid-trip disruption replanning (`travel-mid-trip-replanning`) across frontier models: **GPT-5.6 Terra** and **Gemini 3.1 Pro Preview**.
+This study evaluates **`v2.1` (Planner + Reflection + MCP Validation)** against the **`v2` Baseline (Planner + Reflection)** on mid-trip disruption replanning (`travel-mid-trip-replanning`) across frontier models: **GPT-5.6 Terra**, **Gemini 3.1 Pro Preview**, and **Gemini 3.5 Flash**.
+
+Numeric values below are copied from
+[`docs/evidence/canonical-results.json`](../../docs/evidence/canonical-results.json).
 
 In this verified evaluation harness:
 1. **MCP Validation Executes on Every Draft**: Every replanning draft undergoes deterministic verification of immutable booking locks (Kyoto hostel Days 15–18, Narita return flight Day 28) and itemized ₹20,000 cost reductions.
@@ -18,7 +21,7 @@ In this verified evaluation harness:
 | **Adaptability** | 88.00 | 92.00 | +4.00 | 100.00 | 100.00 | 0.00 | 100.00 | 100.00 | 0.00 |
 | **Constraint Satisfaction** | 94.00 | 90.00 | -4.00 | 100.00 | 100.00 | 0.00 | 100.00 | 100.00 | 0.00 |
 | **Planning Quality** | 88.00 | 88.00 | 0.00 | 95.00 | 95.00 | 0.00 | 95.00 | 95.00 | 0.00 |
-| **Information Accuracy** | 42.00 | 42.00 | 0.00 | 100.00 | 100.00 | 0.00 | 85.00 | 85.00 | 0.00 |
+| **Information Accuracy** | 42.00 | 42.00 | 0.00 | 100.00 | 95.00 | -5.00 | 85.00 | 100.00 | +15.00 |
 | **Personalization** | 78.00 | 68.00 | -10.00 | 100.00 | 100.00 | 0.00 | 100.00 | 100.00 | 0.00 |
 | **Revision Triggered** | Yes | Yes | — | No | No | — | No | No | — |
 | **MCP Validation Status** | — | Completed (Init+Final) | — | — | Completed (Init) | — | — | Completed (Init) | — |
@@ -75,7 +78,5 @@ In this verified evaluation harness:
 
 ## Saved File Locations
 
-- **Focused Gemini 3.1 Pro Audit**: [`results/mcp-constraint-validation/mcp-replanning-gemini-3-1-pro.json`](file:///Users/shivam/Projects/AI/agent-eval-platform/results/mcp-constraint-validation/mcp-replanning-gemini-3-1-pro.json)
-- **Focused Gemini 3.5 Flash Audit**: [`results/mcp-constraint-validation/mcp-replanning-gemini-3-5-flash.json`](file:///Users/shivam/Projects/AI/agent-eval-platform/results/mcp-constraint-validation/mcp-replanning-gemini-3-5-flash.json)
-- **Focused GPT-5.6 Terra Audit**: [`results/mcp-constraint-validation/mcp-replanning-gpt-5-6-terra.json`](file:///Users/shivam/Projects/AI/agent-eval-platform/results/mcp-constraint-validation/mcp-replanning-gpt-5-6-terra.json)
-- **Consolidated Findings Report**: [`results/mcp-constraint-validation/mcp-validation-findings.md`](file:///Users/shivam/Projects/AI/agent-eval-platform/results/mcp-constraint-validation/mcp-validation-findings.md)
+- **Public score artifact**: [`docs/evidence/canonical-results.json`](../../docs/evidence/canonical-results.json)
+- Local full traces (gitignored): `results/mcp-constraint-validation/mcp-replanning-*.json`

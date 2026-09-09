@@ -49,8 +49,8 @@ class BenchmarkRunner:
         self,
         agent,
         judge_llm,
+        output_dir: str,
         local_verifier_path: str = "ground_truth/japan_demo.json",
-        output_dir: str = "scratch",
         auditor: Any = None,
     ):
         """Initializes the BenchmarkRunner.
@@ -207,7 +207,7 @@ class BenchmarkRunner:
         except Exception as e:
             latency = time.time() - t0
             finished_time = datetime.now(timezone.utc)
-            status = "timeout" if isinstance(e, (TimeoutError, TimeoutError)) or "timeout" in str(e).lower() else "error"
+            status = "timeout" if isinstance(e, TimeoutError) or "timeout" in str(e).lower() else "error"
             err_msg = str(e)
 
             llm_obj = getattr(self.agent, "llm", None)

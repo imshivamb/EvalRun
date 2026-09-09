@@ -1,7 +1,6 @@
-from langfuse import observe
-
 from framework.llms import BaseLLM, Message
 from framework.models import AgentOutput
+from framework.observability import observe
 from agents.base import BaseAgent
 from .prompts import RESEARCH_SYSTEM_PROMPT
 

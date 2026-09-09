@@ -51,12 +51,10 @@
                             <label for="agent-preset">Select Target Agent *</label>
                             <select id="agent-preset">
                                 <option value="agents.travel:TravelPlanningAgent">Built-in Travel Planning Agent (agents.travel:TravelPlanningAgent)</option>
-                                <option value="agents.support:SupportTriageAgent">Built-in Customer Support Triage Agent (agents.support:SupportTriageAgent)</option>
-                                <option value="custom">Custom Agent Specifier...</option>
                             </select>
                         </div>
 
-                        <div class="form-group hidden" id="custom-agent-group">
+                        <div class="form-group hidden" id="custom-agent-group" aria-hidden="true">
                             <label for="agent-spec">Custom Agent Specifier *</label>
                             <input type="text" id="agent-spec" value="agents.travel:TravelPlanningAgent" placeholder="my_package.agent:MyAgent, http://localhost:8080/predict, cli:python agent.py">
                         </div>

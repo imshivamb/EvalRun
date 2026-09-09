@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const customScenarioInput = document.getElementById('custom-scenario-path');
     const builtinScenarioGroup = document.getElementById('builtin-scenario-group');
     const scenarioModeInputs = document.querySelectorAll('input[name="scenario-mode"]');
+    let uiToken = '';
 
     const resultsCard = document.getElementById('results-card');
     const verdictBanner = document.getElementById('verdict-banner');
@@ -16,6 +17,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const verdictSub = document.getElementById('verdict-sub');
     const openReportBtn = document.getElementById('open-report-btn');
     const tableBody = document.getElementById('results-table-body');
+
+    fetch('/api/session')
+        .then(res => res.json())
+        .then(data => {
+            uiToken = data.token || '';
+        })
+        .catch(() => {
+            uiToken = '';
+        });
 
     scenarioModeInputs.forEach(input => {
         input.addEventListener('change', () => {
@@ -100,6 +110,10 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Please fill in all required fields.');
             return;
         }
+        if (!uiToken) {
+            alert('The local UI session is not ready. Reload the page and try again.');
+            return;
+        }
 
         // Show loading spinner
         runBtn.disabled = true;
@@ -119,7 +133,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         fetch('/api/run', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'X-EvalRun-UI-Token': uiToken,
+            },
             body: JSON.stringify(payload)
         })
         .then(res => res.json())

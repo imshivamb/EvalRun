@@ -23,6 +23,8 @@ class OpenAICompatibleLLM(BaseLLM):
         retry_delay: float = 1.0,
         extra_headers: Optional[Dict[str, str]] = None,
         provider: str = "openai_compatible",
+        temperature: Optional[float] = 0.0,
+        seed: Optional[int] = None,
     ):
         """Initializes the OpenAICompatibleLLM client.
 
@@ -43,6 +45,8 @@ class OpenAICompatibleLLM(BaseLLM):
         self.max_retries = max_retries
         self.retry_delay = retry_delay
         self.extra_headers = extra_headers
+        self.temperature = temperature
+        self.seed = seed
 
         resolved_api_key = api_key or os.environ.get("OPENAI_API_KEY") or "EMPTY"
         self.client = OpenAI(
@@ -89,9 +93,16 @@ class OpenAICompatibleLLM(BaseLLM):
 
         for attempt in range(1 + self.max_retries):
             try:
+                request_kwargs = {
+                    "model": self.model_name,
+                    "messages": formatted_messages,
+                }
+                if self.temperature is not None:
+                    request_kwargs["temperature"] = self.temperature
+                if self.seed is not None:
+                    request_kwargs["seed"] = self.seed
                 response = self.client.chat.completions.create(
-                    model=self.model_name,
-                    messages=formatted_messages,
+                    **request_kwargs,
                 )
                 break
             except Exception as e:
