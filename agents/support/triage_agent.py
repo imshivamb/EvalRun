@@ -1,10 +1,9 @@
 """Customer-support triage agent used by the second-domain benchmark."""
 
-from langfuse import observe
-
 from agents.base import BaseAgent
 from framework.llms import BaseLLM, Message
 from framework.models import AgentOutput
+from framework.observability import observe
 
 
 SUPPORT_TRIAGE_SYSTEM_PROMPT = """You are a production customer-support triage agent.

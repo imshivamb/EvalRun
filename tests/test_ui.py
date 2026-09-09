@@ -101,15 +101,24 @@ class TestUIServer(unittest.TestCase):
         mock_evaluate.return_value = [mock_res]
 
         url = f"http://127.0.0.1:{self.port}/api/run"
+        with urllib.request.urlopen(f"http://127.0.0.1:{self.port}/api/session") as session_resp:
+            ui_token = json.loads(session_resp.read().decode("utf-8"))["token"]
         payload = {
             "scenario": "evals/scenarios/travel-agent/budget-constrained-itinerary.md",
             "agent": "agents.travel:TravelPlanningAgent",
             "model": "qwen2.5-72b-instruct",
             "base_url": "http://localhost:8000/v1",
-            "output_dir": os.path.join(self.temp_dir, "ui_run"),
+            "output_dir": os.path.join(os.getcwd(), "eval_results", "ui-test-run"),
         }
         data = json.dumps(payload).encode("utf-8")
-        req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
+        req = urllib.request.Request(
+            url,
+            data=data,
+            headers={
+                "Content-Type": "application/json",
+                "X-EvalRun-UI-Token": ui_token,
+            },
+        )
 
         with urllib.request.urlopen(req) as resp:
             self.assertEqual(resp.status, 200)

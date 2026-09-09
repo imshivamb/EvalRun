@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0",
+  "source": "results/multi-model-benchmarks/results.json",
+  "framework_version": "v2.1-mcp",
+  "planner": "TravelPlanningAgent",
+  "scenarios": ["Budget", "Route Optimization", "Remote Worker", "Replanning", "Information Gathering"],
+  "models": {
+    "Gemini 3.1 Pro": {
+      "provider": "gemini",
+      "model_id": "models/gemini-3.1-pro-preview",
+      "scores": {
+        "Budget": {"v1": 84.0, "v2": 81.5},
+        "Route Optimization": {"v1": 89.4, "v2": 86.1},
+        "Remote Worker": {"v1": 94.0, "v2": 93.1},
+        "Replanning": {"v1": 99.25, "v2": 96.45},
+        "Information Gathering": {"v1": 35.0, "v2": 14.75}
+      }
+    },
+    "Gemini 3.5 Flash": {
+      "provider": "gemini",
+      "model_id": "models/gemini-3.5-flash",
+      "scores": {
+        "Budget": {"v1": 84.6, "v2": 72.85},
+        "Route Optimization": {"v1": 90.5, "v2": 87.9},
+        "Remote Worker": {"v1": 93.1, "v2": 94.6},
+        "Replanning": {"v1": 0.0, "v2": 0.0, "status": "missing_or_failed_run"},
+        "Information Gathering": {"v1": 0.0, "v2": 0.0, "status": "missing_or_failed_run"}
+      }
+    }
+  },
+  "auditor_sensitivity": {
+    "total_cases": 20,
+    "true_positive": 18,
+    "false_positive": 2,
+    "true_negative": 0,
+    "false_negative": 0,
+    "recall_pct": 100.0,
+    "specificity_pct": 0.0,
+    "precision_pct": 90.0,
+    "accuracy_pct": 90.0
+  }
+}

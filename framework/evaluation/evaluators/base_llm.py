@@ -90,6 +90,8 @@ class BaseLLMEvaluator(BaseEvaluator):
             response_text = response.text
             parsed = self._parse_json_response(response_text)
             score = float(parsed["score"])
+            if not 0.0 <= score <= 100.0:
+                raise ValueError(f"Score must be between 0 and 100, got {score}")
             reason = str(parsed["reason"])
         except Exception as e:
             raise EvaluationError(

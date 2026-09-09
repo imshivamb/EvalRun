@@ -46,6 +46,7 @@ class TestOpenAICompatibleLLM(unittest.TestCase):
         mock_client.chat.completions.create.assert_called_once_with(
             model="qwen2.5-72b-instruct",
             messages=[{"role": "user", "content": "Test prompt"}],
+            temperature=0.0,
         )
 
     @patch("framework.llms.openai_compatible.OpenAI")

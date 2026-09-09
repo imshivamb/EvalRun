@@ -1,5 +1,3 @@
-from langfuse import observe
-
 import asyncio
 import json
 from typing import Any, Dict, Optional
@@ -7,6 +5,7 @@ from framework.llms import BaseLLM, Message
 from framework.models import AgentOutput
 from framework.utils import parse_json_markdown
 from framework.memory import BaseSessionMemory
+from framework.observability import observe
 from agents.base import BaseAgent
 from agents.research.planner import ResearchPlanner
 from framework.mcp.revision_summary import (

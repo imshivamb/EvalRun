@@ -7,47 +7,34 @@ This document summarizes the comparative evaluation results of the travel-planni
 3. **Gemini 3.5 Flash** (`models/gemini-3.5-flash`)
 4. **Llama 3.1 8B** (`meta/llama-3.1-8b-instruct`)
 
+> **Evidence policy:** The canonical five-scenario values below are the values
+> currently present in `results.json`. Earlier GPT/Llama and curated markdown
+> exports were not retained with matching raw artifacts, so they are not
+> presented as reproducible measurements here.
+
 ---
 
 ## 1. Five-Scenario Regression Suite Report
 
 The scores below represent the comprehensive **Five-Scenario Regression Suite**, which verifies cross-scenario agent stability when reflection and closed-world planning controls are activated.
 
-### Model: GPT-5.6 Terra
-| Scenario | Planner Only (v1) | Planner + Reflection (v2) | Delta |
-| :--- | :---: | :---: | :---: |
-| Budget | 61.25 | 71.50 | **+10.25** |
-| Route Optimization | 82.85 | 81.20 | -1.65 |
-| Remote Worker | 79.15 | 79.80 | **+0.65** |
-| Replanning | 60.10 | 77.00 | **+16.90** |
-| Information Gathering | 67.95 | 71.65 | **+3.70** |
-
 ### Model: Gemini 3.1 Pro
 | Scenario | Planner Only (v1) | Planner + Reflection + MCP (v2.1) | Delta |
 | :--- | :---: | :---: | :---: |
-| Budget | 85.00 | 84.00 | -1.00 |
-| Route Optimization | 89.40 | 90.50 | **+1.10** |
-| Remote Worker | 13.00 | 95.00 | **+82.00** |
-| Replanning | 84.65 | 84.15 | -0.50 |
-| Information Gathering | 68.05 | 73.50 | **+5.45** |
+| Budget | 84.00 | 81.50 | -2.50 |
+| Route Optimization | 89.40 | 86.10 | -3.30 |
+| Remote Worker | 94.00 | 93.10 | -0.90 |
+| Replanning | 99.25 | 96.45 | -2.80 |
+| Information Gathering | 35.00 | 14.75 | -20.25 |
 
 ### Model: Gemini 3.5 Flash
 | Scenario | Planner Only (v1) | Planner + Reflection + MCP (v2.1) | Delta |
 | :--- | :---: | :---: | :---: |
-| Budget | 82.50 | 73.55 | -8.95 |
-| Route Optimization | 84.10 | 83.20 | -0.90 |
-| Remote Worker | 82.00 | 85.10 | **+3.10** |
-| Replanning | 85.45 | 86.30 | **+0.85** |
-| Information Gathering | 70.50 | 73.35 | **+2.85** |
-
-### Model: Llama 3.1 8B
-| Scenario | Planner Only (v1) | Planner + Reflection (v2) | Delta |
-| :--- | :---: | :---: | :---: |
-| Budget | 71.95 | 40.30 | -31.65 (Factual database variance) |
-| Route Optimization | 73.90 | 76.45 | **+2.55** |
-| Remote Worker | 2.00 | 34.70 | **+32.70** |
-| Replanning | 83.50 | 80.85 | -2.65 |
-| Information Gathering | 71.50 | 59.75 | -11.75 |
+| Budget | 84.60 | 72.85 | -11.75 |
+| Route Optimization | 90.50 | 87.90 | -2.60 |
+| Remote Worker | 93.10 | 94.60 | **+1.50** |
+| Replanning | 0.00 | 0.00 | 0.00 (missing/failed run) |
+| Information Gathering | 0.00 | 0.00 | 0.00 (missing/failed run) |
 
 ---
 
@@ -58,7 +45,7 @@ In addition to the five-scenario regression check, a **dedicated controlled audi
 | Model | Baseline (`v2`) | MCP-Validated (`v2.1`) | Net Delta ($\Delta$) | Deterministic Audit Artifact |
 | :--- | :---: | :---: | :---: | :--- |
 | **GPT-5.6 Terra** | 86.40 | **87.30** | **+0.90** | [`mcp-replanning-gpt-5-6-terra.json`](file:///Users/shivam/Projects/AI/agent-eval-platform/results/mcp-constraint-validation/mcp-replanning-gpt-5-6-terra.json) |
-| **Gemini 3.1 Pro** | 99.25 | **99.25** | **0.00** | [`mcp-replanning-gemini-3-1-pro.json`](file:///Users/shivam/Projects/AI/agent-eval-platform/results/mcp-constraint-validation/mcp-replanning-gemini-3-1-pro.json) |
+| **Gemini 3.1 Pro** | 99.25 | **99.00** | **-0.25** | [`mcp-replanning-gemini-3-1-pro.json`](file:///Users/shivam/Projects/AI/agent-eval-platform/results/mcp-constraint-validation/mcp-replanning-gemini-3-1-pro.json) |
 | **Gemini 3.5 Flash** | 98.50 | **99.25** | **+0.75** | [`mcp-replanning-gemini-3-5-flash.json`](file:///Users/shivam/Projects/AI/agent-eval-platform/results/mcp-constraint-validation/mcp-replanning-gemini-3-5-flash.json) |
 
 For comprehensive qualitative analysis of the MCP validation traces across models, see [`mcp-validation-findings.md`](file:///Users/shivam/Projects/AI/agent-eval-platform/results/mcp-constraint-validation/mcp-validation-findings.md).
@@ -74,13 +61,15 @@ For comprehensive qualitative analysis of the MCP validation traces across model
 > The five-scenario suite serves as a **regression verification harness** to guarantee that the reflection loop and MCP client integration do not introduce regressions across other travel planning capabilities.
 
 ### 2. Cross-Model Generalization
-The evaluation results show that the reflection loop + FastMCP optimizations successfully generalize across both OpenAI's flagship model (**GPT-5.6 Terra**) and Google's frontier models (**Gemini 3.1 Pro** and **Gemini 3.5 Flash**):
-* **Remote Worker Timezones**: Gemini 3.1 Pro saw an enormous improvement of **+82.00** (rising from `13.00` in v1 to `95.00` in v2.1), completely eliminating meeting overlap violations during local 4:15 PM – 5:30 PM core windows.
-* **Route Optimization**: Gemini 3.1 Pro achieved a near-perfect score of **90.50** in v2.1, eliminating circular transit loops.
-* **Information Gathering**: Gemini 3.1 Pro improved by **+5.45** (`68.05` ➔ `73.50`), and Gemini 3.5 Flash improved by **+2.85** (`70.50` ➔ `73.35`).
+The currently retained raw artifact shows mixed effects rather than universal
+improvement. Gemini 3.1 Pro declined on every listed scenario, including
+Information Gathering (`35.00` ➔ `14.75`). Gemini 3.5 Flash improved only on
+Remote Worker (`93.10` ➔ `94.60`) and regressed on Budget and Route
+Optimization. These values should be treated as a regression signal, not as a
+claim that reflection generalizes positively across models.
 
 ### 3. Replanning Robustness & Deterministic Validation
-In Mid-Trip Replanning, both GPT-5.6 Terra (`77.00` / `87.30` in focused MCP run), Gemini 3.1 Pro (`84.15`), and Gemini 3.5 Flash (`86.30`) successfully solved the disruption:
+In the focused Mid-Trip Replanning runs, the stored JSON artifacts report:
 * Unaffected days of the trip were preserved without cascading alterations.
 * Locked non-refundable bookings (Kyoto hostel Days 15–18, Narita return flight Day 28) remained anchored.
 * MCP deterministically validated the ₹20,000 cost recovery without relying on generative estimations.
@@ -90,5 +79,7 @@ In Mid-Trip Replanning, both GPT-5.6 Terra (`77.00` / `87.30` in focused MCP run
 ## Overall Conclusions
 
 1. **Targeted Validation Works**: FastMCP delivered deterministic constraint enforcement where LLMs struggle most (arithmetic totals and immutable anchor preservation under mid-trip replanning stress).
-2. **Surfacing Real Trade-Offs**: The regression suite detected mixed effects—reflection substantially improved complex constraint scenarios (e.g., +82.00 on Remote Worker for Gemini 3.1 Pro) but also introduced measurable regressions in certain model/scenario combinations (e.g., Gemini 3.5 Flash Budget -8.95, Route -0.90, Gemini 3.1 Pro Budget -1.00). The framework successfully surfaced these nuances rather than obscuring them.
+2. **Surfacing Real Trade-Offs**: The retained regression suite detects mixed
+   effects, including a large Information Gathering regression for Gemini 3.1
+   Pro and a small Remote Worker improvement for Gemini 3.5 Flash.
 3. **End-to-End Audit Trail**: Every run produces persistent JSON reports containing `agent_metadata` and Markdown summaries with full MCP validation traces for verification.

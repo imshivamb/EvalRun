@@ -1,10 +1,10 @@
 """Reflection agent implementation for auditing and critiquing planned itineraries."""
 
 from typing import Optional
-from langfuse import observe
 from framework.llms import BaseLLM, Message
 from framework.models import AgentOutput
 from framework.memory import BaseSessionMemory
+from framework.observability import observe
 from agents.base import BaseAgent
 from .prompts import REFLECTION_SYSTEM_PROMPT
 

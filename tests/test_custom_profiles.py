@@ -72,7 +72,7 @@ class TestCustomProfilesRegistry(unittest.TestCase):
         agent_mock = MagicMock()
         judge_mock = MagicMock()
         judge_mock.model_name = "test-judge-model"
-        runner = BenchmarkRunner(agent_mock, judge_mock)
+        runner = BenchmarkRunner(agent_mock, judge_mock, output_dir=self.temp_dir)
 
         # Register custom profile
         custom_prof = EvaluationProfile(name="My Custom Profile", weights={"Constraint Satisfaction": 1.0}, pass_threshold=80.0)

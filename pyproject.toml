@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "evalrun"
-version = "0.4.1"
+version = "0.4.2"
 description = "Provider-agnostic evaluation and regression-testing toolkit for tool-using AI agents."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -14,9 +14,13 @@ dependencies = [
     "pydantic>=2.0.0",
     "python-frontmatter>=1.0.0",
     "PyYAML>=6.0",
-    "langfuse>=2.0.0",
-    "fastmcp>=0.1.0"
+    "markdown-it-py>=3.0.0"
 ]
+
+[project.optional-dependencies]
+observability = ["langfuse>=2.0.0"]
+mcp = ["fastmcp>=0.1.0", "mcp>=1.27,<2"]
+all = ["langfuse>=2.0.0", "fastmcp>=0.1.0", "mcp>=1.27,<2"]
 
 [project.scripts]
 evalrun = "cli.main:main"
@@ -27,3 +31,10 @@ evalrun = "cli.main:main"
 # such as evals/, results/, and scratch/ as Python packages.
 include = ["agents*", "cli*", "framework*", "ui*"]
 exclude = ["tests*", "runs*", "evals*", "results*", "scratch*", "traces*", "dashboards*", "ground_truth*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+markers = [
+    "network: tests that make outbound network requests",
+]

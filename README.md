@@ -44,6 +44,13 @@ cd agent-eval-platform
 pip install -e .
 ```
 
+Optional integrations are deliberately not required for the core CLI and SDK:
+
+```bash
+pip install "evalrun[observability]"  # optional Langfuse tracing
+pip install "evalrun[mcp]"            # optional MCP validation tools
+```
+
 If your shell says `evalrun: command not found`, activate the virtual environment and install the repository first:
 
 ```bash
@@ -178,6 +185,10 @@ are not saved by EvalRun. Do not expose this server to the public internet and
 do not paste untrusted Python code into an agent field. Complex or third-party
 agents should be run through the CLI or SDK in the environment where their code
 and dependencies are installed.
+
+The UI intentionally permits only the built-in travel agent. Custom Python,
+HTTP, and CLI agent adapters remain CLI/SDK-only because accepting arbitrary
+agent specifications from a browser would allow local code execution.
 
 ---
 

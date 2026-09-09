@@ -1,5 +1,11 @@
 # Travel Agent Evaluation Dashboard
 
+> **Historical snapshot:** This dashboard predates the canonical result
+> artifact and is retained for provenance only. Do not cite these values as
+> current measurements. Use
+> `results/multi-model-benchmarks/comparison.md`, whose tables are reconciled
+> against the retained `results.json`, for reproducible results.
+
 ```text
 Framework Version: v2.1-mcp
 Planner: TravelPlanningAgent

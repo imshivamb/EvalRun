@@ -4,8 +4,16 @@ import os
 import sys
 from typing import Any, Dict, List, Optional
 
-from mcp import ClientSession, StdioServerParameters
-from mcp.client.stdio import stdio_client
+try:
+    from mcp import ClientSession, StdioServerParameters
+    from mcp.client.stdio import stdio_client
+except ImportError as exc:
+    ClientSession = None
+    StdioServerParameters = None
+    stdio_client = None
+    _MCP_IMPORT_ERROR = exc
+else:
+    _MCP_IMPORT_ERROR = None
 
 
 class TravelValidationMCPClient:
@@ -20,6 +28,10 @@ class TravelValidationMCPClient:
         self.python_executable = python_executable or sys.executable
 
     def _server_parameters(self) -> StdioServerParameters:
+        if _MCP_IMPORT_ERROR is not None:
+            raise RuntimeError(
+                "MCP support is not installed. Install evalrun[mcp] to use validation tools."
+            ) from _MCP_IMPORT_ERROR
         return StdioServerParameters(
             command=self.python_executable,
             args=["-m", "framework.mcp.server"],

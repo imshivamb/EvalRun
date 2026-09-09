@@ -8,6 +8,13 @@ Our empirical findings demonstrate a critical architectural principle for agent 
 
 However, detailed latency tracking revealed an important operational constraint: auditing a complex 29-day itinerary takes **229s–365s**, making the auditor unsuitable for real-time interactive loops but ideal for asynchronous CI/CD release gates.
 
+The synthetic sensitivity suite also exposed a serious limitation: across 20
+cases the auditor achieved **100% recall but 0% specificity** (18 true
+positives, 2 false positives, 0 true negatives, 0 false negatives). It blocked
+both compliant cases. The auditor therefore demonstrates detection of seeded
+violations, but it is not yet a trustworthy release gate; specificity must be
+fixed and re-measured before this result is presented as production-ready.
+
 ---
 
 ## 1. Refined Phase 2 Empirical Hypothesis

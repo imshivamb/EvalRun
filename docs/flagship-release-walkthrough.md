@@ -1,4 +1,4 @@
-# Flagship Technical Release & Architecture Walkthrough — `evalrun` (v10.0)
+# Flagship Technical Release & Architecture Walkthrough — `evalrun` 0.4.x
 
 > **"Quality score ≠ Release decision."**  
 > An open-source, local-first evaluation and regression testing platform built specifically for tool-using AI agents.
@@ -63,14 +63,23 @@ flowchart TD
 
 ## 3. Core Capabilities & Benchmark Results
 
-### Multi-Model Quality & Gate Benchmarks
+### Reproducible Results
 
-| Model | Domain | Avg Quality Score | Evaluator | Independent Auditor Gate | Release Verdict |
-| :--- | :--- | :---: | :---: | :---: | :---: |
-| **Qwen 2.5 72B Instruct** | Travel Planning | **92.5 / 100** | PASS | PASS | **APPROVED** |
-| **GPT-4o** | Travel Planning | **95.0 / 100** | PASS | PASS | **APPROVED** |
-| **Candidate v2 (Deliberate Regression)** | Travel Planning | **75.0 / 100** | PASS | PASS | **BLOCKED (Regressed -15.0)** |
-| **Unsafe Candidate Agent** | Financial Support | **100.0 / 100** | PASS | **BLOCK** | **BLOCKED (Auditor Violation)** |
+The canonical retained artifact currently contains two Gemini model runs across
+five scenarios. The full values and missing-run markers are maintained in
+[`results/multi-model-benchmarks/comparison.md`](../results/multi-model-benchmarks/comparison.md).
+
+| Model | Strongest retained result | Important limitation |
+| :--- | :--- | :--- |
+| **Gemini 3.1 Pro** | Budget 84.00, Route 89.40, Replanning 99.25 in v1 | Information Gathering fell from 35.00 to 14.75 after reflection |
+| **Gemini 3.5 Flash** | Remote Worker improved from 93.10 to 94.60 | Replanning and Information Gathering are recorded as missing/failed runs |
+
+The strongest independent-auditor experiment is the v3 comparison described in
+[`results/independent-auditor/auditor-validation-findings.md`](../results/independent-auditor/auditor-validation-findings.md):
+the quality evaluator scored v3 at 85.00 and 94.75 on two scenarios, while the
+independent auditor blocked both. The same experiment also found 100% recall
+but 0% specificity on the 20-case synthetic sensitivity suite, so this is an
+interesting research result, not a production-ready auditor claim.
 
 ---
 
@@ -121,4 +130,8 @@ if report.release_blocked:
 
 ## 5. Summary
 
-`evalrun` establishes an end-to-end open-source standard for AI agent evaluation, auditor gating, and regression prevention.
+`evalrun` is an early, local-first evaluation toolkit with a clear release-gate
+thesis. Its current evidence demonstrates the value of separating qualitative
+quality scores from hard gates, while its documented limitations define the
+next work: calibrating the judge, improving auditor specificity, and capturing
+agent trajectories.
