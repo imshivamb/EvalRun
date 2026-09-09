@@ -7,6 +7,8 @@ import tempfile
 import unittest
 from unittest.mock import MagicMock, patch
 
+import cli
+import cli.main as cli_main
 from cli.formatter import redact_credentials, format_terminal_summary
 from cli.main import create_parser, run_command, main
 from cli.resolver import resolve_agent
@@ -24,6 +26,16 @@ class DummyAgentClass:
 
 def dummy_agent_factory(llm=None):
     return DummyAgentClass(llm=llm)
+
+
+class TestCLIModuleExport(unittest.TestCase):
+    def test_cli_main_module_is_not_shadowed_by_entry_function(self):
+        """Python 3.10 unittest.mock uses getattr, so cli.main must stay the module."""
+        self.assertIs(cli.main, cli_main)
+        self.assertTrue(callable(cli_main.main))
+        self.assertTrue(hasattr(cli.main, "OpenAICompatibleLLM"))
+        with patch("cli.main.OpenAICompatibleLLM") as mocked:
+            self.assertIs(cli_main.OpenAICompatibleLLM, mocked)
 
 
 class TestCLIFunctionality(unittest.TestCase):
