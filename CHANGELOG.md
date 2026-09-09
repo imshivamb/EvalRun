@@ -18,6 +18,11 @@
   and MCP integrations, and missing package metadata dependencies.
 - Corrected the auditor documentation to disclose 0% specificity in the
   synthetic sensitivity suite.
+- Published secret-free MCP replanning and v3 auditor scores in
+  `docs/evidence/canonical-results.json`, and removed unbacked Llama/GPT
+  five-scenario claims.
+- Added a clean wheel-install CI job and marked doctor network probes so CI
+  skips live endpoint checks.
 - Added the missing `markdown-it-py` package dependency required by clean
   wheel installs.
 

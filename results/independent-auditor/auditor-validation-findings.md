@@ -79,4 +79,4 @@ We conclude that LLM evaluation systems should adopt a **two-tier architecture**
 
 The core Phase 2 experimental question is answered: **Independent gatekeeping decouples overall narrative quality from hard constraint compliance.** 
 
-Artifact dataset: [`results/multi-model-benchmarks/v3_auditor_comparison.json`](file:///Users/shivam/Projects/AI/agent-eval-platform/results/multi-model-benchmarks/v3_auditor_comparison.json)
+Public score artifact: [`docs/evidence/canonical-results.json`](../../docs/evidence/canonical-results.json)

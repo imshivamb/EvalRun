@@ -1,22 +1,27 @@
 # Multi-Model Comparative Benchmark Results
 
 ## Overview
-This document summarizes the comparative evaluation results of the travel-planning agent across architectures (`v1` Planner-Only vs `v2` Planner + Reflection). To ensure robust findings and prevent instruction-overfitting, the evaluations were executed across four different model configurations:
-1. **GPT-5.6 Terra** (`gpt-5.6-terra`)
-2. **Gemini 3.1 Pro** (`models/gemini-3.1-pro-preview`)
-3. **Gemini 3.5 Flash** (`models/gemini-3.5-flash`)
-4. **Llama 3.1 8B** (`meta/llama-3.1-8b-instruct`)
 
-> **Evidence policy:** The canonical five-scenario values below are the values
-> currently present in `results.json`. Earlier GPT/Llama and curated markdown
-> exports were not retained with matching raw artifacts, so they are not
-> presented as reproducible measurements here.
+This document summarizes retained comparative evaluation results of the
+travel-planning agent. Public numbers in this file are copied from
+[`docs/evidence/canonical-results.json`](../../docs/evidence/canonical-results.json).
+
+Two retained measurement sets exist:
+
+1. **Five-scenario regression suite** for Gemini 3.1 Pro and Gemini 3.5 Flash
+   (`v1` planner-only vs `v2.1` planner + reflection + MCP where activated).
+2. **Focused mid-trip replanning MCP audits** for GPT-5.6 Terra, Gemini 3.1 Pro,
+   and Gemini 3.5 Flash (`v2` vs `v2.1` on `travel-mid-trip-replanning` only).
+
+Llama 3.1 8B five-scenario rows, and any GPT five-scenario rows, were not
+retained with matching artifacts and are not published here.
 
 ---
 
 ## 1. Five-Scenario Regression Suite Report
 
-The scores below represent the comprehensive **Five-Scenario Regression Suite**, which verifies cross-scenario agent stability when reflection and closed-world planning controls are activated.
+The scores below are the comprehensive **Five-Scenario Regression Suite**
+values stored in `canonical-results.json`.
 
 ### Model: Gemini 3.1 Pro
 | Scenario | Planner Only (v1) | Planner + Reflection + MCP (v2.1) | Delta |
@@ -40,15 +45,18 @@ The scores below represent the comprehensive **Five-Scenario Regression Suite**,
 
 ## 2. Focused Mid-Trip Replanning FastMCP Audits
 
-In addition to the five-scenario regression check, a **dedicated controlled audit** was executed for Mid-Trip Replanning (`travel-mid-trip-replanning`) to isolate and certify the deterministic MCP layer under exact Day 12 session conditions. Each run generates complete per-run `agent_metadata` containing validated locked booking IDs and exact arithmetic savings checks.
+A dedicated controlled audit was executed for Mid-Trip Replanning
+(`travel-mid-trip-replanning`) to isolate the deterministic MCP layer under
+Day 12 session conditions. Secret-free scores and dimension breakdowns are in
+[`docs/evidence/canonical-results.json`](../../docs/evidence/canonical-results.json).
+Qualitative notes are in
+[`mcp-validation-findings.md`](../mcp-constraint-validation/mcp-validation-findings.md).
 
-| Model | Baseline (`v2`) | MCP-Validated (`v2.1`) | Net Delta ($\Delta$) | Deterministic Audit Artifact |
-| :--- | :---: | :---: | :---: | :--- |
-| **GPT-5.6 Terra** | 86.40 | **87.30** | **+0.90** | [`mcp-replanning-gpt-5-6-terra.json`](file:///Users/shivam/Projects/AI/agent-eval-platform/results/mcp-constraint-validation/mcp-replanning-gpt-5-6-terra.json) |
-| **Gemini 3.1 Pro** | 99.25 | **99.00** | **-0.25** | [`mcp-replanning-gemini-3-1-pro.json`](file:///Users/shivam/Projects/AI/agent-eval-platform/results/mcp-constraint-validation/mcp-replanning-gemini-3-1-pro.json) |
-| **Gemini 3.5 Flash** | 98.50 | **99.25** | **+0.75** | [`mcp-replanning-gemini-3-5-flash.json`](file:///Users/shivam/Projects/AI/agent-eval-platform/results/mcp-constraint-validation/mcp-replanning-gemini-3-5-flash.json) |
-
-For comprehensive qualitative analysis of the MCP validation traces across models, see [`mcp-validation-findings.md`](file:///Users/shivam/Projects/AI/agent-eval-platform/results/mcp-constraint-validation/mcp-validation-findings.md).
+| Model | Baseline (`v2`) | MCP-Validated (`v2.1`) | Net Delta |
+| :--- | :---: | :---: | :---: |
+| **GPT-5.6 Terra** | 86.40 | **87.30** | **+0.90** |
+| **Gemini 3.1 Pro** | 99.25 | **99.00** | **-0.25** |
+| **Gemini 3.5 Flash** | 98.50 | **99.25** | **+0.75** |
 
 ---
 
@@ -69,7 +77,7 @@ Optimization. These values should be treated as a regression signal, not as a
 claim that reflection generalizes positively across models.
 
 ### 3. Replanning Robustness & Deterministic Validation
-In the focused Mid-Trip Replanning runs, the stored JSON artifacts report:
+In the focused Mid-Trip Replanning runs, the retained MCP artifacts report:
 * Unaffected days of the trip were preserved without cascading alterations.
 * Locked non-refundable bookings (Kyoto hostel Days 15–18, Narita return flight Day 28) remained anchored.
 * MCP deterministically validated the ₹20,000 cost recovery without relying on generative estimations.
@@ -82,4 +90,6 @@ In the focused Mid-Trip Replanning runs, the stored JSON artifacts report:
 2. **Surfacing Real Trade-Offs**: The retained regression suite detects mixed
    effects, including a large Information Gathering regression for Gemini 3.1
    Pro and a small Remote Worker improvement for Gemini 3.5 Flash.
-3. **End-to-End Audit Trail**: Every run produces persistent JSON reports containing `agent_metadata` and Markdown summaries with full MCP validation traces for verification.
+3. **Public evidence is the committed JSON**: Published tables in this
+   repository must match `docs/evidence/canonical-results.json`. Raw itinerary
+   traces remain local and are not required to reproduce the score tables.

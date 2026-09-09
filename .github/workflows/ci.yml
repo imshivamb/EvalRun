@@ -30,3 +30,21 @@ jobs:
         run: |
           evalrun demo --output /tmp/evalrun-demo
           test -f /tmp/evalrun-demo/report.html
+
+  wheel:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Build wheel and install from dist
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build
+          python -m pip install dist/evalrun-*.whl
+      - name: Verify offline demo from wheel
+        run: |
+          evalrun demo --output /tmp/evalrun-wheel-demo
+          test -f /tmp/evalrun-wheel-demo/report.html
