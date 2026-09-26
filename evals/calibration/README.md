@@ -14,37 +14,19 @@ Command:
 evalrun harvest-calibration --results results --scenarios evals/scenarios --output evals/calibration
 ```
 
-| Bucket | Unique cases |
-| --- | ---: |
-| Budget | 6 |
-| Route Optimization | 0 |
-| Remote Worker | 0 |
-| Replanning | 6 |
-| Information Gathering | 0 |
-| Support triage | 2 |
-| **Total unique** | **14** |
+| Bucket | Harvested | Generated | Total |
+| --- | ---: | ---: | ---: |
+| Budget | 6 | 1 | 7 |
+| Route Optimization | 0 | 6 | 6 |
+| Remote Worker | 0 | 6 | 6 |
+| Replanning | 6 | 1 | 7 |
+| Information Gathering | 0 | 7 | 7 |
+| Support triage | 2 | 5 | 7 |
+| **Total unique** | **14** | **26** | **40** |
 
-- **Gate:** unique count ≥ 40 **and** at least one case in every bucket. **Not met.**
-- Do not label this set for the published claim yet.
-- Do not fill missing buckets with extra Budget runs.
-
-## What was kept
-
-- Distinct `*_itinerary.md` outputs for `travel-planning-budget` and `support-urgent-ticket-escalation`.
-- MCP `baseline` / `mcp` outputs from `results/mcp-constraint-validation/` (`travel-mid-trip-replanning`).
-- Deduped by SHA-256 of whitespace-normalized output text.
-
-## What is missing
-
-Local `results/` has **no** retained outputs for:
-
-- `travel-route-optimization`
-- `travel-remote-worker-timezones`
-- `travel-information-gathering-uncertainty`
-
-Need **at least 26 more unique cases**, including those three scenarios, before `evalrun label-calibration` can be used without `--allow-incomplete-corpus`.
-
-Fill remaining slots with the agent (not the judge). If a missing scenario cannot produce a unique output, stop and record that — do not pad with extra Budget runs:
+- **Gate:** unique count ≥ 40 **and** at least one case in every bucket. **Met (2026-09-26).**
+- Harvested cases come from retained `*_itinerary.md` outputs and the MCP baseline/mcp audit files, deduped by SHA-256 of whitespace-normalized text.
+- Generated cases were produced by the agent (never the judge) with:
 
 ```text
 evalrun generate-calibration \
@@ -53,6 +35,8 @@ evalrun generate-calibration \
   --base-url https://generativelanguage.googleapis.com/v1beta/openai/ \
   --api-key "$GEMINI_API_KEY"
 ```
+
+- Generator mix: 33 of 40 outputs come from `gemini-3.7-flash`, so the corpus may under-represent weak outputs. Check the spread of your labels before trusting agreement statistics.
 
 ## Commands
 
