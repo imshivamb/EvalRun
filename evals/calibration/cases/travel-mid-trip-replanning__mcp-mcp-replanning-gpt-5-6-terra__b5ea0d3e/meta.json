@@ -1,0 +1,10 @@
+{
+  "case_id": "travel-mid-trip-replanning__mcp-mcp-replanning-gpt-5-6-terra__b5ea0d3e",
+  "scenario_id": "travel-mid-trip-replanning",
+  "profile": "travel-agent",
+  "source": "harvested",
+  "source_path": "results/mcp-constraint-validation/mcp-replanning-gpt-5-6-terra.json#mcp",
+  "generator_model": "gpt-5.6-terra",
+  "harvested_judge_overall": 87.3,
+  "content_sha256": "b5ea0d3ee464f830e2aca49c038afb76ca0a67baf985c41a480266d2da40b9bf"
+}

@@ -1,0 +1,10 @@
+{
+  "case_id": "travel-planning-budget__gemini-auditor-pass-test__efa54840",
+  "scenario_id": "travel-planning-budget",
+  "profile": "travel-agent",
+  "source": "harvested",
+  "source_path": "results/gemini-auditor-pass-test/gemini-3_7-flash_travel-planning-budget_itinerary.md",
+  "generator_model": "gemini-3.7-flash",
+  "harvested_judge_overall": 95.8,
+  "content_sha256": "efa548405c23b95a9a16776ab43b1fecc3cec7cd82cfbe9608c8688cee3d2b23"
+}

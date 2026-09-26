@@ -14,6 +14,11 @@ from typing import List, Optional
 if not os.environ.get("LANGFUSE_PUBLIC_KEY"):
     logging.getLogger("langfuse").setLevel(logging.ERROR)
 
+from cli.calibration import (
+    generate_calibration_command,
+    harvest_calibration_command,
+    label_calibration_command,
+)
 from cli.formatter import format_terminal_summary, redact_credentials
 from cli.resolver import resolve_agent
 from framework.evaluation.runner import BenchmarkRunner
@@ -260,6 +265,106 @@ def create_parser() -> argparse.ArgumentParser:
         "doctor",
         help="Check environment diagnostics, API keys, endpoint reachability, and permissions",
         description="Run system diagnostic checks for Python, EvalRun, API keys, endpoints, and write access.",
+    )
+
+    harvest_parser = subparsers.add_parser(
+        "harvest-calibration",
+        help="Harvest unique unlabeled calibration cases from retained eval outputs",
+        description=(
+            "Copy distinct travel and support-triage agent outputs into evals/calibration/. "
+            "Does not call an LLM and does not write human labels."
+        ),
+    )
+    harvest_parser.add_argument(
+        "--results",
+        type=str,
+        default="results",
+        help="Directory of retained eval artifacts (default: results)",
+    )
+    harvest_parser.add_argument(
+        "--scenarios",
+        type=str,
+        default="evals/scenarios",
+        help="Directory of scenario markdown files (default: evals/scenarios)",
+    )
+    harvest_parser.add_argument(
+        "--output",
+        type=str,
+        default="evals/calibration",
+        help="Calibration corpus directory (default: evals/calibration)",
+    )
+
+    generate_parser = subparsers.add_parser(
+        "generate-calibration",
+        help="Run agents to fill remaining unique calibration cases",
+        description=(
+            "Run travel and support agents on existing scenarios until the corpus "
+            "has at least 40 unique cases and the diversity floor is met (cap 60). "
+            "Does not run the judge and does not write human labels."
+        ),
+    )
+    generate_parser.add_argument(
+        "--dir",
+        type=str,
+        default="evals/calibration",
+        help="Calibration corpus directory (default: evals/calibration)",
+    )
+    generate_parser.add_argument(
+        "--scenarios",
+        type=str,
+        default="evals/scenarios",
+        help="Directory of scenario markdown files (default: evals/scenarios)",
+    )
+    generate_parser.add_argument(
+        "--model",
+        "-m",
+        type=str,
+        required=True,
+        help="Generator model identifier (the agent model, not the judge)",
+    )
+    generate_parser.add_argument(
+        "--base-url",
+        type=str,
+        default="https://api.openai.com/v1",
+        help="OpenAI-compatible base URL for the generator model",
+    )
+    generate_parser.add_argument(
+        "--api-key",
+        type=str,
+        default=None,
+        help="API key; defaults to OPENAI_API_KEY",
+    )
+
+    label_parser = subparsers.add_parser(
+        "label-calibration",
+        help="Open a localhost helper to label frozen calibration cases",
+        description=(
+            "Serve a loopback-only labeling page for scenario.md + output.md. "
+            "Never displays harvested judge scores and never calls an LLM."
+        ),
+    )
+    label_parser.add_argument(
+        "--dir",
+        type=str,
+        default="evals/calibration",
+        help="Calibration corpus directory (default: evals/calibration)",
+    )
+    label_parser.add_argument(
+        "--host",
+        type=str,
+        default="127.0.0.1",
+        help="Bind address (must be localhost, default: 127.0.0.1)",
+    )
+    label_parser.add_argument(
+        "--port",
+        type=int,
+        default=8502,
+        help="Port for the labeling helper (default: 8502)",
+    )
+    label_parser.add_argument(
+        "--allow-incomplete-corpus",
+        action="store_true",
+        help="Debug escape hatch: start even if unique count < 40 or diversity floor is missed",
     )
 
     return parser
@@ -685,6 +790,12 @@ def main(argv: Optional[List[str]] = None) -> None:
     elif args.command == "demo":
         from cli.demo import run_demo
         sys.exit(run_demo(output_dir=args.output))
+    elif args.command == "harvest-calibration":
+        sys.exit(harvest_calibration_command(args))
+    elif args.command == "generate-calibration":
+        sys.exit(generate_calibration_command(args))
+    elif args.command == "label-calibration":
+        sys.exit(label_calibration_command(args))
     else:
         parser.print_help()
         sys.exit(2)

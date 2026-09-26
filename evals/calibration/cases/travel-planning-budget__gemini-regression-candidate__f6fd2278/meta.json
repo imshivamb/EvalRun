@@ -1,0 +1,10 @@
+{
+  "case_id": "travel-planning-budget__gemini-regression-candidate__f6fd2278",
+  "scenario_id": "travel-planning-budget",
+  "profile": "travel-agent",
+  "source": "harvested",
+  "source_path": "results/gemini-regression-candidate/gemini-3_7-flash_travel-planning-budget_itinerary.md",
+  "generator_model": "gemini-3.7-flash",
+  "harvested_judge_overall": 94.9,
+  "content_sha256": "f6fd227867e63e19cb5635c5a24fadc1bf2cd03a6dd022a4f1b3973286872930"
+}

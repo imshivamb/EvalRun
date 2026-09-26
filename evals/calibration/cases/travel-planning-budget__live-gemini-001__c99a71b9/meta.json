@@ -1,0 +1,10 @@
+{
+  "case_id": "travel-planning-budget__live-gemini-001__c99a71b9",
+  "scenario_id": "travel-planning-budget",
+  "profile": "travel-agent",
+  "source": "harvested",
+  "source_path": "results/live-gemini-001/gemini-3_7-flash_travel-planning-budget_itinerary.md",
+  "generator_model": "gemini-3.7-flash",
+  "harvested_judge_overall": 96.45,
+  "content_sha256": "c99a71b986e9ab3f398c7c160ed7894da80db33e51839d37cb419287279f3f9d"
+}

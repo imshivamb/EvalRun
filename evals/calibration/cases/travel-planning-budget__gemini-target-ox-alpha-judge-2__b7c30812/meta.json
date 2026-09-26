@@ -1,0 +1,10 @@
+{
+  "case_id": "travel-planning-budget__gemini-target-ox-alpha-judge-2__b7c30812",
+  "scenario_id": "travel-planning-budget",
+  "profile": "travel-agent",
+  "source": "harvested",
+  "source_path": "results/gemini-target-ox-alpha-judge-2/gemini-3_7-flash_travel-planning-budget_itinerary.md",
+  "generator_model": "gemini-3.7-flash",
+  "harvested_judge_overall": 82.65,
+  "content_sha256": "b7c30812b2d48db83dfb23e5bfc51670eb37f2e8b4dcbd8a1e75a1f03964d118"
+}

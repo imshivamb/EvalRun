@@ -1,0 +1,10 @@
+{
+  "case_id": "travel-mid-trip-replanning__baseline-mcp-replanning-gemini-3-5-flash__cd830671",
+  "scenario_id": "travel-mid-trip-replanning",
+  "profile": "travel-agent",
+  "source": "harvested",
+  "source_path": "results/mcp-constraint-validation/mcp-replanning-gemini-3-5-flash.json#baseline",
+  "generator_model": "models/gemini-3.5-flash",
+  "harvested_judge_overall": 98.5,
+  "content_sha256": "cd8306711cbc408e63790be202ad4fd5f6d8ad835c1997ab52e1b492295d7398"
+}

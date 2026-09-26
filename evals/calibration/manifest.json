@@ -1,0 +1,98 @@
+{
+  "unique_count": 14,
+  "diversity_floor_met": false,
+  "diversity_counts": {
+    "Budget": 6,
+    "Route Optimization": 0,
+    "Remote Worker": 0,
+    "Replanning": 6,
+    "Information Gathering": 0,
+    "Support triage": 2
+  },
+  "cases": [
+    {
+      "case_id": "support-urgent-ticket-escalation__support-triage-gemini-v2__2e259e6d",
+      "scenario_id": "support-urgent-ticket-escalation",
+      "source": "harvested",
+      "labels_complete": false
+    },
+    {
+      "case_id": "support-urgent-ticket-escalation__support-triage-gemini__fcf3d38c",
+      "scenario_id": "support-urgent-ticket-escalation",
+      "source": "harvested",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-mid-trip-replanning__baseline-mcp-replanning-gemini-3-1-pro__7ab5d836",
+      "scenario_id": "travel-mid-trip-replanning",
+      "source": "harvested",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-mid-trip-replanning__baseline-mcp-replanning-gemini-3-5-flash__cd830671",
+      "scenario_id": "travel-mid-trip-replanning",
+      "source": "harvested",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-mid-trip-replanning__baseline-mcp-replanning-gpt-5-6-terra__1ac7ae2d",
+      "scenario_id": "travel-mid-trip-replanning",
+      "source": "harvested",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-mid-trip-replanning__mcp-mcp-replanning-gemini-3-1-pro__8dabc1e2",
+      "scenario_id": "travel-mid-trip-replanning",
+      "source": "harvested",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-mid-trip-replanning__mcp-mcp-replanning-gemini-3-5-flash__e0819086",
+      "scenario_id": "travel-mid-trip-replanning",
+      "source": "harvested",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-mid-trip-replanning__mcp-mcp-replanning-gpt-5-6-terra__b5ea0d3e",
+      "scenario_id": "travel-mid-trip-replanning",
+      "source": "harvested",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-planning-budget__gemini-auditor-pass-test__efa54840",
+      "scenario_id": "travel-planning-budget",
+      "source": "harvested",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-planning-budget__gemini-ox-audited__df75a26f",
+      "scenario_id": "travel-planning-budget",
+      "source": "harvested",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-planning-budget__gemini-regression-candidate__f6fd2278",
+      "scenario_id": "travel-planning-budget",
+      "source": "harvested",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-planning-budget__gemini-target-ox-alpha-judge-2__b7c30812",
+      "scenario_id": "travel-planning-budget",
+      "source": "harvested",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-planning-budget__live-gemini-001__c99a71b9",
+      "scenario_id": "travel-planning-budget",
+      "source": "harvested",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-planning-budget__ox-alpha-target-gemini-judge__f53c214b",
+      "scenario_id": "travel-planning-budget",
+      "source": "harvested",
+      "labels_complete": false
+    }
+  ]
+}

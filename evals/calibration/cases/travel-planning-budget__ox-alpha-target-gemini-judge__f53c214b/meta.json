@@ -1,0 +1,10 @@
+{
+  "case_id": "travel-planning-budget__ox-alpha-target-gemini-judge__f53c214b",
+  "scenario_id": "travel-planning-budget",
+  "profile": "travel-agent",
+  "source": "harvested",
+  "source_path": "results/ox-alpha-target-gemini-judge/stealth_ox-alpha_travel-planning-budget_itinerary.md",
+  "generator_model": "stealth/ox-alpha",
+  "harvested_judge_overall": 96.6,
+  "content_sha256": "f53c214b5234d66f2ad00435745efb19c4607ed1ace3c8d5410fc823ecfed13e"
+}

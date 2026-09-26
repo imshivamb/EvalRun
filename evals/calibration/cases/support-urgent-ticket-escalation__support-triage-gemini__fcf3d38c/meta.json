@@ -1,0 +1,10 @@
+{
+  "case_id": "support-urgent-ticket-escalation__support-triage-gemini__fcf3d38c",
+  "scenario_id": "support-urgent-ticket-escalation",
+  "profile": "support-triage",
+  "source": "harvested",
+  "source_path": "results/support-triage-gemini/gemini-3_7-flash_support-urgent-ticket-escalation_itinerary.md",
+  "generator_model": "gemini-3.7-flash",
+  "harvested_judge_overall": 68.0,
+  "content_sha256": "fcf3d38c3535b42ad3b423ffb5570395cd967145ebcd26685a75f692c99311cd"
+}
