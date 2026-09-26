@@ -1,5 +1,9 @@
 # evalrun
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/imshivamb/EvalRun/main/docs/assets/evalrun-poster.png" alt="EvalRun: crash tests for AI agents. Your agent says Done, EvalRun checks. A real committed run shows a judge score of 85 and evaluator PASS, but the auditor gate BLOCKs it for MATH_HALLUCINATION and HIDDEN_OVERHEAD, exit code 1." width="100%">
+</p>
+
 > **Quality Score $\neq$ Release Decision.** An LLM evaluator can rate an itinerary 95/100 while an independent auditor blocks it for hard financial violations.
 
 `evalrun` is a local-first toolkit for testing AI agents. You bring the agent, model, and API key; `evalrun` runs the checks on your machine, saves the evidence locally, and tells you whether the result should be released.
