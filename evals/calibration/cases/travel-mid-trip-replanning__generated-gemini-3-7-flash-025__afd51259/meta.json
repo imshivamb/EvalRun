@@ -1,0 +1,10 @@
+{
+  "case_id": "travel-mid-trip-replanning__generated-gemini-3-7-flash-025__afd51259",
+  "scenario_id": "travel-mid-trip-replanning",
+  "profile": "travel-agent",
+  "source": "generated",
+  "source_path": "generated:gemini-3.7-flash",
+  "generator_model": "gemini-3.7-flash",
+  "harvested_judge_overall": null,
+  "content_sha256": "afd51259fed045ff30b2766773e1990f51645148e364e002aeb4da9c83b9250f"
+}

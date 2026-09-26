@@ -1,0 +1,10 @@
+{
+  "case_id": "travel-route-optimization__generated-gemini-3-7-flash-001__b7c602e8",
+  "scenario_id": "travel-route-optimization",
+  "profile": "travel-agent",
+  "source": "generated",
+  "source_path": "generated:gemini-3.7-flash",
+  "generator_model": "gemini-3.7-flash",
+  "harvested_judge_overall": null,
+  "content_sha256": "b7c602e89141f5c690cdf942ccd2b3b63d038d4121257a2e5d326d7fbf51893d"
+}

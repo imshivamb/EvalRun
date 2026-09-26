@@ -1,0 +1,10 @@
+{
+  "case_id": "travel-information-gathering-uncertainty__generated-gemini-3-7-flash-024__72dae364",
+  "scenario_id": "travel-information-gathering-uncertainty",
+  "profile": "travel-agent",
+  "source": "generated",
+  "source_path": "generated:gemini-3.7-flash",
+  "generator_model": "gemini-3.7-flash",
+  "harvested_judge_overall": null,
+  "content_sha256": "72dae364defd16e8dd333bbafcdf5fcc6cec96f34a2469d4728548c9b834e295"
+}

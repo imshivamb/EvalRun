@@ -1,0 +1,10 @@
+{
+  "case_id": "travel-remote-worker-timezones__generated-gemini-3-7-flash-021__3293ad15",
+  "scenario_id": "travel-remote-worker-timezones",
+  "profile": "travel-agent",
+  "source": "generated",
+  "source_path": "generated:gemini-3.7-flash",
+  "generator_model": "gemini-3.7-flash",
+  "harvested_judge_overall": null,
+  "content_sha256": "3293ad155ff6cc8c601070caa02544fe89cec332172a361882c477cfa6399666"
+}

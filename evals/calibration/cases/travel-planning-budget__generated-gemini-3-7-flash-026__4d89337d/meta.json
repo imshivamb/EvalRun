@@ -1,0 +1,10 @@
+{
+  "case_id": "travel-planning-budget__generated-gemini-3-7-flash-026__4d89337d",
+  "scenario_id": "travel-planning-budget",
+  "profile": "travel-agent",
+  "source": "generated",
+  "source_path": "generated:gemini-3.7-flash",
+  "generator_model": "gemini-3.7-flash",
+  "harvested_judge_overall": null,
+  "content_sha256": "4d89337de948c69a61bd9d25ed24b739c79a9bd4d639f3a0b51e2812dc932834"
+}

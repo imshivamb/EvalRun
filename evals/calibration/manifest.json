@@ -1,15 +1,45 @@
 {
-  "unique_count": 14,
-  "diversity_floor_met": false,
+  "unique_count": 40,
+  "diversity_floor_met": true,
   "diversity_counts": {
-    "Budget": 6,
-    "Route Optimization": 0,
-    "Remote Worker": 0,
-    "Replanning": 6,
-    "Information Gathering": 0,
-    "Support triage": 2
+    "Budget": 7,
+    "Route Optimization": 6,
+    "Remote Worker": 6,
+    "Replanning": 7,
+    "Information Gathering": 7,
+    "Support triage": 7
   },
   "cases": [
+    {
+      "case_id": "support-urgent-ticket-escalation__generated-gemini-3-7-flash-007__a844cb90",
+      "scenario_id": "support-urgent-ticket-escalation",
+      "source": "generated",
+      "labels_complete": false
+    },
+    {
+      "case_id": "support-urgent-ticket-escalation__generated-gemini-3-7-flash-011__65a81dce",
+      "scenario_id": "support-urgent-ticket-escalation",
+      "source": "generated",
+      "labels_complete": false
+    },
+    {
+      "case_id": "support-urgent-ticket-escalation__generated-gemini-3-7-flash-015__4da05aff",
+      "scenario_id": "support-urgent-ticket-escalation",
+      "source": "generated",
+      "labels_complete": false
+    },
+    {
+      "case_id": "support-urgent-ticket-escalation__generated-gemini-3-7-flash-019__3f28514c",
+      "scenario_id": "support-urgent-ticket-escalation",
+      "source": "generated",
+      "labels_complete": false
+    },
+    {
+      "case_id": "support-urgent-ticket-escalation__generated-gemini-3-7-flash-023__300275a6",
+      "scenario_id": "support-urgent-ticket-escalation",
+      "source": "generated",
+      "labels_complete": false
+    },
     {
       "case_id": "support-urgent-ticket-escalation__support-triage-gemini-v2__2e259e6d",
       "scenario_id": "support-urgent-ticket-escalation",
@@ -20,6 +50,48 @@
       "case_id": "support-urgent-ticket-escalation__support-triage-gemini__fcf3d38c",
       "scenario_id": "support-urgent-ticket-escalation",
       "source": "harvested",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-information-gathering-uncertainty__generated-gemini-3-7-flash-003__a49db8c6",
+      "scenario_id": "travel-information-gathering-uncertainty",
+      "source": "generated",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-information-gathering-uncertainty__generated-gemini-3-7-flash-004__d4663e7c",
+      "scenario_id": "travel-information-gathering-uncertainty",
+      "source": "generated",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-information-gathering-uncertainty__generated-gemini-3-7-flash-008__812aa346",
+      "scenario_id": "travel-information-gathering-uncertainty",
+      "source": "generated",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-information-gathering-uncertainty__generated-gemini-3-7-flash-012__311ceb01",
+      "scenario_id": "travel-information-gathering-uncertainty",
+      "source": "generated",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-information-gathering-uncertainty__generated-gemini-3-7-flash-016__73d9babb",
+      "scenario_id": "travel-information-gathering-uncertainty",
+      "source": "generated",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-information-gathering-uncertainty__generated-gemini-3-7-flash-020__384dfe27",
+      "scenario_id": "travel-information-gathering-uncertainty",
+      "source": "generated",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-information-gathering-uncertainty__generated-gemini-3-7-flash-024__72dae364",
+      "scenario_id": "travel-information-gathering-uncertainty",
+      "source": "generated",
       "labels_complete": false
     },
     {
@@ -38,6 +110,12 @@
       "case_id": "travel-mid-trip-replanning__baseline-mcp-replanning-gpt-5-6-terra__1ac7ae2d",
       "scenario_id": "travel-mid-trip-replanning",
       "source": "harvested",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-mid-trip-replanning__generated-gemini-3-7-flash-025__afd51259",
+      "scenario_id": "travel-mid-trip-replanning",
+      "source": "generated",
       "labels_complete": false
     },
     {
@@ -83,6 +161,12 @@
       "labels_complete": false
     },
     {
+      "case_id": "travel-planning-budget__generated-gemini-3-7-flash-026__4d89337d",
+      "scenario_id": "travel-planning-budget",
+      "source": "generated",
+      "labels_complete": false
+    },
+    {
       "case_id": "travel-planning-budget__live-gemini-001__c99a71b9",
       "scenario_id": "travel-planning-budget",
       "source": "harvested",
@@ -92,6 +176,78 @@
       "case_id": "travel-planning-budget__ox-alpha-target-gemini-judge__f53c214b",
       "scenario_id": "travel-planning-budget",
       "source": "harvested",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-remote-worker-timezones__generated-gemini-3-7-flash-002__3c6ed186",
+      "scenario_id": "travel-remote-worker-timezones",
+      "source": "generated",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-remote-worker-timezones__generated-gemini-3-7-flash-005__69facaab",
+      "scenario_id": "travel-remote-worker-timezones",
+      "source": "generated",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-remote-worker-timezones__generated-gemini-3-7-flash-009__8101f433",
+      "scenario_id": "travel-remote-worker-timezones",
+      "source": "generated",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-remote-worker-timezones__generated-gemini-3-7-flash-013__c790630c",
+      "scenario_id": "travel-remote-worker-timezones",
+      "source": "generated",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-remote-worker-timezones__generated-gemini-3-7-flash-017__591ca63e",
+      "scenario_id": "travel-remote-worker-timezones",
+      "source": "generated",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-remote-worker-timezones__generated-gemini-3-7-flash-021__3293ad15",
+      "scenario_id": "travel-remote-worker-timezones",
+      "source": "generated",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-route-optimization__generated-gemini-3-7-flash-001__b7c602e8",
+      "scenario_id": "travel-route-optimization",
+      "source": "generated",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-route-optimization__generated-gemini-3-7-flash-006__32a142e7",
+      "scenario_id": "travel-route-optimization",
+      "source": "generated",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-route-optimization__generated-gemini-3-7-flash-010__6a6d1b69",
+      "scenario_id": "travel-route-optimization",
+      "source": "generated",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-route-optimization__generated-gemini-3-7-flash-014__25737d66",
+      "scenario_id": "travel-route-optimization",
+      "source": "generated",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-route-optimization__generated-gemini-3-7-flash-018__a0527957",
+      "scenario_id": "travel-route-optimization",
+      "source": "generated",
+      "labels_complete": false
+    },
+    {
+      "case_id": "travel-route-optimization__generated-gemini-3-7-flash-022__1f6f65d7",
+      "scenario_id": "travel-route-optimization",
+      "source": "generated",
       "labels_complete": false
     }
   ]
