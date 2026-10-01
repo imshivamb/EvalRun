@@ -17,6 +17,12 @@ dependencies = [
     "markdown-it-py>=3.0.0"
 ]
 
+[project.urls]
+Homepage = "https://github.com/imshivamb/EvalRun"
+Repository = "https://github.com/imshivamb/EvalRun"
+Issues = "https://github.com/imshivamb/EvalRun/issues"
+Changelog = "https://github.com/imshivamb/EvalRun/blob/main/CHANGELOG.md"
+
 [project.optional-dependencies]
 observability = ["langfuse>=2.0.0"]
 mcp = ["fastmcp>=0.1.0", "mcp>=1.27,<2"]

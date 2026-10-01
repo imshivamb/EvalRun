@@ -39,9 +39,16 @@ latest unreleased source instead, clone the repository and use an editable
 install:
 
 ```bash
-git clone https://github.com/imshivamb/agent-eval-platform.git
-cd agent-eval-platform
+git clone https://github.com/imshivamb/EvalRun.git
+cd EvalRun
 pip install -e .
+```
+
+To run the test suite, install the optional integrations and pytest too:
+
+```bash
+pip install -e ".[all]" pytest
+pytest -m "not network"
 ```
 
 Optional integrations are deliberately not required for the core CLI and SDK:
@@ -366,12 +373,12 @@ to the config file.
 
 ## 🏗️ Architecture & Documentation
 
-For detailed system component diagrams, dual-pass auditor sequence flows, and release gate decision trees, see [`docs/architecture.md`](file:///Users/shivam/Projects/AI/agent-eval-platform/docs/architecture.md).
+For detailed system component diagrams, dual-pass auditor sequence flows, and release gate decision trees, see [`docs/architecture.md`](https://github.com/imshivamb/EvalRun/blob/main/docs/architecture.md).
 
-- Hosted Models Guide: [`docs/quickstart-hosted.md`](file:///Users/shivam/Projects/AI/agent-eval-platform/docs/quickstart-hosted.md)
-- Local Models Guide: [`docs/quickstart-local.md`](file:///Users/shivam/Projects/AI/agent-eval-platform/docs/quickstart-local.md)
-- CLI Specification: [`docs/phase4-local-cli-design.md`](file:///Users/shivam/Projects/AI/agent-eval-platform/docs/phase4-local-cli-design.md)
-- Regression Engine Design: [`docs/phase5-regression-gates-design.md`](file:///Users/shivam/Projects/AI/agent-eval-platform/docs/phase5-regression-gates-design.md)
+- Hosted Models Guide: [`docs/quickstart-hosted.md`](https://github.com/imshivamb/EvalRun/blob/main/docs/quickstart-hosted.md)
+- Local Models Guide: [`docs/quickstart-local.md`](https://github.com/imshivamb/EvalRun/blob/main/docs/quickstart-local.md)
+- CLI Specification: [`docs/phase4-local-cli-design.md`](https://github.com/imshivamb/EvalRun/blob/main/docs/phase4-local-cli-design.md)
+- Regression Engine Design: [`docs/phase5-regression-gates-design.md`](https://github.com/imshivamb/EvalRun/blob/main/docs/phase5-regression-gates-design.md)
 
 ---
 

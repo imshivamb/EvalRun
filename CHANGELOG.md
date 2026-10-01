@@ -1,13 +1,14 @@
 # Changelog
 
-## [0.4.1] - 2026-08-25
+## Unreleased
 
-- Published the local-first `evalrun` package to PyPI.
-- Added the guided local UI, scenario validation, environment diagnostics,
-  custom profiles, evaluator plugins, and SDK workflows.
-- Added baseline regression comparison and standalone HTML reports.
+- Replaced the old `agent-eval-platform` clone URL and local `file://` links in
+  the README with the `EvalRun` repository.
+- Added project URLs to the package metadata.
+- Planned next: statistics core, judge calibration, trace import, and
+  deterministic checks for EvalRun 1.0.
 
-## [0.4.2] - 2026-09-09
+## [0.4.2] - 2026-10-01
 
 - Added Sprint 0 credibility and safety hardening.
 - Added GitHub Actions CI, offline-safe diagnostics, and clean wheel checks.
@@ -25,7 +26,11 @@
   skips live endpoint checks.
 - Added the missing `markdown-it-py` package dependency required by clean
   wheel installs.
+- Corrected the copyright holder name in `LICENSE`.
 
-## Unreleased
+## [0.4.1] - 2026-08-25
 
-- Planned next: judge calibration, deterministic checks, and trajectory capture.
+- Published the local-first `evalrun` package to PyPI.
+- Added the guided local UI, scenario validation, environment diagnostics,
+  custom profiles, evaluator plugins, and SDK workflows.
+- Added baseline regression comparison and standalone HTML reports.
