@@ -244,6 +244,28 @@ evalrun run \
   --output results/candidate-run
 ```
 
+## Repeated Trials and Intervals
+
+One run of an agent is one sample. Run each scenario several times to see how much its result moves:
+
+```bash
+evalrun run \
+  --scenario evals/scenarios/support-triage/urgent-ticket-escalation.md \
+  --agent agents.support:SupportTriageAgent \
+  --model gemini-3.7-flash \
+  --base-url https://generativelanguage.googleapis.com/v1beta/openai/ \
+  --judge-model gemini-3.7-flash \
+  --trials 5
+```
+
+With `--trials N` above 1, each scenario reports:
+
+- **Pass rate** with a 95% Wilson interval, for example `pass 5/5 100% [57-100]`. Five passes out of five still only shows the true pass rate is above about 57%.
+- **Mean score** with a 95% Student-t interval, clipped to the 0-100 scale.
+- **Latency p50 and p95** across trials.
+
+The scenario passes when its mean score meets the profile threshold, the same rule a single run uses; an auditor BLOCK in any trial blocks it. Per-trial artifacts are written with a `_trial<N>` suffix, and the scenario's `_report.json` holds the aggregate. The SDK takes the same option as `evaluate(..., trials=5)`.
+
 ### Generated Artifacts
 
 - `manifest.json`: Execution metadata with redacted API credentials.
@@ -384,6 +406,6 @@ For detailed system component diagrams, dual-pass auditor sequence flows, and re
 
 ## ⚠️ Limitations & Reproducibility Guidelines
 
-- **Judge Variance**: LLM judge evaluations can exhibit non-zero variance. For baseline regression testing, fix model versions and set deterministic sampling parameters where available.
+- **Judge Variance**: LLM judge evaluations can exhibit non-zero variance. Use `--trials` to measure how much a scenario's score moves between runs, and fix model versions for baseline regression testing. Trial intervals measure precision, not accuracy: a judge that is consistently wrong still produces a tight interval.
 - **Local Model Requirements**: Local evaluation throughput depends on server VRAM and concurrency settings. Ensure your local server handles parallel requests cleanly.
 - **Credential Security**: Credentials in `manifest.json` and `regression_report.json` are automatically redacted into `"[REDACTED]"`. Never commit unredacted API keys.

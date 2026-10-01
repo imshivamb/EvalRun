@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 
 @dataclass
@@ -40,6 +40,47 @@ class DimensionScore:
 
 
 @dataclass
+class TrialStatistics:
+    """Summary of repeated trials of one scenario, with 95% intervals.
+
+    Intervals are None when the trial count is too small to estimate them
+    (fewer than two trials for score intervals).
+    """
+
+    trials: int
+    passes: int
+    pass_rate: float
+    pass_rate_interval: Optional[Tuple[float, float]]
+    score_mean: float
+    score_std: Optional[float]
+    score_interval: Optional[Tuple[float, float]]
+    dimension_means: Dict[str, float]
+    dimension_intervals: Dict[str, Optional[Tuple[float, float]]]
+    latency_p50_seconds: Optional[float]
+    latency_p95_seconds: Optional[float]
+    confidence_level: float = 0.95
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "trials": self.trials,
+            "passes": self.passes,
+            "pass_rate": self.pass_rate,
+            "pass_rate_interval": list(self.pass_rate_interval) if self.pass_rate_interval else None,
+            "score_mean": self.score_mean,
+            "score_std": self.score_std,
+            "score_interval": list(self.score_interval) if self.score_interval else None,
+            "dimension_means": dict(self.dimension_means),
+            "dimension_intervals": {
+                name: list(interval) if interval else None
+                for name, interval in self.dimension_intervals.items()
+            },
+            "latency_p50_seconds": self.latency_p50_seconds,
+            "latency_p95_seconds": self.latency_p95_seconds,
+            "confidence_level": self.confidence_level,
+        }
+
+
+@dataclass
 class EvaluationResult:
     """Represents the final evaluation outcome for a benchmark scenario."""
 
@@ -49,6 +90,8 @@ class EvaluationResult:
     dimension_scores: List[DimensionScore]
     passed: bool
     agent_metadata: Dict[str, Any] = field(default_factory=dict)
+    statistics: Optional[TrialStatistics] = None
+    trial_results: List["EvaluationResult"] = field(default_factory=list)
 
 
 @dataclass

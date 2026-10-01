@@ -7,12 +7,13 @@ import sys
 import time
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from framework.core import RunTrace
 from framework.models import AgentOutput, Benchmark, EvaluationResult
 from framework.parser import parse_benchmark
 from framework.profiles import PROFILE_REGISTRY, TRAVEL_PROFILE
 from framework.evaluation.engine import EvaluationEngine
+from framework.evaluation.trials import aggregate_trials, summarize_trials
 from framework.evaluation.dimensions import (
     CONSTRAINT_SATISFACTION,
     PLANNING_QUALITY,
@@ -107,19 +108,8 @@ class BenchmarkRunner:
             }
         )
 
-    def run(self, filepath: str) -> EvaluationResult:
-        """Runs the complete evaluation pipeline for a single benchmark file.
-
-        Args:
-            filepath: Path to the benchmark markdown file.
-
-        Returns:
-            The final EvaluationResult containing overall and dimension scores.
-        """
-        # 1. Parse scenario file
-        benchmark = parse_benchmark(filepath)
-
-        # 2. Resolve evaluation profile (Static -> Dynamic -> Fallback/Error)
+    def _resolve_profile(self, benchmark: Benchmark):
+        """Resolves a scenario's evaluation profile (static, then dynamic, then travel fallback)."""
         prof_name = benchmark.profile
         profile = PROFILE_REGISTRY.get(prof_name)
         if not profile:
@@ -135,6 +125,25 @@ class BenchmarkRunner:
                 raise ValueError(
                     f"Evaluation profile '{prof_name}' not found in static or dynamic profile registries."
                 )
+        return profile
+
+    def run(self, filepath: str, trial_index: Optional[int] = None) -> EvaluationResult:
+        """Runs the complete evaluation pipeline for a single benchmark file.
+
+        Args:
+            filepath: Path to the benchmark markdown file.
+            trial_index: 1-based trial number when this run is one of several
+                trials; it suffixes the artifact file names so trials do not
+                overwrite each other.
+
+        Returns:
+            The final EvaluationResult containing overall and dimension scores.
+        """
+        # 1. Parse scenario file
+        benchmark = parse_benchmark(filepath)
+
+        # 2. Resolve evaluation profile (Static -> Dynamic -> Fallback/Error)
+        profile = self._resolve_profile(benchmark)
 
         # Dimension names are shared across domains, but their rubrics are not.
         # Configure support prompts only after this scenario's profile resolves.
@@ -201,7 +210,7 @@ class BenchmarkRunner:
             }
 
             # 7. Save reports and outputs
-            self._save_execution_files(benchmark, agent_output, result, profile)
+            self._save_execution_files(benchmark, agent_output, result, profile, trial_index)
             return result
 
         except Exception as e:
@@ -231,8 +240,27 @@ class BenchmarkRunner:
             )
 
             # Persist error trace metadata file
-            self._save_error_trace_file(benchmark, trace)
+            self._save_error_trace_file(benchmark, trace, trial_index)
             raise
+
+    def run_trials(self, filepath: str, trials: int = 1) -> EvaluationResult:
+        """Runs a scenario ``trials`` times and returns the aggregated result.
+
+        One trial behaves exactly like ``run`` and adds trial statistics. Any
+        failed trial raises, so a runtime error is never reported as a pass.
+        """
+        if trials < 1:
+            raise ValueError("trials must be at least 1")
+        if trials == 1:
+            result = self.run(filepath)
+            result.statistics = summarize_trials([result])
+            return result
+
+        trial_results = [self.run(filepath, trial_index=i) for i in range(1, trials + 1)]
+        profile = self._resolve_profile(parse_benchmark(filepath))
+        aggregated = aggregate_trials(trial_results, profile.pass_threshold)
+        self._save_trial_summary(aggregated, profile)
+        return aggregated
 
     def run_directory(self, dirpath: str) -> Dict[str, EvaluationResult]:
         """Runs evaluations for all benchmark files in the specified directory.
@@ -260,16 +288,13 @@ class BenchmarkRunner:
         agent_output: AgentOutput,
         result: EvaluationResult,
         profile: Any,
+        trial_index: Optional[int] = None,
     ):
         """Helper to serialize agent output, JSON data reports, and Markdown summaries."""
         os.makedirs(self.output_dir, exist_ok=True)
-        agent_name = getattr(self.agent, "llm", self.agent).__class__.__name__.lower()
-        if hasattr(self.agent, "llm") and hasattr(self.agent.llm, "model_name"):
-            model_slug = self.agent.llm.model_name.replace("/", "_").replace(".", "_")
-        else:
-            model_slug = agent_name
-
-        base_name = f"{model_slug}_{benchmark.benchmark_id}"
+        base_name = self._artifact_base_name(benchmark.benchmark_id)
+        if trial_index is not None:
+            base_name = f"{base_name}_trial{trial_index}"
 
         # 1. Save Raw Agent Output/Itinerary
         itinerary_path = os.path.join(self.output_dir, f"{base_name}_itinerary.md")
@@ -342,11 +367,47 @@ class BenchmarkRunner:
                 f.write(f"### {ds.dimension} (Score: {ds.score:.1f})\n\n")
                 f.write(f"{ds.reason}\n\n")
 
-    def _save_error_trace_file(self, benchmark: Benchmark, trace: RunTrace) -> None:
+    def _artifact_base_name(self, benchmark_id: str) -> str:
+        """File-name prefix shared by a scenario's artifacts: model slug plus scenario id."""
+        if hasattr(self.agent, "llm") and hasattr(self.agent.llm, "model_name"):
+            model_slug = self.agent.llm.model_name.replace("/", "_").replace(".", "_")
+        else:
+            model_slug = getattr(self.agent, "llm", self.agent).__class__.__name__.lower()
+        return f"{model_slug}_{benchmark_id}"
+
+    def _save_trial_summary(self, result: EvaluationResult, profile: Any) -> None:
+        """Writes the aggregated multi-trial report where a single-trial report would be."""
+        os.makedirs(self.output_dir, exist_ok=True)
+        base_name = self._artifact_base_name(result.benchmark_id)
+        report_data = {
+            "benchmark_id": result.benchmark_id,
+            "benchmark_name": result.benchmark_name,
+            "model_name": getattr(getattr(self.agent, "llm", None), "model_name", "unknown"),
+            "profile": profile.name,
+            "overall_score": result.overall_score,
+            "passed": result.passed,
+            "statistics": result.statistics.to_dict() if result.statistics else None,
+            "trial_reports": [
+                f"{base_name}_trial{i}_report.json" for i in range(1, len(result.trial_results) + 1)
+            ],
+            "dimension_scores": [
+                {"dimension": ds.dimension, "score": ds.score, "reason": ds.reason}
+                for ds in result.dimension_scores
+            ],
+        }
+        with open(os.path.join(self.output_dir, f"{base_name}_report.json"), "w", encoding="utf-8") as f:
+            json.dump(report_data, f, indent=2)
+
+    def _save_error_trace_file(
+        self, benchmark: Benchmark, trace: RunTrace, trial_index: Optional[int] = None
+    ) -> None:
         """Persists an error/timeout trace JSON record when an evaluation fails."""
         os.makedirs(self.output_dir, exist_ok=True)
         model_name = trace.model_name.replace("/", "_").replace(".", "_")
-        json_path = os.path.join(self.output_dir, f"{model_name}_{benchmark.benchmark_id}_error_trace.json")
+        suffix = f"_trial{trial_index}" if trial_index is not None else ""
+        json_path = os.path.join(
+            self.output_dir, f"{model_name}_{benchmark.benchmark_id}{suffix}_error_trace.json"
+        )
         trace_data = {
             "trace_id": trace.trace_id,
             "scenario_id": trace.scenario_id,

@@ -32,7 +32,7 @@ class TestConfigWorkflow(unittest.TestCase):
             dimension_scores=[DimensionScore("Constraint Satisfaction", 95.0, "Great")],
             passed=True,
         )
-        mock_runner.run.return_value = mock_res
+        mock_runner.run_trials.return_value = mock_res
 
         # Create config file
         config_path = os.path.join(self.temp_dir, "test_config.json")

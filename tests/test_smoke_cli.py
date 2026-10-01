@@ -44,7 +44,7 @@ class TestCleanCheckoutSmokeCLI(unittest.TestCase):
                 "run_trace": {"latency_seconds": 1.25, "status": "success"},
             },
         )
-        mock_runner.run.return_value = mock_res
+        mock_runner.run_trials.return_value = mock_res
 
         parser = create_parser()
         args = parser.parse_args([

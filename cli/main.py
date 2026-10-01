@@ -212,6 +212,12 @@ def create_parser() -> argparse.ArgumentParser:
         help="Maximum allowed per-dimension score drop before release is blocked (default: 10.0)",
     )
     run_parser.add_argument(
+        "--trials",
+        type=int,
+        default=None,
+        help="Run each scenario N times and report pass rate and score with 95%% intervals, plus latency p50/p95 (default: 1)",
+    )
+    run_parser.add_argument(
         "--ground-truth",
         type=str,
         default=None,
@@ -318,6 +324,10 @@ def run_command(args: argparse.Namespace) -> int:
     args.output = args.output or "./eval_results"
     args.max_regression = 5.0 if args.max_regression is None else args.max_regression
     args.max_dimension_regression = 10.0 if args.max_dimension_regression is None else args.max_dimension_regression
+    args.trials = 1 if getattr(args, "trials", None) is None else args.trials
+    if isinstance(args.trials, bool) or not isinstance(args.trials, int) or args.trials < 1:
+        print("Error: --trials must be a whole number of at least 1.", file=sys.stderr)
+        return 2
 
     if not getattr(args, "scenario", None) and not getattr(args, "suite", None):
         print("Error: Either --scenario or --suite or a valid config file specifying input is required.", file=sys.stderr)
@@ -401,13 +411,15 @@ def run_command(args: argparse.Namespace) -> int:
     results: List[EvaluationResult] = []
     for s_file in scenario_files:
         try:
-            print(f"[evalrun] Running scenario: {s_file.name} (model calls and evaluation in progress...)", flush=True)
+            trial_note = f", {args.trials} trials" if args.trials > 1 else ""
+            print(f"[evalrun] Running scenario: {s_file.name}{trial_note} (model calls and evaluation in progress...)", flush=True)
             res = run_with_progress(
                 s_file.name,
-                lambda: runner.run(str(s_file)),
+                lambda: runner.run_trials(str(s_file), args.trials),
             )
             results.append(res)
-            print(f"[evalrun] Finished {s_file.name}: score {res.overall_score:.2f} ({'PASS' if res.passed else 'FAIL'})", flush=True)
+            score_label = f"mean score over {args.trials} trials" if args.trials > 1 else "score"
+            print(f"[evalrun] Finished {s_file.name}: {score_label} {res.overall_score:.2f} ({'PASS' if res.passed else 'FAIL'})", flush=True)
         except Exception as e:
             print(f"Error executing evaluation for scenario '{s_file}': {e}", file=sys.stderr)
             return 2
@@ -458,6 +470,7 @@ def run_command(args: argparse.Namespace) -> int:
             "passed": r.passed,
             "audit_gate_decision": getattr(r, "agent_metadata", {}).get("audit_gate_decision", "N/A"),
             "report_path": f"{model_slug}_{r.benchmark_id}_report.json",
+            "statistics": r.statistics.to_dict() if r.statistics else None,
         })
 
     manifest = {
@@ -483,6 +496,7 @@ def run_command(args: argparse.Namespace) -> int:
         "ground_truth_path": args.ground_truth,
         "output_dir": str(output_dir),
         "total_scenarios": len(results),
+        "trials_per_scenario": args.trials,
         "overall_passed": evaluation_passed,
         "scenarios": scenarios_summary,
     }

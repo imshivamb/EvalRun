@@ -21,6 +21,35 @@ def redact_credentials(data: Any) -> Any:
     return data
 
 
+def _interval_text(interval: Optional[Any], scale: float = 1.0, digits: int = 1) -> str:
+    if not interval:
+        return "[n/a]"
+    low, high = interval
+    return f"[{low * scale:.{digits}f}-{high * scale:.{digits}f}]"
+
+
+def _seconds_text(value: Optional[float]) -> str:
+    return f"{value:.2f}s" if value is not None else "n/a"
+
+
+def format_trial_statistics(results: List[EvaluationResult]) -> List[str]:
+    """Per-scenario trial statistics lines; empty when every scenario ran once."""
+    with_trials = [r for r in results if r.statistics is not None and r.statistics.trials > 1]
+    if not with_trials:
+        return []
+    lines = [" Trial statistics (95% intervals)"]
+    for res in with_trials:
+        stats = res.statistics
+        lines.append(
+            f"  {res.benchmark_name[:28]:<28} pass {stats.passes}/{stats.trials} "
+            f"{stats.pass_rate * 100:.0f}% {_interval_text(stats.pass_rate_interval, scale=100, digits=0)}"
+            f" | score {stats.score_mean:.1f} {_interval_text(stats.score_interval)}"
+            f" | latency p50 {_seconds_text(stats.latency_p50_seconds)}"
+            f" p95 {_seconds_text(stats.latency_p95_seconds)}"
+        )
+    return lines
+
+
 def format_terminal_summary(
     results: List[EvaluationResult],
     manifest: Dict[str, Any],
@@ -76,6 +105,11 @@ def format_terminal_summary(
             )
         else:
             lines.append(f"{res.benchmark_name[:32]:<32} | {res.overall_score:6.2f}   | {eval_status:<10} | {audit_status:<12}")
+
+    trial_lines = format_trial_statistics(results)
+    if trial_lines:
+        lines.append("-" * 85)
+        lines.extend(trial_lines)
 
     lines.append("=" * 85)
     if regression_report and regression_report.get("regression_detected"):

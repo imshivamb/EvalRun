@@ -24,6 +24,7 @@ def evaluate(
     judge_api_key: Optional[str] = None,
     ground_truth: str = "ground_truth/japan_demo.json",
     output_dir: str = "./eval_results",
+    trials: int = 1,
 ) -> List[EvaluationResult]:
     """Programmatically runs agent evaluation on a scenario or suite directory.
 
@@ -38,10 +39,15 @@ def evaluate(
         judge_api_key: Judge API key (defaults to target api_key).
         ground_truth: Ground truth knowledge base path.
         output_dir: Target output directory for evaluation artifacts.
+        trials: Number of times each scenario runs. Above 1, each result is the
+            aggregate of its trials and carries pass-rate, score and latency
+            statistics with 95% intervals.
 
     Returns:
         List of EvaluationResult objects.
     """
+    if trials < 1:
+        raise ValueError("trials must be at least 1")
     target_api_key = api_key or os.getenv("OPENAI_API_KEY", "EMPTY")
     judge_model_name = judge_model or model
     j_base_url = judge_base_url or base_url
@@ -86,7 +92,7 @@ def evaluate(
                 s_file = scenario_path / fname
                 attempted_scenarios += 1
                 try:
-                    res = runner.run(str(s_file))
+                    res = runner.run_trials(str(s_file), trials)
                     results.append(res)
                 except Exception as e:
                     error = str(e)
@@ -111,7 +117,7 @@ def evaluate(
     else:
         attempted_scenarios = 1
         try:
-            res = runner.run(str(scenario_path))
+            res = runner.run_trials(str(scenario_path), trials)
             results.append(res)
         except Exception as e:
             error = str(e)
@@ -150,6 +156,7 @@ def evaluate(
             "ground_truth_path": ground_truth,
             "output_dir": str(out_path),
             "total_scenarios": attempted_scenarios,
+            "trials_per_scenario": trials,
             "successful_scenarios": len(results) - len(execution_errors),
             "execution_errors": execution_errors,
             # Empty and partially failed suites are never successful.

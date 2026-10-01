@@ -5,6 +5,11 @@
 - Replaced the old `agent-eval-platform` clone URL and local `file://` links in
   the README with the `EvalRun` repository.
 - Added project URLs to the package metadata.
+- Added `--trials N` to `evalrun run` and `trials=` to the SDK: each scenario
+  reports pass rate with a 95% Wilson interval, mean score with a 95% t
+  interval, and latency p50/p95, in the terminal, HTML report and manifest.
+- Langfuse tracing now stays off unless both Langfuse keys are configured,
+  instead of printing authentication errors on every call.
 - Planned next: statistics core, judge calibration, trace import, and
   deterministic checks for EvalRun 1.0.
 

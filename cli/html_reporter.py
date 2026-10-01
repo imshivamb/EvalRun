@@ -255,6 +255,28 @@ def generate_html_report(
         </div>
         """
 
+        trial_section = ""
+        stats = getattr(res, "statistics", None)
+        if stats is not None and stats.trials > 1:
+            def interval_cell(interval, scale=1.0, digits=1):
+                if not interval:
+                    return "n/a (needs 2+ trials)"
+                return f"{interval[0] * scale:.{digits}f} to {interval[1] * scale:.{digits}f}"
+
+            def seconds_cell(value):
+                return f"{value:.2f}s" if value is not None else "N/A"
+
+            trial_section = f"""
+        <div class="section-card trace-card">
+            <h3>Trial Statistics ({stats.trials} trials, 95% intervals)</h3>
+            <table class="trace-table">
+                <tr><th>Pass rate</th><td><strong>{stats.passes}/{stats.trials} ({stats.pass_rate * 100:.0f}%)</strong>, interval {interval_cell(stats.pass_rate_interval, scale=100, digits=0)}%</td></tr>
+                <tr><th>Mean score</th><td><strong>{stats.score_mean:.2f}</strong>, interval {interval_cell(stats.score_interval)}</td></tr>
+                <tr><th>Latency</th><td>p50 <strong>{seconds_cell(stats.latency_p50_seconds)}</strong> | p95 <strong>{seconds_cell(stats.latency_p95_seconds)}</strong></td></tr>
+            </table>
+        </div>
+        """
+
         # Copyable Remediation Command for failing cards
         remediation_html = ""
         if card_status_tag != "passed":
@@ -302,6 +324,7 @@ def generate_html_report(
             {remediation_html}
             {baseline_delta_html}
             {auditor_section}
+            {trial_section}
             {trace_section}
 
             {f'''<div class="section-card">

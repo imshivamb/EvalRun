@@ -107,7 +107,7 @@ class TestCLIFunctionality(unittest.TestCase):
             dimension_scores=[DimensionScore("Constraint Satisfaction", 85.0, "Good")],
             passed=True,
         )
-        mock_runner.run.return_value = mock_res
+        mock_runner.run_trials.return_value = mock_res
 
         parser = create_parser()
         args = parser.parse_args([
@@ -147,7 +147,7 @@ class TestCLIFunctionality(unittest.TestCase):
             passed=True,
             agent_metadata={"audit_gate_decision": "BLOCK"},
         )
-        mock_runner.run.return_value = mock_res
+        mock_runner.run_trials.return_value = mock_res
 
         parser = create_parser()
         args = parser.parse_args([
@@ -180,7 +180,7 @@ class TestCLIFunctionality(unittest.TestCase):
             passed=True,
             agent_metadata={"audit_gate_decision": "PASS"},
         )
-        mock_runner.run.return_value = mock_res
+        mock_runner.run_trials.return_value = mock_res
 
         # Create baseline directory & manifest.json
         baseline_dir = os.path.join(self.temp_dir, "baseline_run")

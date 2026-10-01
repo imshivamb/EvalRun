@@ -32,7 +32,7 @@ class TestPythonSDK(unittest.TestCase):
             dimension_scores=[DimensionScore("Constraint Satisfaction", 88.0, "Pass")],
             passed=True,
         )
-        mock_runner.run.return_value = mock_res
+        mock_runner.run_trials.return_value = mock_res
 
         results = evaluate(
             scenario="evals/scenarios/travel-agent/budget-constrained-itinerary.md",
@@ -94,7 +94,7 @@ class TestPythonSDK(unittest.TestCase):
 
         mock_runner = MagicMock()
         mock_runner_class.return_value = mock_runner
-        mock_runner.run.side_effect = RuntimeError("model endpoint unavailable")
+        mock_runner.run_trials.side_effect = RuntimeError("model endpoint unavailable")
 
         results = evaluate(
             scenario=suite_dir,
@@ -123,7 +123,7 @@ class TestPythonSDK(unittest.TestCase):
 
         mock_runner = MagicMock()
         mock_runner_class.return_value = mock_runner
-        mock_runner.run.side_effect = RuntimeError("single scenario failure")
+        mock_runner.run_trials.side_effect = RuntimeError("single scenario failure")
 
         results = evaluate(
             scenario=scenario_path,
