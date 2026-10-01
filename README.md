@@ -76,8 +76,11 @@ open results/demo/report.html  # macOS
 ```
 
 The offline demo is the safest way to confirm that installation works. It makes
-no model requests, needs no API key, and executes only EvalRun's built-in demo
-agent.
+no model requests and needs no API key. It replays a real recorded run (Gemini
+3.7 Flash as agent and judge, 3 trials of the budget travel scenario) through
+the same aggregation and report code a live run uses, so every score, judge
+justification and agent output it shows is real. The recording and the exact
+command that produced it are in `cli/demo_data/recorded_run.json`.
 
 ### 3. Create and check your own evaluation workspace
 

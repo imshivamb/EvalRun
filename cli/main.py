@@ -28,7 +28,7 @@ def create_parser() -> argparse.ArgumentParser:
     main_description = (
         "EvalRun: Local evaluation & regression testing toolkit for tool-using AI agents.\n\n"
         "Quick Start Commands:\n"
-        "  evalrun demo                     Run an offline evaluation demo with zero API keys required\n"
+        "  evalrun demo                     Replay a real recorded evaluation offline, no API key required\n"
         "  evalrun ui                       Launch the local guided browser UI\n"
         "  evalrun run -s scenario.md -a agents.travel:TravelPlanningAgent -m gpt-5.6-terra\n"
     )
@@ -235,7 +235,7 @@ def create_parser() -> argparse.ArgumentParser:
     ui_parser.add_argument("--host", type=str, default="127.0.0.1", help="Host address for local UI server (default: 127.0.0.1)")
     ui_parser.add_argument("--port", type=int, default=8501, help="Port number for local UI server (default: 8501)")
 
-    demo_parser = subparsers.add_parser("demo", help="Run an offline demo without an API key")
+    demo_parser = subparsers.add_parser("demo", help="Replay a real recorded evaluation offline, without an API key")
     demo_parser.add_argument("--output", type=str, default="results/demo", help="Directory for demo artifacts")
 
     init_parser = subparsers.add_parser(

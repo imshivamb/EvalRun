@@ -39,6 +39,26 @@ from framework.verification.local import LocalKnowledgeBaseVerifier
 from framework.verification.pipeline import VerificationPipeline
 
 
+def resolve_profile(benchmark: Benchmark):
+    """Resolves a scenario's evaluation profile (static, then dynamic, then travel fallback)."""
+    prof_name = benchmark.profile
+    profile = PROFILE_REGISTRY.get(prof_name)
+    if not profile:
+        try:
+            from framework.profiles.registry import get_custom_profile
+            profile = get_custom_profile(prof_name)
+        except Exception:
+            pass
+    if not profile:
+        if prof_name in ("travel-agent", "travel", "default"):
+            profile = TRAVEL_PROFILE
+        else:
+            raise ValueError(
+                f"Evaluation profile '{prof_name}' not found in static or dynamic profile registries."
+            )
+    return profile
+
+
 class BenchmarkRunner:
     """Automates the entire evaluation pipeline for a given agent under test.
 
@@ -108,24 +128,6 @@ class BenchmarkRunner:
             }
         )
 
-    def _resolve_profile(self, benchmark: Benchmark):
-        """Resolves a scenario's evaluation profile (static, then dynamic, then travel fallback)."""
-        prof_name = benchmark.profile
-        profile = PROFILE_REGISTRY.get(prof_name)
-        if not profile:
-            try:
-                from framework.profiles.registry import get_custom_profile
-                profile = get_custom_profile(prof_name)
-            except Exception:
-                pass
-        if not profile:
-            if prof_name in ("travel-agent", "travel", "default"):
-                profile = TRAVEL_PROFILE
-            else:
-                raise ValueError(
-                    f"Evaluation profile '{prof_name}' not found in static or dynamic profile registries."
-                )
-        return profile
 
     def run(self, filepath: str, trial_index: Optional[int] = None) -> EvaluationResult:
         """Runs the complete evaluation pipeline for a single benchmark file.
@@ -143,7 +145,7 @@ class BenchmarkRunner:
         benchmark = parse_benchmark(filepath)
 
         # 2. Resolve evaluation profile (Static -> Dynamic -> Fallback/Error)
-        profile = self._resolve_profile(benchmark)
+        profile = resolve_profile(benchmark)
 
         # Dimension names are shared across domains, but their rubrics are not.
         # Configure support prompts only after this scenario's profile resolves.
@@ -257,7 +259,7 @@ class BenchmarkRunner:
             return result
 
         trial_results = [self.run(filepath, trial_index=i) for i in range(1, trials + 1)]
-        profile = self._resolve_profile(parse_benchmark(filepath))
+        profile = resolve_profile(parse_benchmark(filepath))
         aggregated = aggregate_trials(trial_results, profile.pass_threshold)
         self._save_trial_summary(aggregated, profile)
         return aggregated

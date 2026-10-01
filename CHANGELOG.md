@@ -8,6 +8,10 @@
 - Added `--trials N` to `evalrun run` and `trials=` to the SDK: each scenario
   reports pass rate with a 95% Wilson interval, mean score with a 95% t
   interval, and latency p50/p95, in the terminal, HTML report and manifest.
+- `evalrun demo` now replays a real recorded run (Gemini 3.7 Flash, 3 trials)
+  instead of showing a hardcoded score and invented justifications. The
+  recording ships with its provenance in `cli/demo_data/recorded_run.json` and
+  is rebuilt with `scripts/build_demo_recording.py`.
 - Langfuse tracing now stays off unless both Langfuse keys are configured,
   instead of printing authentication errors on every call.
 - Planned next: statistics core, judge calibration, trace import, and

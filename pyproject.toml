@@ -38,6 +38,9 @@ evalrun = "cli.main:main"
 include = ["agents*", "cli*", "framework*", "ui*"]
 exclude = ["tests*", "runs*", "evals*", "results*", "scratch*", "traces*", "dashboards*", "ground_truth*"]
 
+[tool.setuptools.package-data]
+cli = ["demo_data/*.json"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
