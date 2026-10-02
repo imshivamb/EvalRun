@@ -56,6 +56,8 @@ def summarize_trials(trial_results: List[EvaluationResult]) -> TrialStatistics:
         },
         latency_p50_seconds=percentile(latencies, 50) if latencies else None,
         latency_p95_seconds=percentile(latencies, 95) if latencies else None,
+        trial_scores=scores,
+        dimension_trial_scores=dimension_values,
     )
 
 

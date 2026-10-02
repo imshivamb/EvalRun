@@ -159,6 +159,9 @@ def generate_html_report(
             delta_val = reg_info.get("overall_delta")
             delta_class = "score-high" if (delta_val or 0) >= 0 else ("score-med" if (delta_val or 0) >= -5.0 else "score-low")
             delta_str = f"{delta_val:+.2f}" if delta_val is not None else "N/A"
+            overall_ci = reg_info.get("overall_delta_interval")
+            if overall_ci:
+                delta_str += f" (95% interval {overall_ci[0]:+.2f} to {overall_ci[1]:+.2f})"
 
             dim_delta_rows = []
             for dd in reg_info.get("dimension_deltas", []):
@@ -168,7 +171,7 @@ def generate_html_report(
                     <td>{html.escape(dd['dimension'])}</td>
                     <td>{dd['baseline_score']:.1f}</td>
                     <td>{dd['candidate_score']:.1f}</td>
-                    <td><span class="{dd_class}">{dd['delta']:+.2f}</span></td>
+                    <td><span class="{dd_class}">{dd['delta']:+.2f}</span>{f" ({dd['delta_interval'][0]:+.1f} to {dd['delta_interval'][1]:+.1f})" if dd.get('delta_interval') else ''}</td>
                 </tr>
                 """)
 

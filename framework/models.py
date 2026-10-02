@@ -58,6 +58,8 @@ class TrialStatistics:
     dimension_intervals: Dict[str, Optional[Tuple[float, float]]]
     latency_p50_seconds: Optional[float]
     latency_p95_seconds: Optional[float]
+    trial_scores: List[float] = field(default_factory=list)
+    dimension_trial_scores: Dict[str, List[float]] = field(default_factory=dict)
     confidence_level: float = 0.95
 
     def to_dict(self) -> Dict[str, Any]:
@@ -76,6 +78,10 @@ class TrialStatistics:
             },
             "latency_p50_seconds": self.latency_p50_seconds,
             "latency_p95_seconds": self.latency_p95_seconds,
+            "trial_scores": list(self.trial_scores),
+            "dimension_trial_scores": {
+                name: list(values) for name, values in self.dimension_trial_scores.items()
+            },
             "confidence_level": self.confidence_level,
         }
 

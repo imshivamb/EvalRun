@@ -50,6 +50,30 @@ def format_trial_statistics(results: List[EvaluationResult]) -> List[str]:
     return lines
 
 
+def format_statistical_regression(regression_report: Optional[Dict[str, Any]]) -> List[str]:
+    """Interval lines for a statistical-mode baseline comparison; empty otherwise."""
+    if not regression_report or regression_report.get("regression_mode") != "statistical":
+        return []
+    lines = ["-" * 85, " Regression check: statistical (95% interval of the change vs baseline)"]
+    for s in regression_report.get("scenarios", []):
+        interval = s.get("overall_delta_interval")
+        if not interval or s.get("overall_delta") is None:
+            continue
+        if s.get("is_regression"):
+            verdict = "REGRESSED"
+        elif interval[1] < 0:
+            verdict = "drop is real but within --max-regression"
+        elif interval[0] > 0:
+            verdict = "improved"
+        else:
+            verdict = "within noise"
+        lines.append(
+            f"  {s['scenario_name'][:28]:<28} change {s['overall_delta']:+.2f} "
+            f"[{interval[0]:+.2f} to {interval[1]:+.2f}] {verdict}"
+        )
+    return lines
+
+
 def format_terminal_summary(
     results: List[EvaluationResult],
     manifest: Dict[str, Any],
@@ -105,6 +129,8 @@ def format_terminal_summary(
             )
         else:
             lines.append(f"{res.benchmark_name[:32]:<32} | {res.overall_score:6.2f}   | {eval_status:<10} | {audit_status:<12}")
+
+    lines.extend(format_statistical_regression(regression_report))
 
     trial_lines = format_trial_statistics(results)
     if trial_lines:

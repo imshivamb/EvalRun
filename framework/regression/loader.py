@@ -98,6 +98,7 @@ def load_baseline_manifest(path_str: str) -> Dict[str, Any]:
                 "dimension_scores": dim_scores,
                 "report_path": rep_path,
                 "itinerary_path": item.get("itinerary_path", ""),
+                "statistics": item.get("statistics"),
             }
 
     # 2. Only scan directory for report files if path_str was a dedicated directory

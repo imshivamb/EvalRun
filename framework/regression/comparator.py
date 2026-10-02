@@ -1,8 +1,15 @@
 """Baseline comparator engine for score delta calculation and release gate enforcement."""
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 from framework.models import EvaluationResult
+from framework.stats import welch_interval
+
+REGRESSION_MODES = ("simple", "statistical")
+
+
+def _rounded(interval: Optional[Tuple[float, float]]) -> Optional[List[float]]:
+    return [round(interval[0], 2), round(interval[1], 2)] if interval else None
 
 
 @dataclass
@@ -14,6 +21,7 @@ class DimensionDelta:
     candidate_score: float
     delta: float
     is_regression: bool
+    interval: Optional[Tuple[float, float]] = None
 
 
 @dataclass
@@ -30,6 +38,7 @@ class ScenarioComparison:
     auditor_gate: str
     is_regression: bool
     dimension_deltas: List[DimensionDelta] = field(default_factory=list)
+    overall_interval: Optional[Tuple[float, float]] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -42,6 +51,7 @@ class ScenarioComparison:
             "evaluator_passed": self.evaluator_passed,
             "auditor_gate": self.auditor_gate,
             "is_regression": self.is_regression,
+            "overall_delta_interval": _rounded(self.overall_interval),
             "dimension_deltas": [
                 {
                     "dimension": d.dimension,
@@ -49,6 +59,7 @@ class ScenarioComparison:
                     "candidate_score": round(d.candidate_score, 2),
                     "delta": round(d.delta, 2),
                     "is_regression": d.is_regression,
+                    "delta_interval": _rounded(d.interval),
                 }
                 for d in self.dimension_deltas
             ],
@@ -67,10 +78,12 @@ class RegressionReport:
     max_allowed_dimension_regression: float
     scenario_comparisons: List[ScenarioComparison]
     summary: Dict[str, Any]
+    regression_mode: str = "simple"
 
     def to_dict(self) -> Dict[str, Any]:
         return {
             "run_id": self.run_id,
+            "regression_mode": self.regression_mode,
             "baseline_run_id": self.baseline_run_id,
             "regression_detected": self.regression_detected,
             "release_blocked": self.release_blocked,
@@ -87,6 +100,7 @@ def compare_runs(
     max_overall_drop: float = 5.0,
     max_dim_drop: float = 10.0,
     candidate_run_id: str = "candidate-run",
+    regression_mode: str = "simple",
 ) -> RegressionReport:
     """Compares candidate evaluation results against baseline data.
 
@@ -96,16 +110,27 @@ def compare_runs(
     2. Independent Auditor Gate (not BLOCK)
     3. Regression Delta Gate (overall delta >= -max_overall_drop AND dim deltas >= -max_dim_drop)
 
+    In ``statistical`` mode the regression gate compares the trial scores of
+    both runs instead of their means: a score regresses only when the 95%
+    Welch interval of the change excludes zero AND the estimated drop exceeds
+    the allowed drop. Both runs need at least two trials per scenario;
+    otherwise a ValueError is raised rather than inventing an interval.
+
     Args:
         candidate_results: List of candidate EvaluationResult objects.
         baseline_data: Dictionary returned by load_baseline_manifest().
         max_overall_drop: Maximum allowed overall score drop before regressed.
         max_dim_drop: Maximum allowed per-dimension score drop before regressed.
         candidate_run_id: Identifier for candidate run.
+        regression_mode: "simple" (fixed drop threshold) or "statistical".
 
     Returns:
         A RegressionReport containing comparison details and release block status.
     """
+    if regression_mode not in REGRESSION_MODES:
+        raise ValueError(f"regression_mode must be one of {REGRESSION_MODES}, got '{regression_mode}'")
+    statistical = regression_mode == "statistical"
+
     baseline_manifest = baseline_data.get("manifest", {})
     baseline_scenarios = baseline_data.get("scenarios", {})
     baseline_run_id = baseline_manifest.get("run_id")
@@ -155,8 +180,14 @@ def compare_runs(
             base_score = b_info["overall_score"]
             overall_delta = cand_score - base_score
 
-            # Formula: delta < -max_overall_drop
-            overall_regressed = overall_delta < (-abs(max_overall_drop))
+            overall_interval = None
+            if statistical:
+                b_trials, c_trials = _trial_scores(b_info, cand_res)
+                overall_interval = _require_interval(s_id, "overall score", b_trials, c_trials)
+                overall_regressed = _statistically_regressed(overall_interval, max_overall_drop)
+            else:
+                # Formula: delta < -max_overall_drop
+                overall_regressed = overall_delta < (-abs(max_overall_drop))
 
             # Per-dimension deltas
             base_dims = b_info.get("dimension_scores", {})
@@ -164,6 +195,9 @@ def compare_runs(
 
             dimension_deltas: List[DimensionDelta] = []
             dim_regressed = False
+            b_dim_trials, c_dim_trials = (
+                _dimension_trial_scores(b_info, cand_res) if statistical else ({}, {})
+            )
             all_dimensions = set(base_dims.keys()).union(cand_dims.keys())
 
             for d_name in sorted(all_dimensions):
@@ -171,7 +205,15 @@ def compare_runs(
                     b_dscore = base_dims[d_name]
                     c_dscore = cand_dims[d_name]
                     ddelta = c_dscore - b_dscore
-                    d_is_regressed = ddelta < (-abs(max_dim_drop))
+                    d_interval = None
+                    if statistical:
+                        d_interval = _require_interval(
+                            s_id, f"dimension '{d_name}'",
+                            b_dim_trials.get(d_name, []), c_dim_trials.get(d_name, []),
+                        )
+                        d_is_regressed = _statistically_regressed(d_interval, max_dim_drop)
+                    else:
+                        d_is_regressed = ddelta < (-abs(max_dim_drop))
                     if d_is_regressed:
                         dim_regressed = True
                     dimension_deltas.append(
@@ -181,6 +223,7 @@ def compare_runs(
                             candidate_score=c_dscore,
                             delta=ddelta,
                             is_regression=d_is_regressed,
+                            interval=d_interval[1:] if d_interval else None,
                         )
                     )
                 elif d_name in base_dims and d_name not in cand_dims:
@@ -231,6 +274,7 @@ def compare_runs(
                     auditor_gate=auditor_gate,
                     is_regression=is_scenario_regression,
                     dimension_deltas=dimension_deltas,
+                    overall_interval=overall_interval[1:] if overall_interval else None,
                 )
             )
         else:
@@ -270,4 +314,41 @@ def compare_runs(
         max_allowed_dimension_regression=max_dim_drop,
         scenario_comparisons=comparisons,
         summary=summary,
+        regression_mode=regression_mode,
     )
+
+
+def _trial_scores(b_info: Dict[str, Any], cand_res: EvaluationResult):
+    baseline_stats = b_info.get("statistics") or {}
+    candidate_stats = cand_res.statistics
+    return (
+        list(baseline_stats.get("trial_scores") or []),
+        list(candidate_stats.trial_scores) if candidate_stats else [],
+    )
+
+
+def _dimension_trial_scores(b_info: Dict[str, Any], cand_res: EvaluationResult):
+    baseline_stats = b_info.get("statistics") or {}
+    candidate_stats = cand_res.statistics
+    return (
+        dict(baseline_stats.get("dimension_trial_scores") or {}),
+        dict(candidate_stats.dimension_trial_scores) if candidate_stats else {},
+    )
+
+
+def _require_interval(
+    s_id: str, label: str, baseline: Sequence[float], candidate: Sequence[float]
+) -> Tuple[float, float, float]:
+    interval = welch_interval(baseline, candidate)
+    if interval is None:
+        raise ValueError(
+            f"Statistical regression mode needs at least 2 trials per side for scenario '{s_id}' "
+            f"({label}): baseline has {len(baseline)}, candidate has {len(candidate)}. "
+            "Run both with --trials 2 or more."
+        )
+    return interval
+
+
+def _statistically_regressed(interval: Tuple[float, float, float], allowed_drop: float) -> bool:
+    difference, _, high = interval
+    return high < 0 and difference < -abs(allowed_drop)

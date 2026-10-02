@@ -82,6 +82,80 @@ def mean_interval(values: Sequence[float]) -> Optional[Tuple[float, float]]:
     return m - half, m + half
 
 
+def welch_interval(
+    baseline: Sequence[float], candidate: Sequence[float]
+) -> Optional[Tuple[float, float, float]]:
+    """Welch interval for mean(candidate) - mean(baseline) from independent samples.
+
+    Returns (difference, low, high), or None when either side has fewer than two
+    values. Welch-Satterthwaite degrees of freedom are rounded down, which
+    widens the interval slightly (conservative).
+    """
+    if len(baseline) < 2 or len(candidate) < 2:
+        return None
+    difference = mean(candidate) - mean(baseline)
+    var_b = sample_std(baseline) ** 2 / len(baseline)
+    var_c = sample_std(candidate) ** 2 / len(candidate)
+    se = math.sqrt(var_b + var_c)
+    if se == 0:
+        return difference, difference, difference
+    df = (var_b + var_c) ** 2 / (
+        var_b ** 2 / (len(baseline) - 1) + var_c ** 2 / (len(candidate) - 1)
+    )
+    half = t_critical_95(max(1, math.floor(df))) * se
+    return difference, difference - half, difference + half
+
+
+# One-sided normal quantile for 80% power.
+_Z_80 = 0.8416212335729143
+TARGET_POWER = 0.80
+
+
+def normal_cdf(x: float) -> float:
+    return 0.5 * (1 + math.erf(x / math.sqrt(2)))
+
+
+def gate_power(sigma: float, drop: float, threshold: float, trials: int) -> float:
+    """Probability that the statistical gate blocks a true drop of ``drop`` points.
+
+    Models the gate rule exactly: block when the Welch interval excludes zero
+    and the estimated drop exceeds ``threshold``. Assumes ``trials`` trials per
+    side with a common score standard deviation ``sigma`` and a normally
+    distributed estimate, so the result is an approximation for small samples.
+    """
+    if trials < 2:
+        raise ValueError("the statistical gate needs at least 2 trials per side")
+    if sigma <= 0:
+        return 1.0 if drop > threshold else 0.0
+    se = sigma * math.sqrt(2 / trials)
+    bar = max(threshold, t_critical_95(2 * trials - 2) * se)
+    return normal_cdf((drop - bar) / se)
+
+
+def trials_for_power(
+    sigma: float, drop: float, threshold: float, max_trials: int = 1000
+) -> Optional[int]:
+    """Smallest trials per side at which the gate blocks ``drop`` with 80% probability.
+
+    Returns None when no trial count reaches 80%, which is always the case for
+    a drop no larger than ``threshold``.
+    """
+    if drop <= threshold:
+        return None
+    for trials in range(2, max_trials + 1):
+        if gate_power(sigma, drop, threshold, trials) >= TARGET_POWER:
+            return trials
+    return None
+
+
+def minimum_detectable_drop(sigma: float, threshold: float, trials: int) -> float:
+    """Smallest true drop the gate blocks with 80% probability at ``trials`` per side."""
+    if trials < 2:
+        raise ValueError("the statistical gate needs at least 2 trials per side")
+    se = sigma * math.sqrt(2 / trials)
+    return max(threshold, t_critical_95(2 * trials - 2) * se) + _Z_80 * se
+
+
 def percentile(values: Sequence[float], q: float) -> float:
     """Percentile with linear interpolation between closest ranks (``q`` in [0, 100])."""
     if not values:

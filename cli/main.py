@@ -15,6 +15,7 @@ if not os.environ.get("LANGFUSE_PUBLIC_KEY"):
     logging.getLogger("langfuse").setLevel(logging.ERROR)
 
 from cli.formatter import format_terminal_summary, redact_credentials
+from cli.power import add_power_parser, power_command
 from cli.resolver import resolve_agent
 from framework.evaluation.runner import BenchmarkRunner
 from framework.llms.openai_compatible import OpenAICompatibleLLM
@@ -212,6 +213,14 @@ def create_parser() -> argparse.ArgumentParser:
         help="Maximum allowed per-dimension score drop before release is blocked (default: 10.0)",
     )
     run_parser.add_argument(
+        "--regression-mode",
+        choices=["simple", "statistical"],
+        default=None,
+        help="Baseline gate: 'simple' blocks on any drop beyond --max-regression; 'statistical' "
+             "blocks only when the 95%% interval of the drop excludes zero and the drop exceeds "
+             "--max-regression (needs --trials 2+ in both runs). Default: simple",
+    )
+    run_parser.add_argument(
         "--trials",
         type=int,
         default=None,
@@ -267,6 +276,8 @@ def create_parser() -> argparse.ArgumentParser:
         help="Check environment diagnostics, API keys, endpoint reachability, and permissions",
         description="Run system diagnostic checks for Python, EvalRun, API keys, endpoints, and write access.",
     )
+
+    add_power_parser(subparsers)
 
     return parser
 
@@ -324,6 +335,10 @@ def run_command(args: argparse.Namespace) -> int:
     args.output = args.output or "./eval_results"
     args.max_regression = 5.0 if args.max_regression is None else args.max_regression
     args.max_dimension_regression = 10.0 if args.max_dimension_regression is None else args.max_dimension_regression
+    args.regression_mode = getattr(args, "regression_mode", None) or "simple"
+    if args.regression_mode not in ("simple", "statistical"):
+        print("Error: --regression-mode must be 'simple' or 'statistical'.", file=sys.stderr)
+        return 2
     args.trials = 1 if getattr(args, "trials", None) is None else args.trials
     if isinstance(args.trials, bool) or not isinstance(args.trials, int) or args.trials < 1:
         print("Error: --trials must be a whole number of at least 1.", file=sys.stderr)
@@ -439,6 +454,7 @@ def run_command(args: argparse.Namespace) -> int:
                 max_overall_drop=args.max_regression,
                 max_dim_drop=args.max_dimension_regression,
                 candidate_run_id=candidate_run_id,
+                regression_mode=args.regression_mode,
             )
             regression_report_dict = reg_report.to_dict()
 
@@ -493,6 +509,7 @@ def run_command(args: argparse.Namespace) -> int:
             "api_key": "[REDACTED]" if auditor_api_key else "ENVIRONMENT_OR_EMPTY",
         } if args.auditor_model else None),
         "baseline_path": args.baseline,
+        "regression_mode": args.regression_mode if args.baseline else None,
         "ground_truth_path": args.ground_truth,
         "output_dir": str(output_dir),
         "total_scenarios": len(results),
@@ -687,6 +704,8 @@ def main(argv: Optional[List[str]] = None) -> None:
     elif args.command == "doctor":
         exit_code = doctor_command(args)
         sys.exit(exit_code)
+    elif args.command == "power":
+        sys.exit(power_command(args))
     elif args.command == "ui":
         from ui.server import run_ui_server
         server = run_ui_server(host=args.host, port=args.port)

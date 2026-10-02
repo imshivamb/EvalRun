@@ -178,6 +178,7 @@ def compare(
     max_regression: float = 5.0,
     max_dimension_regression: float = 10.0,
     candidate_run_id: str = "candidate-run",
+    regression_mode: str = "simple",
 ) -> RegressionReport:
     """Programmatically compares candidate evaluation results against a baseline.
 
@@ -187,6 +188,10 @@ def compare(
         max_regression: Maximum allowed overall score drop before release blocked.
         max_dimension_regression: Maximum allowed per-dimension score drop before release blocked.
         candidate_run_id: Identifier for candidate run.
+        regression_mode: "simple" blocks on any drop beyond the limits;
+            "statistical" blocks only when the 95% interval of the drop
+            excludes zero and the drop exceeds the limit. Statistical mode
+            needs results run with trials >= 2 on both sides.
 
     Returns:
         A RegressionReport object.
@@ -198,4 +203,5 @@ def compare(
         max_overall_drop=max_regression,
         max_dim_drop=max_dimension_regression,
         candidate_run_id=candidate_run_id,
+        regression_mode=regression_mode,
     )

@@ -8,6 +8,15 @@
 - Added `--trials N` to `evalrun run` and `trials=` to the SDK: each scenario
   reports pass rate with a 95% Wilson interval, mean score with a 95% t
   interval, and latency p50/p95, in the terminal, HTML report and manifest.
+- Added `--regression-mode statistical` to `evalrun run` and
+  `regression_mode=` to the SDK's `compare()`: a scenario or dimension
+  regresses only when the 95% Welch interval of the change against the
+  baseline's trials excludes zero and the drop exceeds the allowed drop. It
+  refuses runs with fewer than 2 trials per side. Simple mode stays the default.
+- Added `evalrun power`: from a baseline's measured score noise, the trials per
+  side needed to catch a given drop 80% of the time under the statistical
+  gate, and the smallest drop the baseline's trial count can catch.
+- Run statistics now keep every trial's overall and per-dimension scores.
 - `evalrun demo` now replays a real recorded run (Gemini 3.7 Flash, 3 trials)
   instead of showing a hardcoded score and invented justifications. The
   recording ships with its provenance in `cli/demo_data/recorded_run.json` and

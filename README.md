@@ -269,6 +269,26 @@ With `--trials N` above 1, each scenario reports:
 
 The scenario passes when its mean score meets the profile threshold, the same rule a single run uses; an auditor BLOCK in any trial blocks it. Per-trial artifacts are written with a `_trial<N>` suffix, and the scenario's `_report.json` holds the aggregate. The SDK takes the same option as `evaluate(..., trials=5)`.
 
+### Statistical regression gate
+
+The default baseline gate blocks any drop larger than `--max-regression`, even when the drop is within the run-to-run noise. With trials on both sides, opt into a gate that cannot fire on noise:
+
+```bash
+evalrun run ... --trials 3 --baseline results/run-001 --regression-mode statistical
+```
+
+For each scenario and dimension it computes a 95% Welch interval for the change between the candidate's and the baseline's trials. It blocks only when that interval excludes zero **and** the estimated drop exceeds `--max-regression` (or `--max-dimension-regression`). A noisy drop of 8 points whose interval still includes zero does not block. Both runs need at least 2 trials per scenario; otherwise the run stops with exit code 2 instead of inventing an interval. The SDK takes `compare(..., regression_mode="statistical")`.
+
+### How many trials do I need?
+
+`evalrun power` uses the noise measured in a baseline run to answer that before you spend money running trials:
+
+```bash
+evalrun power --baseline results/run-001 --drop 8
+```
+
+For each scenario it prints the score standard deviation, the smallest drop the gate catches 80% of the time at the baseline's trial count, and the trials per side needed to catch a drop of `--drop` points. It models the gate's actual rule, so a drop no larger than `--max-regression` is reported as unreachable. Without a baseline, pass `--std` directly.
+
 ### Generated Artifacts
 
 - `manifest.json`: Execution metadata with redacted API credentials.
