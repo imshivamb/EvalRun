@@ -4,6 +4,7 @@ import argparse
 import json
 import logging
 import os
+import re
 import sys
 import uuid
 from datetime import datetime, timezone
@@ -24,6 +25,20 @@ from cli.progress import run_with_progress
 from agents.auditor import IndependentBudgetAuditor
 
 
+_API_KEY_VALUE = re.compile(r"(--[\w-]*api-key)(=|\s+)(\S+)")
+
+
+class RedactingArgumentParser(argparse.ArgumentParser):
+    """ArgumentParser whose error messages never echo an API key value.
+
+    argparse repeats unrecognized arguments verbatim, so a mistyped flag next
+    to --api-key would otherwise print the key to the terminal and CI logs.
+    """
+
+    def error(self, message: str):
+        super().error(_API_KEY_VALUE.sub(r"\1\2[REDACTED]", message))
+
+
 def create_parser() -> argparse.ArgumentParser:
     """Creates the argparse parser for evalrun CLI."""
     main_description = (
@@ -42,7 +57,7 @@ def create_parser() -> argparse.ArgumentParser:
         "For detailed usage on any command, run: evalrun <command> --help\n"
     )
 
-    parser = argparse.ArgumentParser(
+    parser = RedactingArgumentParser(
         prog="evalrun",
         description=main_description,
         epilog=main_epilog,

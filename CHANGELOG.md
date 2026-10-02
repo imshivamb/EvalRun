@@ -16,6 +16,9 @@
 - Added `evalrun power`: from a baseline's measured score noise, the trials per
   side needed to catch a given drop 80% of the time under the statistical
   gate, and the smallest drop the baseline's trial count can catch.
+- Argument errors no longer echo API key values. argparse repeats unrecognized
+  arguments verbatim, so a shell that did not split an option string printed
+  the `--api-key` value to the terminal and logs.
 - Run statistics now keep every trial's overall and per-dimension scores.
 - `evalrun demo` now replays a real recorded run (Gemini 3.7 Flash, 3 trials)
   instead of showing a hardcoded score and invented justifications. The
