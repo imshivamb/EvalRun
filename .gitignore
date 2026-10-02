@@ -26,3 +26,6 @@ dist/
 results/**/*.json
 traces/*.json
 *.log
+
+# Private study notes and findings (never pushed)
+notes/
